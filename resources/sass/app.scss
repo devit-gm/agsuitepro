@@ -1,0 +1,23 @@
+// Fonts
+@import url('https://fonts.bunny.net/css?family=Nunito');
+
+// Variables
+@import 'variables';
+
+// Bootstrap
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+.logo-figure {
+    width: 42px;
+}
+.fondo-rojo{
+    background-color: #C23334;
+    color:#FFFFFF;
+}
+.color-rojo{
+    color: #C23334;
+}
+.borde-rojo{
+    border-color: #C23334;
+}
