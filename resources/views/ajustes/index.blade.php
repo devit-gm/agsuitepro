@@ -5,10 +5,10 @@
     <div class="row justify-content-center">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header">{{ __('Settings') }}</div>
+                <div class="card-header fondo-rojo"><i class="bi bi-gear"></i> {{ __('Settings') }}</div>
 
                 <div class="card-body">
-                    
+
                 </div>
             </div>
         </div>

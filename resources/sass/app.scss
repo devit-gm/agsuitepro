@@ -21,3 +21,18 @@
 .borde-rojo{
     border-color: #C23334;
 }
+.table-image {
+    td, th {
+        vertical-align: middle;
+    }
+}
+.card-header{
+    text-transform: uppercase;
+}
+.nav-link{
+    text-transform: uppercase;
+}
+.form-group.required label:after {
+    content:"*";
+    color:red;
+}

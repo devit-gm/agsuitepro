@@ -5,7 +5,7 @@
     <div class="row justify-content-center">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header fondo-rojo">{{ __('Users') }}</div>
+                <div class="card-header fondo-rojo"><i class="bi bi-people"></i> {{ __('Users') }}</div>
                 <div class="card-body">
 
                 </div>

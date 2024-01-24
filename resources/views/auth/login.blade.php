@@ -5,11 +5,11 @@
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="text-center">
-                <img src="images/logo.png" style="width:250px; height:auto" class="mb-4">
-                <h1 class="color-rojo mb-4">ACG El Despiste</h1>    
+                <img src="images/logo.png" style="width:150px; height:auto" class="mb-2">
+                <h1 class="color-rojo mb-2">ACG El Despiste</h1>
             </div>
             <div class="card">
-            
+
                 <div class="card-header fondo-rojo">{{ __('Login') }}</div>
 
                 <div class="card-body">
@@ -23,9 +23,9 @@
                                 <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
 
                                 @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
                                 @enderror
                             </div>
                         </div>
@@ -37,9 +37,9 @@
                                 <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
 
                                 @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
                                 @enderror
                             </div>
                         </div>
@@ -57,16 +57,18 @@
                         </div>
 
                         <div class="row mb-0">
-                            <div class="col-md-8 offset-md-4">
-                                <button type="submit" class="btn btn-primary fondo-rojo">
-                                    {{ __('Access') }}
-                                </button>
+                            <div class="col-md-12 ">
+                                <div class="d-flex flex-column align-items-center justify-content-center">
+                                    <button type="submit" class="btn btn-success">
+                                        {{ __('Access') }}
+                                    </button>
 
-                                @if (Route::has('password.request'))
+                                    @if (Route::has('password.request'))
                                     <a class="btn btn-link color-rojo" href="{{ route('password.request') }}">
                                         {{ __('Forgot Your Password?') }}
                                     </a>
-                                @endif
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </form>
