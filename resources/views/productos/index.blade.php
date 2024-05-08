@@ -17,9 +17,10 @@
                         <div class="row">
                             <table class="table table-bordered table-responsive table-hover">
                                 <thead>
-                                    <tr class="table-dark">
+                                    <tr class="">
                                         <th scope="col-auto">Imagen</th>
                                         <th scope="col-auto">Nombre</th>
+                                        <th scope="col-auto">Precio</th>
                                         <th scope="col-auto"></th>
                                     </tr>
                                 </thead>
@@ -35,8 +36,11 @@
                                             @endif
                                             <br />
                                             @if ($producto->combinado == 1)
-                                            <span class="badge bg-success">Combinado</span>
+                                            <span class="badge btn bt-sm btn-info color-negro">Combinado</span>
                                             @endif
+                                        </td>
+                                        <td class="align-middle">
+                                            {{ $producto->precio }}€
                                         </td>
                                         <td class="align-middle text-center">
                                             <form action="{{ route('productos.destroy', $producto->id) }}" method="post">
@@ -46,7 +50,7 @@
                                                     @if (Auth::user()->hasRole('Administrador'))
                                                     <a href="{{ route('productos.edit', $producto->id) }}" title="Editar producto" class="btn btn-sm btn-secondary mx-1 my-1"><i class="bi bi-pen"></i></a>
                                                     <button type="submit" class="btn btn-sm btn-danger mx-1 my-1" title="Eliminar producto" onclick="return confirm('¿Está seguro de eliminar el producto?');"><i class="bi bi-trash"></i></button>
-                                                    <a href="{{ route('productos.list', $producto->id) }}" title="Ver composición producto" class="btn btn-sm btn-info mx-1 my-1" @if ($producto->combinado == 0) hidden @endif><i class="bi bi-list-ul"></i></a>
+                                                    <a href="{{ route('productos.components', $producto->id) }}" title="Ver composición producto" class="btn btn-sm btn-info mx-1 my-1" @if ($producto->combinado == 0) hidden @endif><i class="bi bi-list-ul"></i></a>
                                                     @endif
                                                 </div>
                                             </form>

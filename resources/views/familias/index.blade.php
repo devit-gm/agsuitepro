@@ -17,7 +17,7 @@
                         <div class="row">
                             <table class="table table-bordered table-responsive table-hover">
                                 <thead>
-                                    <tr class="table-dark">
+                                    <tr class="">
                                         <th scope="col-auto">Imagen</th>
                                         <th scope="col-auto">Nombre</th>
                                         <th scope="col-auto"></th>
@@ -36,6 +36,7 @@
                                                 <div class="d-flex align-items-center justify-content-center">
                                                     <a href="{{ route('familias.edit', $familia->id) }}" class="btn btn-sm btn-secondary mx-1"><i class="bi bi-pen"></i></a>
                                                     <button type="submit" class="btn btn-sm btn-danger mx-1" onclick="return confirm('¿Está seguro de eliminar la familia?');"><i class="bi bi-trash"></i></button>
+                                                    <a href="{{ route('familias.view', $familia->id) }}" title="Ver artículos de la familia" class="btn btn-sm btn-info mx-1 my-1"><i class="bi bi-list-ul"></i></a>
                                                 </div>
                                             </form>
                                             @endif

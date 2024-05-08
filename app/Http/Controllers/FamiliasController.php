@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Familia;
+use App\Models\Producto;
 use Illuminate\Support\Facades\File;
 
 class FamiliasController extends Controller
@@ -110,5 +111,12 @@ class FamiliasController extends Controller
     {
         $familia = Familia::find($id);
         return view('familias.edit', compact('familia'));
+    }
+
+    public function view($id)
+    {
+        $familia = Familia::find($id);
+        $productos = Producto::where('familia', $id)->get();
+        return view('familias.view', compact('productos', 'familia'));
     }
 }

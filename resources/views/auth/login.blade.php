@@ -60,7 +60,7 @@
                             <div class="col-md-12 ">
                                 <div class="d-flex flex-column align-items-center justify-content-center">
                                     <button type="submit" class="btn btn-success">
-                                        {{ __('Access') }}
+                                        <i class="bi bi-check2-circle"></i> {{ __('Access') }}
                                     </button>
 
                                     @if (Route::has('password.request'))
