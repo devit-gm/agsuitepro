@@ -39,7 +39,10 @@
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav me-auto ">
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('usuarios.*') || Request::is('/') ? 'active' : '' }}" href="{{ url('/usuarios') }}">{{ __('Users') }}</a>
+                            <a class="nav-link {{ request()->routeIs('fichas.*') || Request::is('/') ? 'active' : '' }}" href="{{ url('/fichas') }}">{{ __('Tokens') }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ url('/usuarios') }}">{{ __('Users') }}</a>
                         </li>
                         @if (Auth::user()->hasRole('Administrador'))
                         <li class="nav-item">
@@ -52,9 +55,7 @@
                             <a class="nav-link {{ request()->routeIs('servicios.*') ? 'active' : '' }}" href="{{ url('/servicios') }}">{{ __('Services') }}</a>
                         </li>
                         @endif
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('fichas.*') ? 'active' : '' }}" href="{{ url('/fichas') }}">{{ __('Tokens') }}</a>
-                        </li>
+
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('reservas.*') ? 'active' : '' }}" href="{{ url('/reservas') }}">{{ __('Bookings') }}</a>
                         </li>

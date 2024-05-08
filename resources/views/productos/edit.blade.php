@@ -46,7 +46,11 @@
                                     </div>
                                     <div class="form-group required mb-3">
                                         <label for="precio" class="fw-bold form-label">Precio</label>
-                                        <input type="number" step='0.01' value='0.00' placeholder='0.00' class="form-control" id="precio" name="precio" value="{{ $producto->precio }}" required>
+                                        @if( $producto->combinado == 0 )
+                                        <input type="number" step='0.01' placeholder='0.00' class="form-control" id="precio" name="precio" value="{{ $producto->precio }}" required>
+                                        @else
+                                        <input type="number" placeholder='0.00' class="form-control" id="precio" name="precio" value="{{ $producto->precio }}" required>
+                                        @endif
                                     </div>
                                     <div class="d-flex align-items-center justify-content-center">
                                         <button type="submit" class="btn btn-sm btn-success mx-1"><i class="bi bi-floppy"></i> Guardar</button>

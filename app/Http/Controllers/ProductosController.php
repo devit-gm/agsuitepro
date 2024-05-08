@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Familia;
 use App\Models\Producto;
+use App\Models\ComposicionProducto;
+use Illuminate\Console\View\Components\Component;
 use Illuminate\Support\Facades\File;
 
 class ProductosController extends Controller
@@ -16,7 +18,15 @@ class ProductosController extends Controller
     {
         $productos = Producto::orderBy('posicion')->get();
         foreach ($productos as $producto) {
+            $composicion = ComposicionProducto::where('id_producto', $producto->id)->get();
             $producto->familia = Familia::find($producto->familia);
+            if ($producto->combinado == 1) {
+                $precio = 0.00;
+                foreach ($composicion as $componente) {
+                    $precio += Producto::find($componente->id_componente)->precio;
+                }
+                $producto->precio =  number_format((float)$precio, 2, '.', '');
+            }
         }
         return view('productos.index', compact('productos'));
     }
@@ -100,10 +110,11 @@ class ProductosController extends Controller
      */
     public function destroy(string $id)
     {
-        $producto = Familia::find($id);
+        $producto = Producto::find($id);
         if (File::exists(public_path('images') . '/'  . $producto->imagen)) {
             File::delete(public_path('images') . '/'  . $producto->imagen);
         }
+        ComposicionProducto::where('id_producto', $id)->delete();
         $producto->delete();
         return redirect()->route('productos.index')
             ->with('success', 'Producto eliminado con éxito');
@@ -126,7 +137,80 @@ class ProductosController extends Controller
     public function edit($id)
     {
         $producto = Producto::find($id);
+        //Find components of product in composition table
+        $composicion = ComposicionProducto::where('id_producto', $id)->get();
+        if ($producto->combinado == 1) {
+            $precio = 0.00;
+            foreach ($composicion as $componente) {
+                $precio += Producto::find($componente->id_componente)->precio;
+            }
+            $producto->precio =  number_format((float)$precio, 2, '.', '');
+        }
         $familias = Familia::orderBy('posicion')->get();
         return view('productos.edit', compact('producto'), compact('familias'));
+    }
+
+    public function components($id)
+    {
+        $producto = Producto::find($id);
+        //Find components of product in composition table
+        $composicion = ComposicionProducto::where('id_producto', $id)->get();
+        if ($producto->combinado == 1) {
+            $precio = 0.00;
+            foreach ($composicion as $componente) {
+                $precio += Producto::find($componente->id_componente)->precio;
+            }
+            $producto->precio =  number_format((float)$precio, 2, '.', '');
+        }
+        $familias = Familia::orderBy('posicion')->get();
+        $producto->familia = Familia::find($producto->familia);
+
+        $componentes = Producto::where('combinado', 0)->orderBy('posicion')->get();
+        foreach ($componentes as $componente) {
+            $esComposicion = ComposicionProducto::where('id_producto', $id)->where('id_componente', $componente->id)->get();
+
+            if ($esComposicion->count() > 0) {
+                $componente->familia = 1;
+            } else {
+                $componente->familia = 0;
+            }
+        }
+        return view('productos.components', compact('producto', 'familias', 'componentes'));
+    }
+
+    public function update_components(Request $request, string $id)
+    {
+        ComposicionProducto::where('id_producto', $id)->delete();
+        foreach ($request->componentes as $componente) {
+            ComposicionProducto::create([
+                'id_producto' => $id,
+                'id_componente' => $componente
+            ]);
+        }
+
+        $producto = Producto::find($id);
+        //Find components of product in composition table
+        $composicion = ComposicionProducto::where('id_producto', $id)->get();
+        if ($producto->combinado == 1) {
+            $precio = 0.00;
+            foreach ($composicion as $componente) {
+                $precio += Producto::find($componente->id_componente)->precio;
+            }
+            $producto->precio =  number_format((float)$precio, 2, '.', '');
+        }
+        $familias = Familia::orderBy('posicion')->get();
+        $producto->familia = Familia::find($producto->familia);
+
+        $componentes = Producto::where('combinado', 0)->orderBy('posicion')->get();
+        foreach ($componentes as $componente) {
+            $esComposicion = ComposicionProducto::where('id_producto', $id)->where('id_componente', $componente->id)->get();
+
+            if ($esComposicion->count() > 0) {
+                $componente->familia = 1;
+            } else {
+                $componente->familia = 0;
+            }
+        }
+        return view('productos.components', compact('producto', 'familias', 'componentes'));
     }
 }
