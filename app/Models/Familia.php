@@ -8,7 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Familia extends Model
 {
     use HasFactory;
+    protected $primaryKey = 'uuid';
+    public $incrementing = false;
+
     protected $fillable = [
+        'uuid',
         'nombre',
         'imagen',
         'posicion'

@@ -1,33 +1,49 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-12">
-            <div class="card">
+        <div class="col-md-12 d-flex">
+            <div class="card flex-fill">
                 <div class="card-header fondo-rojo"><i class="bi bi-cup-straw"></i> {{ __('Products') }}</div>
 
                 <div class="card-body">
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <div class="d-grid gap-2 d-md-flex justify-content-end">
                         @if (Auth::user()->hasRole('Administrador'))
-                        <a class="btn btn-sm btn-success" href={{ route('productos.create') }}><i class="bi bi-plus-circle"></i> Nuevo Producto</a>
+                        <a class="btn btn-lg btn-success fs-3" href={{ route('productos.create') }}><i class="bi bi-plus-circle"></i> Nuevo Producto</a>
                         @endif
                     </div>
-                    <div class="container mt-3">
+                    <div class="container-fluid mt-3">
                         <div class="row">
+                            @if ($errors->any())
+                            <div class="custom-error-container" id="custom-error-container">
+                                <ul class="custom-error-list">
+                                    @foreach ($errors->all() as $error)
+                                    <li class="custom-error-item">{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            @endif
+
+                            @if (session('success'))
+                            <div class="custom-success-container" id="custom-success-container">
+                                <ul class="custom-success-list">
+                                    <li class="custom-success-item">{{ session('success') }}</li>
+                                </ul>
+                            </div>
+                            @endif
                             <table class="table table-bordered table-responsive table-hover">
                                 <thead>
                                     <tr class="">
-                                        <th scope="col-auto">Imagen</th>
+                                        <th scope="col-auto" style="width: 90px;">Imagen</th>
                                         <th scope="col-auto">Nombre</th>
                                         <th scope="col-auto">Precio</th>
-                                        <th scope="col-auto"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($productos as $producto)
-                                    <tr>
-                                        <td class="align-middle"><img width="100" class="img-fluid rounded img-responsive" src="{{ URL::to('/') }}/images/{{ $producto->imagen }}" /></td>
+                                    <tr class="clickable-row" data-href="{{ route('productos.edit', $producto->uuid) }}" data-hrefborrar="{{ route('productos.destroy', $producto->uuid) }}" data-textoborrar="¿Está seguro de eliminar el producto?" data-borrable="{{$producto->borrable}}">
+                                        <td class="align-middle"><img width="80" class="img-fluid rounded img-responsive" src="{{ URL::to('/') }}/images/{{ $producto->imagen }}" /></td>
                                         <td class="align-middle">
                                             {{ $producto->nombre }}
                                             <br />
@@ -42,29 +58,13 @@
                                         <td class="align-middle">
                                             {{ $producto->precio }}€
                                         </td>
-                                        <td class="align-middle text-center">
-                                            <form action="{{ route('productos.destroy', $producto->id) }}" method="post">
-                                                @csrf
-                                                @method('DELETE')
-                                                <div class="align-items-center justify-content-center">
-                                                    @if (Auth::user()->hasRole('Administrador'))
-                                                    <a href="{{ route('productos.edit', $producto->id) }}" title="Editar producto" class="btn btn-sm btn-secondary mx-1 my-1"><i class="bi bi-pen"></i></a>
-                                                    <button type="submit" class="btn btn-sm btn-danger mx-1 my-1" title="Eliminar producto" onclick="return confirm('¿Está seguro de eliminar el producto?');"><i class="bi bi-trash"></i></button>
-                                                    <a href="{{ route('productos.components', $producto->id) }}" title="Ver composición producto" class="btn btn-sm btn-info mx-1 my-1" @if ($producto->combinado == 0) hidden @endif><i class="bi bi-list-ul"></i></a>
-                                                    @endif
-                                                </div>
-                                            </form>
-                                        </td>
+
                                     </tr>
                                     @endforeach
                                 </tbody>
                             </table>
 
-                            @if ($errors->any())
-                            @foreach ($errors->all() as $error)
-                            <div>{{$error}}</div>
-                            @endforeach
-                            @endif
+
                         </div>
                     </div>
                 </div>

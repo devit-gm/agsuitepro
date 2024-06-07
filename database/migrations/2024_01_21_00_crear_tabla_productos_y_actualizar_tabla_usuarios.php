@@ -12,20 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('productos', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('nombre');
             $table->string('imagen');
             $table->integer('posicion');
-            $table->integer('familia');
+            $table->uuid('familia');
             $table->integer('combinado');
             $table->decimal('precio');
             $table->timestamps();
         });
+    }
 
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('image')->after('email');
-            $table->integer('role_id')->after('image');
-            $table->string('phone_number')->after('role_id');
-        });
+    public function down(): void
+    {
+        schema::dropIfExists('productos');
     }
 };

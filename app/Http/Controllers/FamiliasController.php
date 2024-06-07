@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Familia;
 use App\Models\Producto;
 use Illuminate\Support\Facades\File;
+use Ramsey\Uuid\Uuid;
+use Illuminate\Support\Facades\Auth;
 
 class FamiliasController extends Controller
 {
@@ -14,7 +16,20 @@ class FamiliasController extends Controller
      */
     public function index()
     {
-        $familias = Familia::orderBy('posicion')->get();;
+        $familias = Familia::orderBy('posicion')->get();
+        foreach ($familias as $familia) {
+            //si la familia tiene productos no se puede borrar
+            //si el usuario activo es administrador
+            if (Auth::user()->role_id == 1) {
+                if (Producto::where('familia', $familia->uuid)->first()) {
+                    $familia->borrable = false;
+                } else {
+                    $familia->borrable = true;
+                }
+            } else {
+                $familia->borrable = false;
+            }
+        }
         return view('familias.index', compact('familias'));
     }
 
@@ -31,7 +46,10 @@ class FamiliasController extends Controller
         $imageName = time() . '.' . $request->imagen->extension();
         $request->imagen->move(public_path('images'), $imageName);
 
+        // ...
+
         Familia::create([
+            'uuid' => (string) Uuid::uuid4(),
             'nombre' => $request->nombre,
             'imagen' => $imageName,
             'posicion' => $request->posicion
@@ -107,9 +125,16 @@ class FamiliasController extends Controller
      *
      * @param  int  $id
      */
-    public function edit($id)
+    public function edit($uuid)
     {
-        $familia = Familia::find($id);
+        $familia = Familia::where('uuid', $uuid)->get();
+        foreach ($familia as $familia) {
+            if (Producto::where('familia', $uuid)->first()) {
+                $familia->borrable = false;
+            } else {
+                $familia->borrable = true;
+            }
+        }
         return view('familias.edit', compact('familia'));
     }
 

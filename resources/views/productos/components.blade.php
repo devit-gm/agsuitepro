@@ -1,31 +1,25 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-12">
-            <div class="card">
+        <div class="col-md-12 d-flex">
+            <div class="card flex-fill">
                 <div class="card-header fondo-rojo"><i class="bi bi-cup-straw"></i> Composición producto</div>
 
                 <div class="card-body">
-                    <div class="container h-100">
-                        <div class="row h-100 justify-content-center align-items-center">
+                    <div class="container-fluid">
+                        <div class="row justify-content-center align-items-center">
                             <div class="col-12 col-md-8 col-lg-6">
                                 <table class="table table-responsive table-borderless">
-
                                     <tbody>
-
                                         <tr>
-
                                             <td class="align-top">
-                                                <img width="80" class="img-fluid rounded img-responsive float-start mx-2" src="{{ URL::to('/') }}/images/{{ $producto->imagen }}" />
                                                 {{ $producto->nombre }}
                                                 <br />
                                                 @if ($producto->familia)
                                                 <span class="badge bg-secondary">{{ $producto->familia->nombre }}</span>
                                                 @endif
-
-
                                             </td>
                                             <td class="align-top">
                                                 <i class="bi bi-cash"></i> {{ $producto->precio }}€<br />
@@ -33,13 +27,10 @@
                                                 <span class="badge bg-success">Combinado</span>
                                                 @endif
                                             </td>
-
                                         </tr>
-
                                     </tbody>
                                 </table>
-
-                                <form action="{{ route('productos.update_components', $producto->id) }}" method="post">
+                                <form id="editar-componentes" action="{{ route('productos.update_components', $producto->uuid) }}" method="post">
                                     @csrf
                                     @method('PUT')
                                     <div class="container mt-3">
@@ -49,7 +40,7 @@
                                                     <tr class="">
                                                         <th scope="col-auto">Nombre</th>
                                                         <th scope="col-auto">Precio</th>
-                                                        <th scope="col-auto">Incluido</th>
+                                                        <th scope="col-auto">Añadir</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -63,7 +54,7 @@
                                                         </td>
                                                         <td class="align-middle text-center">
                                                             <div class="form-check form-switch">
-                                                                <input class="form-check-input" type="checkbox" role="switch" name="componentes[]" id="componentes[]" value="{{ $componente->id }}" @if($componente->familia == 1) checked @endif>
+                                                                <input class="form-check-input" type="checkbox" role="switch" name="componentes[]" id="componentes[]" value="{{ $componente->uuid }}" @if($componente->familia == 1) checked @endif>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -72,18 +63,19 @@
                                             </table>
                                         </div>
                                     </div>
-
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <button type="submit" class="btn btn-sm btn-success mx-1"><i class="bi bi-floppy"></i> Guardar</button>
-                                        <a class="btn btn-sm btn-dark mx-1" href={{ route('productos.index') }}><i class="bi bi-x-circle"></i> Volver</a>
-                                    </div>
-
                                 </form>
-
-
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="card-footer">
+                    <form>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <a class="btn btn-dark mx-1" href={{ route('productos.edit', $producto->uuid) }}><i class="bi bi-chevron-left"></i></a>
+                            <button type="button" onclick="document.getElementById('editar-componentes').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

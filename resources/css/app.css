@@ -1,0 +1,68 @@
+// Fonts
+@import url('https://fonts.bunny.net/css?family=Nunito');
+
+// Variables
+@import 'variables';
+
+// Bootstrap
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+.logo-figure {
+    width: 42px;
+}
+.fondo-rojo{
+    background-color: #C23334;
+    color:#FFFFFF;
+}
+.color-rojo{
+    color: #C23334;
+}
+.color-negro{
+    color: #000000;
+}
+.borde-rojo{
+    border-color: #C23334;
+}
+.table-image {
+    td, th {
+        vertical-align: middle;
+    }
+}
+.card-header{
+    text-transform: uppercase;
+}
+.nav-link{
+    text-transform: uppercase;
+}
+.form-group.required label:after {
+    content:"*";
+    color:red;
+}
+
+.custom-error-container {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}
+
+.custom-error-list {
+    list-style-type: none;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+.custom-error-item {
+    color: #721c24;
+}
+
+.clickable-row{
+    transition: transform 0.3s ease;
+}
+
+table{
+    border-collapse: collapse;
+}

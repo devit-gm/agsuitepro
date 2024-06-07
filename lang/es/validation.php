@@ -220,4 +220,22 @@ return [
         'username'                 => 'usuario',
         'year'                     => 'año',
     ],
+    'custom' => [
+        'start_time' => [
+            'required' => 'La hora de inicio es obligatoria.',
+            'date' => 'La hora de inicio debe ser una fecha válida.',
+        ],
+        'end_time' => [
+            'required' => 'La hora de finalización es obligatoria.',
+            'date' => 'La hora de finalización debe ser una fecha válida.',
+            'after' => 'La hora de finalización debe ser posterior a la hora de inicio.',
+        ],
+        // Otros atributos personalizados...
+    ],
+    'attributes' => [
+        'name' => 'nombre',
+        'email' => 'correo electrónico',
+        'start_time' => 'hora de inicio',
+        'end_time' => 'hora de finalización',
+    ],
 ];

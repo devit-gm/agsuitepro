@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ficha;
+use App\Models\FichaServicio;
 use Illuminate\Http\Request;
 use App\Models\Servicio;
+use Ramsey\Uuid\Uuid;
+use Illuminate\Support\Facades\Auth;
 
 class ServiciosController extends Controller
 {
@@ -13,6 +17,25 @@ class ServiciosController extends Controller
     public function index()
     {
         $servicios = Servicio::orderBy('posicion')->get();
+        $num = 1;
+        foreach ($servicios as $servicio) {
+            $servicio->fichas = FichaServicio::where('id_servicio', $servicio->uuid)->get();
+            $servicio->numero = $num;
+            //si el usuario activo es administrador
+            if (Auth::user()->role_id == 1) {
+                $servicio->borrable = true;
+                foreach ($servicio->fichas as $servicio) {
+                    $ficha = Ficha::find($servicio->id_ficha);
+                    if ($ficha->estado == 0) {
+                        $servicio->borrable = false;
+                        break;
+                    }
+                }
+            } else {
+                $servicio->borrable = false;
+            }
+            $num++;
+        }
         return view('servicios.index', compact('servicios'));
     }
 
@@ -29,6 +52,7 @@ class ServiciosController extends Controller
 
 
         Servicio::create([
+            'uuid' => (string) Uuid::uuid4(),
             'nombre' => $request->nombre,
             'posicion' => $request->posicion,
             'precio' => $request->precio
@@ -63,7 +87,7 @@ class ServiciosController extends Controller
             'posicion' => $request->posicion,
             'precio' => $request->precio
         ]);
-        return redirect()->route('servicios.index')
+        return redirect()->back()
             ->with('success', 'Servicio actualizado con éxito.');
     }
 
@@ -95,6 +119,20 @@ class ServiciosController extends Controller
     public function edit($id)
     {
         $servicio = Servicio::find($id);
+        $servicio->fichas = FichaServicio::where('id_servicio', $servicio->uuid)->get();
+        //si el usuario activo es administrador
+        if (Auth::user()->role_id == 1) {
+            $servicio->borrable = true;
+            foreach ($servicio->fichas as $servicio) {
+                $ficha = Ficha::find($servicio->id_ficha);
+                if ($ficha->estado == 0) {
+                    $servicio->borrable = false;
+                    break;
+                }
+            }
+        } else {
+            $servicio->borrable = false;
+        }
         return view('servicios.edit', compact('servicio'));
     }
 }
