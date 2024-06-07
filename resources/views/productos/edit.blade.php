@@ -1,19 +1,28 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-12">
-            <div class="card">
+        <div class="col-md-12 d-flex">
+            <div class="card flex-fill">
                 <div class="card-header fondo-rojo"><i class="bi bi-cup-straw"></i> Editar producto</div>
 
                 <div class="card-body">
-                    <div class="container h-100">
-                        <div class="row h-100 justify-content-center align-items-center">
+                    <div class="container-fluid">
+                        <div class="row justify-content-center align-items-center">
                             <div class="col-12 col-md-8 col-lg-6">
-                                <form action="{{ route('productos.update', $producto->id) }}" method="post" enctype="multipart/form-data">
+                                <form id="editar-producto" action="{{ route('productos.update', $producto->uuid) }}" method="post" enctype="multipart/form-data">
                                     @csrf
                                     @method('PUT')
+                                    @if ($errors->any())
+                                    <div class="custom-error-container" id="custom-error-container">
+                                        <ul class="custom-error-list">
+                                            @foreach ($errors->all() as $error)
+                                            <li class="custom-error-item">{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                    @endif
                                     <div class="form-group required mb-3">
                                         <label for="nombre" class="fw-bold form-label">Nombre</label>
                                         <input type="text" class="form-control" id="nombre" name="nombre" value="{{ $producto->nombre }}" required>
@@ -33,7 +42,7 @@
                                         <label for="familia" class="fw-bold form-label">Familia</label>
                                         <select name="familia" id="familia" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
                                             @foreach ($familias as $familia)
-                                            <option value="{{ $familia->id }}" @if( $producto->familia == $familia->id ) selected @endif>{{ $familia->nombre }}</option>
+                                            <option value="{{ $familia->uuid }}" @if( $producto->familia == $familia->uuid ) selected @endif>{{ $familia->nombre }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -52,14 +61,26 @@
                                         <input type="number" placeholder='0.00' class="form-control" id="precio" name="precio" value="{{ $producto->precio }}" required>
                                         @endif
                                     </div>
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <button type="submit" class="btn btn-sm btn-success mx-1"><i class="bi bi-floppy"></i> Guardar</button>
-                                        <a class="btn btn-sm btn-dark mx-1" href={{ route('productos.index') }}><i class="bi bi-x-circle"></i> Cancelar</a>
-                                    </div>
+
                                 </form>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="card-footer">
+                    <form action="{{ route('productos.destroy', $producto->uuid) }}" method="post">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <a class="btn btn-dark mx-1" href={{ route('productos.index') }}><i class="bi bi-chevron-left"></i></a>
+                            <a href="{{ route('productos.components', $producto->uuid) }}" title="Ver composición producto" class="btn btn-info mx-1 my-1" @if ($producto->combinado == 0) hidden @endif><i class="bi bi-list-ul"></i></a>
+                            <button onclick="document.getElementById('editar-producto').submit();" type="button" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
+                            @csrf
+                            @method('DELETE')
+                            @if ($producto->borrable == 1)
+                            <button type="submit" class="btn btn-danger mx-1 my-1" title="Eliminar producto" onclick="return confirm('¿Está seguro de eliminar el producto?');"><i class="bi bi-trash"></i></button>
+                            @endif
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

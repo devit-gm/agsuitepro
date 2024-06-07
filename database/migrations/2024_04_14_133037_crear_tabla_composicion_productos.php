@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('composicion_productos', function (Blueprint $table) {
-            $table->id();
-            $table->integer('id_producto');
-            $table->integer('id_componente');
+            $table->uuid('id')->primary();
+            $table->uuid('id_producto');
+            $table->uuid('id_componente');
             $table->timestamps();
         });
     }
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        schema::dropIfExists('composicion_productos');
     }
 };

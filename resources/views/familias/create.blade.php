@@ -1,18 +1,27 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-12">
-            <div class="card">
+        <div class="col-md-12 d-flex">
+            <div class="card flex-fill">
                 <div class="card-header fondo-rojo"><i class="bi bi-tag"></i> Nueva familia</div>
 
                 <div class="card-body">
-                    <div class="container h-100">
-                        <div class="row h-100 justify-content-center align-items-center">
+                    <div class="container-fluid">
+                        <div class="row justify-content-center align-items-center">
                             <div class="col-12 col-md-8 col-lg-6">
-                                <form action="{{ route('familias.store') }}" method="post" enctype="multipart/form-data">
+                                <form id="nueva-familia" action="{{ route('familias.store') }}" method="post" enctype="multipart/form-data">
                                     @csrf
+                                    @if ($errors->any())
+                                    <div class="custom-error-container">
+                                        <ul class="custom-error-list">
+                                            @foreach ($errors->all() as $error)
+                                            <li class="custom-error-item">{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                    @endif
                                     <div class="form-group mb-3 required">
                                         <label for="title" class="fw-bold form-label">Nombre</label>
                                         <input type="text" class="form-control" id="nombre" name="nombre" required>
@@ -25,14 +34,19 @@
                                         <label for="title" class="fw-bold form-label">Posición</label>
                                         <input type="number" class="form-control" id="posicion" name="posicion" required>
                                     </div>
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <button type="submit" class="btn btn-sm btn-success mx-1"><i class="bi bi-floppy"></i> Guardar</button>
-                                        <a class="btn btn-sm btn-dark mx-1" href={{ route('familias.index') }}><i class="bi bi-x-circle"></i> Cancelar</a>
-                                    </div>
                                 </form>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="card-footer">
+                    <form>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <a class="btn btn-dark mx-1" href={{ route('familias.index') }}><i class="bi bi-chevron-left"></i></a>
+                            <button type="button" class="btn btn-success mx-1" onclick="document.getElementById('nueva-familia').submit();"><i class="bi bi-floppy"></i></button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

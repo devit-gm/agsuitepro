@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FichaUsuario;
+use App\Models\Reserva;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -18,6 +20,18 @@ class UsuariosController extends Controller
     {
         $usuarios = User::orderBy('id')->get();
         $roles = Role::orderBy('id')->get();
+        foreach ($usuarios as $usuario) {
+            if ($usuario->role_id == 1) {
+                $usuario->borrable = false;
+            } else {
+                //Si el usuario está en FichaUsuario o en Reservas no se puede borrar
+                if (FichaUsuario::where('user_id', $usuario->uuid)->first() || Reserva::where('user_id', $usuario->uuid)->first()) {
+                    $usuario->borrable = false;
+                } else {
+                    $usuario->borrable = true;
+                }
+            }
+        }
         return view('usuarios.index', compact('usuarios', 'roles'));
     }
 
@@ -30,7 +44,7 @@ class UsuariosController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:3'],
-            'image' => 'image|mimes:png,jpg,jpeg|max:2048',
+            'image' => 'image|mimes:png,jpg,jpeg',
             'role_id' => 'required',
             'phone_number' => 'required'
         ]);
@@ -66,7 +80,7 @@ class UsuariosController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255'],
-            'image' => 'image|mimes:png,jpg,jpeg|max:2048',
+            'image' => 'image|mimes:png,jpg,jpeg',
             'role_id' => 'required',
             'phone_number' => 'required'
         ]);
@@ -125,7 +139,16 @@ class UsuariosController extends Controller
     public function edit($id)
     {
         $usuario = User::find($id);
-
+        if ($usuario->role_id == 1) {
+            $usuario->borrable = false;
+        } else {
+            //Si el usuario está en FichaUsuario o en Reservas no se puede borrar
+            if (FichaUsuario::where('user_id', $usuario->uuid)->first() || Reserva::where('user_id', $usuario->uuid)->first()) {
+                $usuario->borrable = false;
+            } else {
+                $usuario->borrable = true;
+            }
+        }
         $roles = Role::orderBy('Name')->get();
         return view('usuarios.edit', compact('usuario'), compact('roles'));
     }

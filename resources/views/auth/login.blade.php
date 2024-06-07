@@ -5,7 +5,7 @@
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="text-center">
-                <img src="images/logo.png" style="width:150px; height:auto" class="mb-2">
+                <img src="{{ siteLogo() }}" style="width:150px; height:auto" class="mb-2">
                 <h1 class="color-rojo mb-2">ACG El Despiste</h1>
             </div>
             <div class="card">
@@ -33,9 +33,9 @@
                         <div class="row mb-3">
                             <label for="password" class="col-md-4 col-form-label text-md-end">{{ __('Password') }}</label>
 
-                            <div class="col-md-6">
+                            <div class="col-md-6 password-container">
                                 <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
-
+                                <i class="bi bi-eye toggle-password" id="togglePassword"></i>
                                 @error('password')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>

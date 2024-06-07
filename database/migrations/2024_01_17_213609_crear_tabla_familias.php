@@ -12,11 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('familias', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('nombre');
             $table->string('imagen');
             $table->string('posicion');
             $table->timestamps();
         });
+    }
+    public function down(): void
+    {
+        schema::dropIfExists('familias');
     }
 };

@@ -1,11 +1,15 @@
 <?php
 
+use App\Http\Controllers\AjustesController;
 use App\Http\Controllers\FamiliasController;
 use App\Http\Controllers\ProductosController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ServiciosController;
 use App\Http\Controllers\UsuariosController;
+use App\Http\Controllers\ReservasController;
+use App\Http\Controllers\FichasController;
+use App\Http\Controllers\InformesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,10 +24,8 @@ use App\Http\Controllers\UsuariosController;
 
 Auth::routes();
 
-Route::middleware('auth')->group(function () {
-    Route::get('/', function () {
-        return view('fichas.index');
-    })->name('home.index');
+Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
+    Route::get('/', FichasController::class . '@index')->name('fichas.index');
     Route::get('/home', function () {
         return view('fichas.index');
     })->name('home.index');
@@ -40,43 +42,61 @@ Route::middleware('auth')->group(function () {
     Route::get('/familias', FamiliasController::class . '@index')->name('familias.index');
     Route::get('/familias/create', FamiliasController::class . '@create')->name('familias.create');
     Route::post('/familias', FamiliasController::class . '@store')->name('familias.store');
-    Route::get('/familias/{familia}', FamiliasController::class . '@show')->name('familias.show');
-    Route::get('/familias/{familia}/edit', FamiliasController::class . '@edit')->name('familias.edit');
-    Route::get('/familias/{familia}/view', FamiliasController::class . '@view')->name('familias.view');
-    Route::put('/familias/{familia}', FamiliasController::class . '@update')->name('familias.update');
-    Route::delete('/familias/{familia}', FamiliasController::class . '@destroy')->name('familias.destroy');
+    Route::get('/familias/{uuid}', FamiliasController::class . '@show')->name('familias.show');
+    Route::get('/familias/{uuid}/edit', FamiliasController::class . '@edit')->name('familias.edit');
+    Route::get('/familias/{uuid}/view', FamiliasController::class . '@view')->name('familias.view');
+    Route::put('/familias/{uuid}', FamiliasController::class . '@update')->name('familias.update');
+    Route::delete('/familias/{uuid}', FamiliasController::class . '@destroy')->name('familias.destroy');
 
     Route::get('/productos', ProductosController::class . '@index')->name('productos.index');
     Route::get('/productos/create', ProductosController::class . '@create')->name('productos.create');
     Route::post('/productos', ProductosController::class . '@store')->name('productos.store');
-    Route::get('/productos/{producto}', ProductosController::class . '@show')->name('productos.show');
-    Route::get('/productos/{producto}/edit', ProductosController::class . '@edit')->name('productos.edit');
-    Route::get('/productos/{producto}/list', ProductosController::class . '@list')->name('productos.list');
-    Route::get('/productos/{producto}/components', ProductosController::class . '@components')->name('productos.components');
-    Route::put('/productos/{producto}/update', ProductosController::class . '@update')->name('productos.update');
-    Route::put('/productos/{producto}/update_components', ProductosController::class . '@update_components')->name('productos.update_components');
-    Route::delete('/productos/{producto}', ProductosController::class . '@destroy')->name('productos.destroy');
+    Route::get('/productos/{uuid}', ProductosController::class . '@show')->name('productos.show');
+    Route::get('/productos/{uuid}/edit', ProductosController::class . '@edit')->name('productos.edit');
+    Route::get('/productos/{uuid}/list', ProductosController::class . '@list')->name('productos.list');
+    Route::get('/productos/{uuid}/components', ProductosController::class . '@components')->name('productos.components');
+    Route::put('/productos/{uuid}/update', ProductosController::class . '@update')->name('productos.update');
+    Route::put('/productos/{uuid}/update_components', ProductosController::class . '@update_components')->name('productos.update_components');
+    Route::delete('/productos/{uuid}', ProductosController::class . '@destroy')->name('productos.destroy');
 
-    Route::get('/fichas', function () {
-        return view('fichas.index');
-    })->name('fichas.index');
-    Route::get('/reservas', function () {
-        return view('reservas.index');
-    })->name('reservas.index');
-    Route::get('/informes', function () {
-        return view('informes.index');
-    })->name('informes.index');
+    Route::get('/fichas', FichasController::class . '@index')->name('fichas.index');
+    Route::get('/fichas/create', FichasController::class . '@create')->name('fichas.create');
+    Route::post('/fichas', FichasController::class . '@store')->name('fichas.store');
+    Route::get('/fichas/{uuid}/edit', FichasController::class . '@edit')->name('fichas.edit');
+    Route::get('/fichas/{uuid}/familias', FichasController::class . '@familias')->name('fichas.familias');
+    Route::get('/fichas/{uuid}', FichasController::class . '@show')->name('fichas.show');
+    Route::get('fichas/{uuid}/familias/{uuid2}/productos', FichasController::class . '@productos')->name('fichas.productos');
+    Route::post('fichas/{uuid}/familias/{uuid2}/productos', FichasController::class . '@addproduct')->name('fichas.addproduct');
+    Route::put('/fichas/{uuid}', FichasController::class . '@update')->name('fichas.update');
+    Route::delete('/fichas/{uuid}', FichasController::class . '@destroy')->name('fichas.destroy');
+    Route::get('/fichas/{uuid}/lista', FichasController::class . '@lista')->name('fichas.lista');
+    Route::delete('/fichas/{uuid}/lista/{uuid2}', FichasController::class . '@destroylista')->name('fichas.destroylista');
+    Route::put('/fichas/{uuid}/lista/{uuid2}/{cantidad}', FichasController::class . '@updatelista')->name('fichas.updatelista');
+    Route::get('/fichas/{uuid}/usuarios', FichasController::class . '@usuarios')->name('fichas.usuarios');
+    Route::put('/fichas/{uuid}/usuarios', FichasController::class . '@updateusuarios')->name('fichas.updateusuarios');
+    Route::get('/fichas/{uuid}/servicios', FichasController::class . '@servicios')->name('fichas.servicios');
+    Route::put('/fichas/{uuid}/servicios', FichasController::class . '@updateservicios')->name('fichas.updateservicios');
+
+    Route::get('/informes', [InformesController::class, 'index'])->name('informes.index');
+    Route::put('/informes', [InformesController::class, 'balance'])->name('informes.balance');
+    Route::get('/informes/facturar', [InformesController::class, 'facturar'])->name('informes.facturar');
 
     Route::get('/servicios', ServiciosController::class . '@index')->name('servicios.index');
     Route::get('/servicios/create', ServiciosController::class . '@create')->name('servicios.create');
     Route::post('/servicios', ServiciosController::class . '@store')->name('servicios.store');
-    Route::get('/servicios/{servicio}', ServiciosController::class . '@show')->name('servicios.show');
-    Route::get('/servicios/{servicio}/edit', ServiciosController::class . '@edit')->name('servicios.edit');
-    Route::get('/servicios/{servicio}/view', ServiciosController::class . '@view')->name('servicios.view');
-    Route::put('/servicios/{servicio}', ServiciosController::class . '@update')->name('servicios.update');
-    Route::delete('/servicios/{servicio}', ServiciosController::class . '@destroy')->name('servicios.destroy');
+    Route::get('/servicios/{uuid}', ServiciosController::class . '@show')->name('servicios.show');
+    Route::get('/servicios/{uuid}/edit', ServiciosController::class . '@edit')->name('servicios.edit');
+    Route::get('/servicios/{uuid}/view', ServiciosController::class . '@view')->name('servicios.view');
+    Route::put('/servicios/{uuid}', ServiciosController::class . '@update')->name('servicios.update');
+    Route::delete('/servicios/{uuid}', ServiciosController::class . '@destroy')->name('servicios.destroy');
 
-    Route::get('/ajustes', function () {
-        return view('ajustes.index');
-    })->name('ajustes.index');
+    Route::get('/reservas', [ReservasController::class, 'index'])->name('reservas.index');
+    Route::get('/reservas/create', [ReservasController::class, 'create'])->name('reservas.create');
+    Route::post('/reservas', [ReservasController::class, 'store'])->name('reservas.store');
+    Route::delete('/reservas/{uuid}', ReservasController::class . '@destroy')->name('reservas.destroy');
+    Route::get('/reservas/{uuid}/edit', ReservasController::class . '@edit')->name('reservas.edit');
+    Route::put('/reservas/{uuid}', ReservasController::class . '@update')->name('reservas.update');
+
+    Route::get('/ajustes', [AjustesController::class, 'index'])->name('ajustes.index');
+    Route::put('/ajustes', [AjustesController::class, 'update'])->name('ajustes.update');
 });

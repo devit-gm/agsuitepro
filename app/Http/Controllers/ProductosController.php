@@ -8,6 +8,9 @@ use App\Models\Producto;
 use App\Models\ComposicionProducto;
 use Illuminate\Console\View\Components\Component;
 use Illuminate\Support\Facades\File;
+use Ramsey\Uuid\Uuid;
+use App\Models\FichaProducto;
+use Illuminate\Support\Facades\Auth;
 
 class ProductosController extends Controller
 {
@@ -26,6 +29,23 @@ class ProductosController extends Controller
                     $precio += Producto::find($componente->id_componente)->precio;
                 }
                 $producto->precio =  number_format((float)$precio, 2, '.', '');
+                //Obtener todos las fichas en las que está este producto
+                $producto->fichas = FichaProducto::where('id_producto', $producto->id)->get();
+                //Si alguna de esas fichas está en estado 0 (pendiente) no se puede borrar
+                if (Auth::user()->role_id == 1) {
+                    $producto->borrable = true;
+                    foreach ($producto->fichas as $ficha) {
+                        if ($ficha->estado == 0) {
+                            $producto->borrable = false;
+                            break;
+                        }
+                    }
+                } else {
+                    $producto->borrable = false;
+                }
+            } else {
+                $producto->precio = number_format((float)$producto->precio, 2, '.', '');
+                $producto->borrable = true;
             }
         }
         return view('productos.index', compact('productos'));
@@ -48,6 +68,7 @@ class ProductosController extends Controller
         $request->imagen->move(public_path('images'), $imageName);
 
         Producto::create([
+            'uuid' => (string) Uuid::uuid4(),
             'nombre' => $request->nombre,
             'imagen' => $imageName,
             'posicion' => $request->posicion,
@@ -65,6 +86,17 @@ class ProductosController extends Controller
     public function show(string $id)
     {
         $producto = Producto::find($id);
+        if (Auth::user()->role_id == 1) {
+            $producto->borrable = true;
+            foreach ($producto->fichas as $ficha) {
+                if ($ficha->estado == 0) {
+                    $producto->borrable = false;
+                    break;
+                }
+            }
+        } else {
+            $producto->borrable = false;
+        }
         return view('productos.show', compact('producto'));
     }
 
@@ -146,6 +178,19 @@ class ProductosController extends Controller
             }
             $producto->precio =  number_format((float)$precio, 2, '.', '');
         }
+
+        if (Auth::user()->role_id == 1) {
+            $producto->borrable = true;
+            $producto->fichas = FichaProducto::where('id_producto', $producto->id)->get();
+            foreach ($producto->fichas as $ficha) {
+                if ($ficha->estado == 0) {
+                    $producto->borrable = false;
+                    break;
+                }
+            }
+        } else {
+            $producto->borrable = false;
+        }
         $familias = Familia::orderBy('posicion')->get();
         return view('productos.edit', compact('producto'), compact('familias'));
     }
@@ -167,8 +212,7 @@ class ProductosController extends Controller
 
         $componentes = Producto::where('combinado', 0)->orderBy('posicion')->get();
         foreach ($componentes as $componente) {
-            $esComposicion = ComposicionProducto::where('id_producto', $id)->where('id_componente', $componente->id)->get();
-
+            $esComposicion = ComposicionProducto::where('id_producto', $id)->where('id_componente', $componente->uuid)->get();
             if ($esComposicion->count() > 0) {
                 $componente->familia = 1;
             } else {
@@ -183,6 +227,7 @@ class ProductosController extends Controller
         ComposicionProducto::where('id_producto', $id)->delete();
         foreach ($request->componentes as $componente) {
             ComposicionProducto::create([
+                'uuid' => (string) Uuid::uuid4(),
                 'id_producto' => $id,
                 'id_componente' => $componente
             ]);
