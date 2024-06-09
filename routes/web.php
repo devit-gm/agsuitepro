@@ -10,6 +10,9 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\ReservasController;
 use App\Http\Controllers\FichasController;
 use App\Http\Controllers\InformesController;
+use App\Http\Controllers\LicenciasController;
+use App\Http\Controllers\SitiosController;
+use App\Http\Middleware\RoleMiddleware;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,9 +29,7 @@ Auth::routes();
 
 Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::get('/', FichasController::class . '@index')->name('fichas.index');
-    Route::get('/home', function () {
-        return view('fichas.index');
-    })->name('home.index');
+    Route::get('/home', FichasController::class . '@index')->name('fichas.index');
 
     Route::get('/usuarios', UsuariosController::class . '@index')->name('usuarios.index');
     Route::get('/usuarios/create', UsuariosController::class . '@create')->name('usuarios.create');
@@ -51,13 +52,14 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::get('/productos', ProductosController::class . '@index')->name('productos.index');
     Route::get('/productos/create', ProductosController::class . '@create')->name('productos.create');
     Route::post('/productos', ProductosController::class . '@store')->name('productos.store');
-    Route::get('/productos/{uuid}', ProductosController::class . '@show')->name('productos.show');
     Route::get('/productos/{uuid}/edit', ProductosController::class . '@edit')->name('productos.edit');
     Route::get('/productos/{uuid}/list', ProductosController::class . '@list')->name('productos.list');
     Route::get('/productos/{uuid}/components', ProductosController::class . '@components')->name('productos.components');
     Route::put('/productos/{uuid}/update', ProductosController::class . '@update')->name('productos.update');
     Route::put('/productos/{uuid}/update_components', ProductosController::class . '@update_components')->name('productos.update_components');
     Route::delete('/productos/{uuid}', ProductosController::class . '@destroy')->name('productos.destroy');
+    Route::get('/productos/inventory', ProductosController::class . '@inventory')->name('productos.inventory');
+    Route::put('/productos/inventory', ProductosController::class . '@inventory')->name('productos.inventory');
 
     Route::get('/fichas', FichasController::class . '@index')->name('fichas.index');
     Route::get('/fichas/create', FichasController::class . '@create')->name('fichas.create');
@@ -76,6 +78,12 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::put('/fichas/{uuid}/usuarios', FichasController::class . '@updateusuarios')->name('fichas.updateusuarios');
     Route::get('/fichas/{uuid}/servicios', FichasController::class . '@servicios')->name('fichas.servicios');
     Route::put('/fichas/{uuid}/servicios', FichasController::class . '@updateservicios')->name('fichas.updateservicios');
+    Route::get('/fichas/{uuid}/gastos', FichasController::class . '@gastos')->name('fichas.gastos');
+    Route::get('/fichas/{uuid}/gastos/add', FichasController::class . '@addgastos')->name('fichas.addgastos');
+    Route::put('/fichas/{uuid}/gastos', FichasController::class . '@updategastos')->name('fichas.updategastos');
+    Route::delete('/fichas/{uuid}/gastos/{uuid2}', FichasController::class . '@destroygastos')->name('fichas.destroygastos');
+    Route::get('/fichas/{uuid}/resumen', FichasController::class . '@resumen')->name('fichas.resumen');
+    Route::put('/fichas/{uuid}/resumen', FichasController::class . '@enviar')->name('fichas.enviar');
 
     Route::get('/informes', [InformesController::class, 'index'])->name('informes.index');
     Route::put('/informes', [InformesController::class, 'balance'])->name('informes.balance');
@@ -99,4 +107,17 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
 
     Route::get('/ajustes', [AjustesController::class, 'index'])->name('ajustes.index');
     Route::put('/ajustes', [AjustesController::class, 'update'])->name('ajustes.update');
+
+    Route::get('/sitios', [SitiosController::class, 'index'])->name('sitios.index');
+    Route::get('/sitios/create', [SitiosController::class, 'create'])->name('sitios.create');
+    Route::get('/sitios/{id}/edit', [SitiosController::class, 'edit'])->name('sitios.edit');
+    Route::put('/sitios/{id}/update', [SitiosController::class, 'update'])->name('sitios.update');
+    Route::delete('/sitios/{id}', [SitiosController::class, 'destroy'])->name('sitios.destroy');
+
+    Route::get('/licencias', [LicenciasController::class, 'index'])->name('licencias.index');
+    Route::put('/licencias', [LicenciasController::class, 'index'])->name('licencias.index');
+    Route::get('/licencias/create', [LicenciasController::class, 'create'])->name('licencias.create');
+    Route::get('/licencias/{id}/edit', [LicenciasController::class, 'edit'])->name('licencias.edit');
+    Route::put('/licencias/{id}/update', [LicenciasController::class, 'update'])->name('licencias.update');
+    Route::delete('/licencias/{id}', [LicenciasController::class, 'destroy'])->name('licencias.destroy');
 });

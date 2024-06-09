@@ -42,14 +42,19 @@
                                         <label for="phone_number" class="fw-bold form-label">Teléfono</label>
                                         <input type="number" class="form-control" id="phone_number" name="phone_number" value="{{ $usuario->phone_number }}" required>
                                     </div>
-                                    <div class="form-group mb-3 required">
-                                        <label for="role_id" class="fw-bold form-label">Rol</label>
-                                        <select name="role_id" id="role_id" class="form-select form-select-lg" aria-label=".form-select-sm example" required>
-                                            @foreach ($roles as $rol)
-                                            <option value="{{ $rol->id }}" @if( $usuario->role_id == $rol->id ) selected @endif>{{ $rol->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+
+                                    @if (Auth::user()->role_id < 3 && $usuario->role_id != 1) <div class="form-group mb-3 required">
+                                            <label for="role_id" class="fw-bold form-label">Rol</label>
+                                            <select name="role_id" id="role_id" class="form-select form-select-lg" aria-label=".form-select-sm example" required>
+                                                @foreach ($roles as $rol)
+                                                <option value="{{ $rol->id }}" @if( $usuario->role_id == $rol->id ) selected @endif>{{ $rol->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        @else
+                                        <input type="hidden" name="role_id" value="{{ $usuario->role_id }}" />
+                                        @endif
+
                                 </form>
                             </div>
                         </div>

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class FichaServicio extends Model
 {
     use HasFactory;
-
+    protected $connection = 'site';
     protected $table = 'fichas_servicios';
 
     protected $primaryKey = 'uuid';

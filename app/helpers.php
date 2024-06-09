@@ -7,6 +7,13 @@ if (!function_exists('siteLogo')) {
     }
 }
 
+if (!function_exists('siteName')) {
+    function siteName()
+    {
+        return config('site.name') ? config('site.name') : config('app.name');
+    }
+}
+
 if (!function_exists('siteLogoNav')) {
     function siteLogoNav()
     {

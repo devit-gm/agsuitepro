@@ -39,7 +39,7 @@ form .btn{
     width: 42px;
 }
 .fondo-rojo{
-    background-color: #C23334 !important;
+    background-color: #00276f !important;
     color:#FFFFFF !important;
 }
 .fondo-negro{
@@ -47,17 +47,17 @@ form .btn{
     color:#FFFFFF !important;
 }
 .color-rojo{
-    color: #C23334 !important;
+    color: #00276f !important;
 }
 .color-negro{
     color: #000000;
 }
 .borde-rojo{
-    border-color: #C23334 !important;
+    border-color: #00276f !important;
 }
 .form-check-input:checked{
-    border-color: #C23334 !important;
-    background-color: #C23334 !important;
+    border-color: #00276f !important;
+    background-color: #00276f !important;
 }
 .table-image {
     td, th {
@@ -112,7 +112,7 @@ form .btn{
 }
 
 .form-select option[selected] {
-    background-color: #C23334 !important; /* Change this color to your desired background color */
+    background-color: #00276f !important; /* Change this color to your desired background color */
     color: #FFF !important; /* Change this color to your desired text color */
 }
 
@@ -197,4 +197,10 @@ form .btn{
 }
 .form-check-label {
     margin-right: 10px;
+}
+
+.readonly{
+    pointer-events: none; /* Desactiva la interacción del usuario */
+    background-color: #e9ecef; /* Color de fondo */
+    border-color: #ced4da; /* Color del borde */
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Reserva;
+use App\Models\Site;
 use App\Models\User; // Add this line to import the User model
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

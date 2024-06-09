@@ -10,6 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 
+
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
@@ -25,7 +26,8 @@ class User extends Authenticatable
         'password',
         'image',
         'role_id',
-        'phone_number'
+        'phone_number',
+        'site_id'
     ];
 
     /**
@@ -47,7 +49,10 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-
+    public function hasRole($rol)
+    {
+        return $this->role_id === $rol;
+    }
     /**
      * Get the roles associated with the user.
      *
@@ -55,7 +60,7 @@ class User extends Authenticatable
      */
     public function roles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Role::class);
+        return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id');
     }
 
     /**

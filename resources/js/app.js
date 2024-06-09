@@ -82,5 +82,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 500);
         }
     }, 2000);
+    var rows2 = document.querySelectorAll('.readonly');
+    rows2.forEach(function (row) {
+        row.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        });
+    });
 });
   

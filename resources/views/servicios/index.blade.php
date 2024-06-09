@@ -8,12 +8,7 @@
                 <div class="card-header fondo-rojo"><i class="bi bi-tools"></i> {{ __('Services') }}</div>
 
                 <div class="card-body">
-                    <div class="d-grid gap-2 d-md-flex justify-content-end">
-                        @if (Auth::user()->hasRole('Administrador'))
-                        <a class="btn btn-lg btn-success fs-3" href={{ route('servicios.create') }}><i class="bi bi-plus-circle"></i> Nuevo Servicio</a>
-                        @endif
-                    </div>
-                    <div class="container-fluid mt-3">
+                    <div class="container-fluid">
                         <div class="row">
                             @if ($errors->any())
                             <div class="custom-error-container" id="custom-error-container">
@@ -63,6 +58,14 @@
                             </table>
                         </div>
                     </div>
+                </div>
+                <div class="card-footer">
+                    <form>
+                        <div class="d-flex align-items-center justify-content-center">
+                            @if (Auth::user()->role_id < 4) <a href="{{ route('servicios.create') }}" class="btn btn-primary fondo-rojo borde-rojo mx-1"><i class="bi bi-plus-circle"></i></a>
+                                @endif
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

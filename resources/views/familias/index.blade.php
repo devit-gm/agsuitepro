@@ -8,12 +8,7 @@
                 <div class="card-header fondo-rojo"><i class="bi bi-tag"></i> {{ __('Families') }}</div>
 
                 <div class="card-body">
-                    <div class="d-grid gap-2 d-md-flex justify-content-end">
-                        @if (Auth::user()->hasRole('Administrador'))
-                        <a class="btn btn-lg btn-success fs-3" href={{ route('familias.create') }}><i class="bi bi-plus-circle"></i> Nueva Familia</a>
-                        @endif
-                    </div>
-                    <div class="container-fluid mt-3">
+                    <div class="container-fluid">
                         <div class="row">
                             @if ($errors->any())
                             <div class="custom-error-container" id="custom-error-container">
@@ -35,9 +30,9 @@
                             <table class="table table-hover table-bordered table-responsive table-hover">
                                 <thead>
                                     <tr class="">
-                                        <th scope="col-auto" style="width: 90px;">Imagen</th>
+                                        <th scope="col-auto" class="text-center" style="width: 90px;">Imagen</th>
                                         <th scope="col-auto">Nombre</th>
-                                        <th scope="col-auto">Posición</th>
+                                        <th scope="col-auto" class="text-center">Posición</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -45,21 +40,24 @@
                                     <tr class="clickable-row" data-href="{{ route('familias.edit', ['uuid'=>$familia->uuid]) }}" data-hrefborrar="{{ route('familias.destroy', $familia->uuid) }}" data-textoborrar="¿Está seguro de eliminar la familia?" data-borrable="{{$familia->borrable}}">
                                         <td class="align-middle"><img width="80" class="img-fluid rounded img-responsive" src="{{ URL::to('/') }}/images/{{ $familia->imagen }}" /></td>
                                         <td class="align-middle">{{ $familia->nombre }}</td>
-                                        <td class="align-middle">
+                                        <td class="align-middle text-center">
                                             {{ $familia->posicion }}
                                         </td>
                                     </tr>
                                     @endforeach
                                 </tbody>
                             </table>
-
-                            @if ($errors->any())
-                            @foreach ($errors->all() as $error)
-                            <div>{{$error}}</div>
-                            @endforeach
-                            @endif
                         </div>
                     </div>
+                </div>
+
+                <div class="card-footer">
+                    <form>
+                        <div class="d-flex align-items-center justify-content-center">
+                            @if (Auth::user()->role_id < 4) <a href="{{ route('familias.create') }}" class="btn btn-primary fondo-rojo borde-rojo mx-1"><i class="bi bi-plus-circle"></i></a>
+                                @endif
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

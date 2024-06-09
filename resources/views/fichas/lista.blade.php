@@ -5,7 +5,7 @@
     <div class="row justify-content-center">
         <div class="col-md-12 d-flex">
             <div class="card flex-fill">
-                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> FICHA - GASTO</div>
+                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> FICHA - CONSUMO</div>
 
                 <div class="card-body">
 
@@ -35,8 +35,8 @@
                                 <thead>
                                     <tr class="">
                                         <th scope="col-auto" style="width:90px">Producto</th>
-                                        <th scope="col-auto">Unidades</th>
-                                        <th scope="col-auto">Total</th>
+                                        <th scope="col-auto" class="text-center">Unidades</th>
+                                        <th scope="col-auto" class="text-center">Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -52,10 +52,10 @@
                                             </div>
                                             {{ $componente->producto->nombre }}
                                         </td>
-                                        <td class="align-middle">
+                                        <td class="align-middle text-center">
                                             {{ $componente->cantidad }}
                                         </td>
-                                        <td class="align-middle">
+                                        <td class="align-middle text-center">
                                             {{ number_format($componente->precio,2) }} <i class="bi bi-currency-euro">
                                         </td>
                                     </tr>

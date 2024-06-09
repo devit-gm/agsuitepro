@@ -9,7 +9,7 @@ use Ramsey\Uuid\Uuid; // Add this line
 class Ficha extends Model
 {
     use HasFactory;
-
+    protected $connection = 'site';
     protected $primaryKey = 'uuid';
     public $incrementing = false;
 

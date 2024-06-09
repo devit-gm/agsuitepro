@@ -8,12 +8,7 @@
                 <div class="card-header fondo-rojo"><i class="bi bi-cup-straw"></i> {{ __('Products') }}</div>
 
                 <div class="card-body">
-                    <div class="d-grid gap-2 d-md-flex justify-content-end">
-                        @if (Auth::user()->hasRole('Administrador'))
-                        <a class="btn btn-lg btn-success fs-3" href={{ route('productos.create') }}><i class="bi bi-plus-circle"></i> Nuevo Producto</a>
-                        @endif
-                    </div>
-                    <div class="container-fluid mt-3">
+                    <div class="container-fluid">
                         <div class="row">
                             @if ($errors->any())
                             <div class="custom-error-container" id="custom-error-container">
@@ -35,9 +30,9 @@
                             <table class="table table-bordered table-responsive table-hover">
                                 <thead>
                                     <tr class="">
-                                        <th scope="col-auto" style="width: 90px;">Imagen</th>
+                                        <th scope="col-auto" class="text-center" style="width: 90px;">Imagen</th>
                                         <th scope="col-auto">Nombre</th>
-                                        <th scope="col-auto">Precio</th>
+                                        <th scope="col-auto" class="text-center">Precio</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -55,7 +50,7 @@
                                             <span class="badge btn bt-sm btn-info color-negro">Combinado</span>
                                             @endif
                                         </td>
-                                        <td class="align-middle">
+                                        <td class="align-middle text-center">
                                             {{ $producto->precio }}€
                                         </td>
 
@@ -67,6 +62,17 @@
 
                         </div>
                     </div>
+                </div>
+
+                <div class="card-footer">
+                    <form>
+                        <div class="d-flex align-items-center justify-content-center">
+
+                            @if (Auth::user()->role_id < 4) <a href="{{ route('productos.inventory') }}" class="btn btn-secondary mx-1"><i class="bi bi-card-checklist"></i></a>
+                                <a href="{{ route('productos.create') }}" class="btn btn-primary fondo-rojo borde-rojo mx-1"><i class="bi bi-plus-circle"></i></a>
+                                @endif
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

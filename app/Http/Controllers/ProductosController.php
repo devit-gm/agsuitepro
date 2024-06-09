@@ -21,13 +21,14 @@ class ProductosController extends Controller
     {
         $productos = Producto::orderBy('posicion')->get();
         foreach ($productos as $producto) {
-            $composicion = ComposicionProducto::where('id_producto', $producto->id)->get();
+            $composicion = ComposicionProducto::where('id_producto', $producto->uuid)->get();
             $producto->familia = Familia::find($producto->familia);
             if ($producto->combinado == 1) {
                 $precio = 0.00;
                 foreach ($composicion as $componente) {
                     $precio += Producto::find($componente->id_componente)->precio;
                 }
+
                 $producto->precio =  number_format((float)$precio, 2, '.', '');
                 //Obtener todos las fichas en las que está este producto
                 $producto->fichas = FichaProducto::where('id_producto', $producto->id)->get();
@@ -257,5 +258,23 @@ class ProductosController extends Controller
             }
         }
         return view('productos.components', compact('producto', 'familias', 'componentes'));
+    }
+
+    public function inventory(Request $request)
+    {
+        if ($request->isMethod('put')) {
+            $productos = $request->stock;
+            $uuids = $request->uuid;
+            foreach ($uuids as $uuid) {
+                Producto::where('uuid', $uuid)->update([
+                    'stock' =>  $productos[$uuid]
+                ]);
+            }
+
+            return redirect()->route('productos.inventory')
+                ->with('success', 'Inventario actualizado con éxito.');
+        }
+        $productos = Producto::where('combinado', 0)->orderBy('posicion')->get();
+        return view('productos.inventory', compact('productos'));
     }
 }
