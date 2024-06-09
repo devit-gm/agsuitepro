@@ -8,6 +8,7 @@ use App\Models\FichaRecibo;
 use App\Models\Recibo;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class InformesController extends Controller
 {
@@ -19,8 +20,12 @@ class InformesController extends Controller
         } else {
             $mostrarBotonFacturar = false;
         }
+        if (Auth::user()->rol_id > 3) {
+            $usuariosInforme = User::where('site_id', $site->id)->where('id', Auth::id())->get();
+        } else {
+            $usuariosInforme = User::where('site_id', $site->id)->orderBy('id')->get();
+        }
 
-        $usuariosInforme = User::where('site_id', $site->id)->orderBy('id')->get();
         foreach ($usuariosInforme as $usuarioFicha) {
             $usuarioFicha->gastos = Recibo::where('user_id', $usuarioFicha->id)->where('estado', 0)->where('tipo', 1)->sum('precio');
             $usuarioFicha->compras = Recibo::where('user_id', $usuarioFicha->id)->where('estado', 0)->where('tipo', 2)->sum('precio');;
@@ -42,7 +47,11 @@ class InformesController extends Controller
         } else {
             $mostrarBotonFacturar = false;
         }
-        $usuariosInforme = User::where('site_id', $site->id)->orderBy('id')->get();
+        if (Auth::user()->rol_id > 3) {
+            $usuariosInforme = User::where('site_id', $site->id)->where('id', Auth::id())->get();
+        } else {
+            $usuariosInforme = User::where('site_id', $site->id)->orderBy('id')->get();
+        }
         foreach ($usuariosInforme as $usuarioFicha) {
             if ($request->incluir_facturados == 1) {
                 $usuarioFicha->gastos = Recibo::where('user_id', $usuarioFicha->id)->where('fecha', '>=', $request->fecha_inicial)->where('fecha', '<=', $request->fecha_final)->where('tipo', 1)->sum('precio');
