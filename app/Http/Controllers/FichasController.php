@@ -43,7 +43,7 @@ class FichasController extends Controller
     {
         Carbon::setLocale('es');
         $fichas = Ficha::whereDate('fecha', '>=', Carbon::now()->toDateString())
-            ->orwhere('estado', 0)
+            ->where('estado', 0)
             ->orderBy('fecha')
             ->get();
         $meses = array("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre");

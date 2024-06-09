@@ -10,16 +10,7 @@
                 </div>
 
                 <div class="card-body">
-                    <div class="d-grid gap-2 d-md-flex justify-content-end">
-                        @if ($mostrarBotonFacturar == true)
-                        @php
-                        $ruta = route('informes.facturar');
-                        @endphp
-                        @if (Auth::user()->role_id < 4) <button class="btn btn-lg btn-success fs-3" onclick="if(confirm('Se marcará como facturado todo lo pendiente. ¿Desea continuar?')){location.href='{{ $ruta }}'}"><i class="bi bi-cash-coin"></i> Facturar pendiente</button>
-                            @endif
-                            @endif
-                    </div>
-                    <div class="container-fluid mt-3">
+                    <div class="container-fluid">
                         <div class="row justify-content-center align-items-center">
                             <div class="col-12 col-md-8 col-lg-6">
                                 <form id="realizar-busqueda" action="{{ route('informes.index') }}" method="post">
@@ -96,7 +87,14 @@
                 <div class="card-footer">
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
-                            <button type="button" onclick="document.getElementById('realizar-busqueda').submit();" class="btn btn-info mx-1"><i class="bi bi-search"></i></button>
+                            <button type="button" onclick="document.getElementById('realizar-busqueda').submit();" class="btn btn-secondary mx-1"><i class="bi bi-search"></i></button>
+                            @if ($mostrarBotonFacturar == true)
+                            @php
+                            $ruta = route('informes.facturar');
+                            @endphp
+                            @if (Auth::user()->role_id < 4) <button class="btn btn-success fondo-rojo borde-rojo fs-3" onclick="if(confirm('Se marcará como facturado todo lo pendiente. ¿Desea continuar?')){location.href='{{ $ruta }}'}"><i class="bi bi-cash-coin"></i></button>
+                                @endif
+                                @endif
                         </div>
                     </form>
                 </div>
