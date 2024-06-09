@@ -12,10 +12,12 @@
                 <div class="card-body">
                     <div class="d-grid gap-2 d-md-flex justify-content-end">
                         @if ($mostrarBotonFacturar == true)
-                        @if (Auth::user()->hasRole('Administrador'))
-                        <a class="btn btn-lg btn-success fs-3" onclick="if(confirm('Se marcará como facturado todo lo pendiente. Desea continuar?')){location.href=this.data.href}" href={{ route('informes.facturar') }}><i class="bi bi-cash-coin"></i> Facturar pendiente</a>
-                        @endif
-                        @endif
+                        @php
+                        $ruta = route('informes.facturar');
+                        @endphp
+                        @if (Auth::user()->role_id < 4) <button class="btn btn-lg btn-success fs-3" onclick="if(confirm('Se marcará como facturado todo lo pendiente. ¿Desea continuar?')){location.href='{{ $ruta }}'}"><i class="bi bi-cash-coin"></i> Facturar pendiente</button>
+                            @endif
+                            @endif
                     </div>
                     <div class="container-fluid mt-3">
                         <div class="row justify-content-center align-items-center">
@@ -71,13 +73,13 @@
                                             </tr>
                                             <tr>
 
-                                                <td class="text-end">
+                                                <td class="text-center">
                                                     {{ number_format($usuario->gastos,2) }}€
                                                 </td>
-                                                <td class="text-end">
+                                                <td class="text-center">
                                                     {{ number_format($usuario->compras,2) }}€
                                                 </td>
-                                                <td class="text-end">
+                                                <td class="text-center">
                                                     {{ number_format($usuario->balance,2) }}€
                                                 </td>
                                             </tr>

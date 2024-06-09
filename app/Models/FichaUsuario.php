@@ -10,7 +10,7 @@ class FichaUsuario extends Model
     use HasFactory;
 
     protected $table = 'fichas_usuarios';
-
+    protected $connection = 'site';
     protected $primaryKey = 'uuid';
     public $incrementing = true;
 

@@ -8,12 +8,7 @@
                 <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> {{ __('Tokens') }}</div>
 
                 <div class="card-body">
-                    <div class="d-grid gap-2 d-md-flex justify-content-end">
-                        @if (Auth::user()->hasRole('Administrador'))
-                        <a class="btn btn-lg btn-success fs-3" href={{ route('fichas.create') }}><i class="bi bi-plus-circle"></i> Nueva Ficha</a>
-                        @endif
-                    </div>
-                    <div class="container-fluid mt-3">
+                    <div class="container-fluid">
                         <div class="row">
                             @if ($errors->any())
                             <div class="custom-error-container" id="custom-error-container">
@@ -37,7 +32,7 @@
                                     <tr class="">
                                         <th scope="col-auto" style="width:90px">Fecha</th>
                                         <th scope="col-auto">Usuario</th>
-                                        <th scope="col-auto">Importe</th>
+                                        <th scope="col-auto" class="text-center">Importe</th>
 
                                     </tr>
                                 </thead>
@@ -75,7 +70,7 @@
                                             @endif
 
                                         </td>
-                                        <td class="align-middle">
+                                        <td class="align-middle text-center">
                                             {{ number_format($ficha->precio,2) }} €
                                         </td>
 
@@ -92,6 +87,14 @@
                             @endif
                         </div>
                     </div>
+                </div>
+
+                <div class="card-footer">
+                    <form>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <a href="{{ route('fichas.create') }}" class="btn btn-primary fondo-rojo borde-rojo mx-1"><i class="bi bi-plus-circle"></i></a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

@@ -6,7 +6,7 @@
         <div class="col-md-6">
             <div class="text-center">
                 <img src="{{ siteLogo() }}" style="width:150px; height:auto" class="mb-2">
-                <h1 class="color-rojo mb-2">ACG El Despiste</h1>
+                <h1 class="color-rojo mb-2">{{ siteName() }}</h1>
             </div>
             <div class="card">
 

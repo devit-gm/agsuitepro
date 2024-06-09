@@ -71,6 +71,6 @@ class Kernel extends HttpKernel
 
     protected $routeMiddleware = [
         // Otros middlewares
-        'detect.site' => \App\Http\Middleware\DetectSite::class,
+        'detect.site' => \App\Http\Middleware\DetectSite::class
     ];
 }

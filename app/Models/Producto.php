@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Producto extends Model
 {
     use HasFactory;
+    protected $connection = 'site';
     protected $primaryKey = 'uuid';
     public $incrementing = false;
 
@@ -19,5 +20,6 @@ class Producto extends Model
         'familia',
         'combinado',
         'precio'
+
     ];
 }

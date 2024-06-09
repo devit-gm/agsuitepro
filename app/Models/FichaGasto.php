@@ -8,10 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class FichaGasto extends Model
 {
     use HasFactory;
-
+    protected $connection = 'site';
     protected $table = 'fichas_gastos';
+    protected $primaryKey = 'uuid';
+    public $incrementing = false;
 
     protected $fillable = [
+        'uuid',
         'id_ficha',
         'user_id',
         'descripcion',

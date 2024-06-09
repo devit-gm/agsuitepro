@@ -14255,3 +14255,9 @@ form .btn {
 .form-check-label {
   margin-right: 10px;
 }
+
+.readonly {
+  pointer-events: none; /* Desactiva la interacción del usuario */
+  background-color: #e9ecef; /* Color de fondo */
+  border-color: #ced4da; /* Color del borde */
+}

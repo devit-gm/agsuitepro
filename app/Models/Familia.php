@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Familia extends Model
 {
     use HasFactory;
+    protected $connection = 'site';
     protected $primaryKey = 'uuid';
     public $incrementing = false;
 

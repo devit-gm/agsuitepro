@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Role extends Model
 {
     use HasFactory;
-
+    protected $connection = 'central';
     protected $fillable = [
         'name',
         'guard_name'

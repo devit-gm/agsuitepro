@@ -47,7 +47,7 @@
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($serviciosFicha as $servicio)
-                                                    <tr>
+                                                    <tr style="height: 80px;">
                                                         <td class="align-middle">
                                                             {{ $servicio->nombre }}
                                                         </td>
@@ -77,7 +77,7 @@
                         <div class="d-flex align-items-center justify-content-center">
                             <a class="btn btn-dark mx-1" href={{ route('fichas.usuarios', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
                             <button type="button" onclick="document.getElementById('editar-serviciosficha').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
-                            <a class="btn btn-dark mx-1" href={{ route('fichas.lista', $ficha->uuid) }}><i class="bi bi-chevron-right"></i></a>
+                            <a class="btn btn-dark mx-1" href={{ route('fichas.gastos', $ficha->uuid) }}><i class="bi bi-chevron-right"></i></a>
                         </div>
                     </form>
                 </div>

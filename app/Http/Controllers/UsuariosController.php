@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\FichaUsuario;
 use App\Models\Reserva;
 use App\Models\Role;
+use App\Models\Site;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Services\VerificarRolesService;
 use Illuminate\Console\View\Components\Component;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 
@@ -16,9 +19,26 @@ class UsuariosController extends Controller
     /**
      * Display a listing of the resource.
      */
+    protected $verificarRolesService;
+
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            $usuario = Auth::user();
+            $domain = $request->getHost();
+            $site = Site::where('dominio', $domain)->first();
+            if ($usuario->role_id > 2) {
+                abort(403, 'No tiene acceso a este recurso.');
+            }
+
+            return $next($request);
+        });
+    }
+
     public function index()
     {
-        $usuarios = User::orderBy('id')->get();
+        $site = app('site');
+        $usuarios = User::where('site_id', $site->id)->orderBy('id')->get();
         $roles = Role::orderBy('id')->get();
         foreach ($usuarios as $usuario) {
             if ($usuario->role_id == 1) {
@@ -51,13 +71,17 @@ class UsuariosController extends Controller
         $imageName = time() . '.' . $request->image->extension();
         $request->image->move(public_path('images'), $imageName);
 
+        $domain = $request->getHost();
+        $site = Site::where('dominio', $domain)->first();
+
         User::create([
             'name' => $request->name,
             'image' => $imageName,
             'password' => Hash::make($request->password),
             'email' => $request->email,
             'role_id' => $request->role_id,
-            'phone_number' => $request->phone_number
+            'phone_number' => $request->phone_number,
+            'site_id' => $site->id
         ]);
         return redirect()->route('usuarios.index')
             ->with('success', 'Usuario creado con éxito.');
@@ -127,7 +151,7 @@ class UsuariosController extends Controller
     public function create()
     {
         $usuario = User::orderBy('name')->get();
-        $roles = Role::orderBy('Name')->get();
+        $roles = Role::where('id', '>', 1)->orderBy('Name')->get();
         return view('usuarios.create', compact('usuario', 'roles'));
     }
 

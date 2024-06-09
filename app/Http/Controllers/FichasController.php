@@ -14,13 +14,28 @@ use App\Models\FichaServicio;
 use App\Models\FichaProducto;
 use Illuminate\Support\Facades\File;
 use App\Models\Familia;
+use App\Models\FichaRecibo;
 use App\Models\Producto;
+use App\Models\Site;
 use Ramsey\Uuid\Type\Decimal;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class FichasController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            $domain = $request->getHost();
+            $site = Site::where('dominio', $domain)->first();
+            if ($site->central == 1) {
+                abort(403, 'No tiene acceso a este recurso.');
+            }
+
+            return $next($request);
+        });
+    }
     /**
      * Display a listing of the resource.
      */
@@ -198,24 +213,30 @@ class FichasController extends Controller
     private function ObtenerImporteFicha($ficha)
     {
         $precio = 0.0;
+        $ajustes = DB::connection('site')->table('ajustes')->first();
         $productos = FichaProducto::where('id_ficha', $ficha->uuid)->get();
         foreach ($productos as $producto) {
             $precio += $producto->precio;
         }
         $usuarios = FichaUsuario::where('id_ficha', $ficha->uuid)->get();
         foreach ($usuarios as $usuario) {
-            $precio += $usuario->invitados;
+            $num_invitados = $usuario->invitados;
+            if ($num_invitados > $ajustes->max_invitados_cobrar) {
+                $num_invitados = $ajustes->max_invitados_cobrar;
+            }
+            if ($ajustes->primer_invitado_gratis && $num_invitados > 0) {
+                $num_invitados--;
+            }
+            $precio += $num_invitados * $ajustes->precio_invitado;
         }
         $servicios = FichaServicio::where('id_ficha', $ficha->uuid)->get();
         foreach ($servicios as $servicio) {
             $precio += $servicio->precio;
         }
-        $compras = FichaGasto::where('id_ficha', $ficha->uuid)->get();
-        foreach ($compras as $compra) {
-            $precio += $compra->precio;
-        }
-        if ($ficha->invitados_grupo > 0) {
-            $precio = $precio + $ficha->invitados_grupo;
+        if ($ajustes->activar_invitados_grupo) {
+            if ($ficha->invitados_grupo > 0) {
+                $precio = $precio + $ficha->invitados_grupo;
+            }
         }
         return $precio;
     }
@@ -241,7 +262,18 @@ class FichasController extends Controller
     {
         $ficha = Ficha::find($uuid);
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
-        $usuariosFicha = User::orderBy('id')->get();
+        $site = app('site');
+        $usuariosFicha = User::where('site_id', $site->id)->orderBy('id')->get();
+        $estaUsuarioActivo = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first();
+        if (!$estaUsuarioActivo) {
+            //Si el usuario activo no está en la ficha lo añadimos
+            FichaUsuario::create([
+                'uuid' => (string) Uuid::uuid4(),
+                'id_ficha' => $ficha->uuid,
+                'user_id' => Auth::id(),
+                'invitados' => 0
+            ]);
+        }
         foreach ($usuariosFicha as $usuarioFicha) {
             //si el user_id está en FichaUsuario de la ficha lo ponemos como marcado
             $fichaUsuario = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', $usuarioFicha->id)->first();
@@ -256,8 +288,193 @@ class FichasController extends Controller
         return view('fichas.usuarios', compact('ficha', 'usuariosFicha'));
     }
 
+    public function resumen($uuid)
+    {
+        $ficha = Ficha::find($uuid);
+        $ficha->precio = $this->ObtenerImporteFicha($ficha);
+        $ficha->productos = FichaProducto::where('id_ficha', $uuid)->get();
+        $total_consumos = 0;
+        foreach ($ficha->productos as $producto) {
+            $total_consumos += $producto->precio;
+        }
+        $ficha->total_consumos = $total_consumos;
+        $ficha->servicios = FichaServicio::where('id_ficha', $uuid)->get();
+        $total_servicios = 0;
+        foreach ($ficha->servicios as $servicio) {
+            $total_servicios += $servicio->precio;
+        }
+        $ficha->total_servicios = $total_servicios;
+        $ficha->usuarios = FichaUsuario::where('id_ficha', $uuid)->get();
+
+        $total_comensales = 0;
+        foreach ($ficha->usuarios as $usuario) {
+            $total_comensales += $usuario->invitados;
+            $total_comensales++;
+        }
+        // De momento los invitados de grupo no cuentan
+        // if ($ficha->invitados_grupo > 0) {
+        //     $total_comensales += $ficha->invitados_grupo;
+        // }
+        $ficha->total_comensales = $total_comensales;
+        $ficha->gastos = FichaGasto::where('id_ficha', $uuid)->get();
+        $total_gastos = 0;
+        foreach ($ficha->gastos as $gasto) {
+            $total_gastos += $gasto->precio;
+        }
+        $ficha->total_gastos = $total_gastos;
+
+        $ficha->precio_comensal = $ficha->precio / $total_comensales;
+        return view('fichas.resumen', compact('ficha'));
+    }
+
+    public function enviar($uuid)
+    {
+        $ficha = Ficha::find($uuid);
+        $ficha->precio = $this->ObtenerImporteFicha($ficha);
+        $gastosFicha = FichaGasto::where('id_ficha', $uuid)->get();
+        //Insertamos en la tabla ficha_recibos los gastos de la ficha
+        foreach ($gastosFicha as $gastoFicha) {
+            FichaRecibo::create([
+                'uuid' => (string) Uuid::uuid4(),
+                'id_ficha' => $uuid,
+                'user_id' => $gastoFicha->user_id,
+                'tipo' => 2,
+                'estado' => 0,
+                'precio' => $gastoFicha->precio,
+                'fecha' => Carbon::now()
+            ]);
+        }
+        //Obtenemos el precio total por comensal
+        $total_comensales = 0;
+        $usuarios = FichaUsuario::where('id_ficha', $uuid)->get();
+        foreach ($usuarios as $usuario) {
+            $total_comensales += $usuario->invitados;
+            $total_comensales++;
+        }
+        // De momento los invitados de grupo no cuentan
+        // if ($ficha->invitados_grupo > 0) {
+        //     $total_comensales += $ficha->invitados_grupo;
+        // }
+        $precio_comensal = $ficha->precio / $total_comensales;
+        //Insertamos en la tabla ficha_recibos el gasto por comensal
+        //Que es el precio por comensal * número de invitados de cada usuario
+        //Hay que añadir el gasto del propio comensal
+        foreach ($usuarios as $usuario) {
+            $num_invitados = $usuario->invitados;
+
+            FichaRecibo::create([
+                'uuid' => (string) Uuid::uuid4(),
+                'id_ficha' => $uuid,
+                'user_id' => $usuario->user_id,
+                'tipo' => 1,
+                'estado' => 0,
+                //Sumamos 1 porque el propio comensal también paga
+                'precio' => $precio_comensal * ($num_invitados + 1),
+                'fecha' => Carbon::now()
+            ]);
+        }
+
+        //Descontamos el stock de cada artículo consumido
+        $productos = FichaProducto::where('id_ficha', $uuid)->get();
+        foreach ($productos as $producto) {
+            $productoFicha = Producto::where('uuid', $producto->id_producto)->first();
+            if ($productoFicha->combinado == 1) {
+                $productosCombinados = DB::connection('site')->table('composicion_productos')->where('id_producto', $productoFicha->uuid)->get();
+                foreach ($productosCombinados as $productoCombinado) {
+                    $producto2 = Producto::find($productoCombinado->id_componente);
+                    $producto2->stock -= $producto->cantidad;
+                    $producto2->save();
+                }
+            } else {
+                $producto->producto = Producto::find($producto->id_producto);
+                $producto->producto->stock -= $producto->cantidad;
+                $producto->producto->save();
+            }
+        }
+
+        $ficha->estado = 1;
+        $ficha->save();
+        return redirect()->route('fichas.index')
+            ->with('success', 'Ficha enviada con éxito');
+    }
+
+    public function gastos($uuid)
+    {
+        $ficha = Ficha::find($uuid);
+        $ficha->precio = $this->ObtenerImporteFicha($ficha);
+        $gastosFicha = FichaGasto::where('id_ficha', $uuid)->get();
+        foreach ($gastosFicha as $gastoFicha) {
+            $gastoFicha->usuario = User::find($gastoFicha->user_id);
+            $gastoFicha->borrable = true;
+        }
+
+        return view('fichas.gastos', compact('ficha', 'gastosFicha'));
+    }
+
+    public function addgastos($uuid)
+    {
+        $site = app('site');
+        $ficha = Ficha::find($uuid);
+        $ficha->precio = $this->ObtenerImporteFicha($ficha);
+        $usuariosFicha = FichaUsuario::where('id_ficha', $uuid)->get();
+        if ($usuariosFicha == null) {
+            $usuariosFicha = User::where('id', $ficha->user_id)->get();
+        } else {
+            $usuariosFicha = [];
+            //Buscar los usuarios que están dentro de FichaUsuario
+            $usuarios = User::where('site_id', $site->id)->orderBy('id')->get();
+            foreach ($usuarios as $usuario) {
+                //si el user_id está en FichaUsuario de la ficha lo ponemos como marcado
+                $fichaUsuario = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', $usuario->id)->first();
+                if ($fichaUsuario) {
+                    $usuariosFicha[] = $usuario;
+                }
+            }
+        }
+        return view('fichas.addgastos', compact('ficha', 'usuariosFicha'));
+    }
+
+    public function destroygastos(string $uuid, string $uuid2)
+    {
+
+        //buscar en fichaproducto la ficha con id_ficha = uuid y id_producto = uuid2
+        $fichaGastos = FichaGasto::where('id_ficha', $uuid)->where('uuid', $uuid2)->get();
+        foreach ($fichaGastos as $fichaGasto) {
+            if (File::exists(public_path('images') . '/'  . $fichaGasto->ticket)) {
+                File::delete(public_path('images') . '/'  . $fichaGasto->ticket);
+            }
+            $fichaGasto->delete();
+        }
+        return redirect()->route('fichas.gastos', $uuid)
+            ->with('success', 'Gasto eliminado de la ficha');
+    }
+
+    public function updategastos($uuid, Request $request)
+    {
+        $request->validate([
+            'descripcion' => 'max:255',
+            'ticket' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+            'precio' => 'required'
+        ]);
+
+        $imageName = time() . '.' . $request->ticket->extension();
+        $request->ticket->move(public_path('images'), $imageName);
+
+        $fichaGasto = FichaGasto::create([
+            'uuid' => (string) Uuid::uuid4(),
+            'id_ficha' => $uuid,
+            'user_id' => Auth::id(),
+            'descripcion' => $request->descripcion,
+            'ticket' => $imageName,
+            'precio' => $request->precio
+        ]);
+
+        return redirect()->route('fichas.gastos', $uuid)->with('success', 'Gastos de la ficha actualizados con éxito');
+    }
+
     public function updateusuarios($uuid, Request $request)
     {
+        $site = app('site');
         FichaUsuario::where('id_ficha', $uuid)->delete();
         if ($request->usuarios != null) {
             foreach ($request->usuarios as $usuario) {
@@ -272,7 +489,7 @@ class FichasController extends Controller
         }
         $ficha = Ficha::find($uuid);
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
-        $usuariosFicha = User::orderBy('id')->get();
+        $usuariosFicha = User::where('site_id', $site->id)->orderBy('id')->get();
         foreach ($usuariosFicha as $usuarioFicha) {
             //si el user_id está en FichaUsuario de la ficha lo ponemos como marcado
             $fichaUsuario = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', $usuarioFicha->id)->first();

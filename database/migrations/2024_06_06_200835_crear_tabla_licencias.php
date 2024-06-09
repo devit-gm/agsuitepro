@@ -11,7 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::create('licenses', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('site_id'); // ID del sitio al que pertenece la licencia
+            $table->unsignedBigInteger('user_id'); // ID del usuario al que pertenece la licencia
+            $table->string('license_key')->unique();
+            $table->date('expires_at');
+            $table->timestamps();
+
+            $table->foreign('site_id')->references('id')->on('sitios')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        });
     }
 
     /**
@@ -19,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('licenses');
     }
 };

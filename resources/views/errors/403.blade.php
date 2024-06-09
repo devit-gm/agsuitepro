@@ -10,8 +10,8 @@
                 <div class="card-body">
                     <div class="container mt-3">
                         <div class="row">
-                            <p>La operación solicitada no está permitida. Si considera que es un error póngase en contacto con el administrador.</p>
-                            <p>Pulse <a href="{{ url('/') }}">aquí</a> para volver al inicio.</p>
+                            <h1>403 No permitido</h1>
+                            <p>No tienes permiso para acceder a esta página. Pulse <a href="{{ url('/') }}">aquí</a> para volver al inicio</p>
                         </div>
                     </div>
                 </div>

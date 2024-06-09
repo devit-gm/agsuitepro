@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Ajustes extends Model
 {
     use HasFactory;
+    protected $connection = 'site';
     protected $primaryKey = 'id';
     public $incrementing = false;
 

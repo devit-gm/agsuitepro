@@ -5,7 +5,7 @@
     <div class="row justify-content-center">
         <div class="col-md-12 d-flex">
             <div class="card flex-fill">
-                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> FICHA - Usuarios</div>
+                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> FICHA - Asistentes</div>
 
                 <div class="card-body">
                     <div class="d-grid gap-2 d-md-flex justify-content-end">
@@ -47,14 +47,14 @@
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($usuariosFicha as $usuario)
-                                                    <tr>
+                                                    <tr style="height: 80px;">
                                                         <td class="align-middle">
                                                             {{ $usuario->name }}
                                                         </td>
 
                                                         <td class="align-middle">
                                                             <div class="form-check form-switch">
-                                                                <input class="form-check-input" type="checkbox" role="switch" name="usuarios[{{ $usuario->id }}]" value="[{{ $usuario->id }}]" id="usuarios[{{ $usuario->id }}]" value="{{ $usuario->id }}" @if($usuario->marcado == 1) checked @endif>
+                                                                <input class="form-check-input @if($usuario->id == Auth::user()->id) readonly @endif" type="checkbox" role="switch" name="usuarios[{{ $usuario->id }}]" value="[{{ $usuario->id }}]" id="usuarios[{{ $usuario->id }}]" value="{{ $usuario->id }}" @if($usuario->marcado == 1) checked @endif >
                                                             </div>
                                                         </td>
                                                         <td class="align-middle col-md-4">

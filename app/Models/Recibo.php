@@ -9,7 +9,7 @@ class Recibo extends Model
 {
     use HasFactory;
     protected $table = 'fichas_recibos';
-
+    protected $connection = 'site';
     protected $primaryKey = 'uuid';
     public $incrementing = true;
 

@@ -10,7 +10,7 @@ class FichaProducto extends Model
     use HasFactory;
 
     protected $table = 'fichas_productos';
-
+    protected $connection = 'site';
     protected $primaryKey = 'uuid';
     public $incrementing = false;
 
