@@ -21,6 +21,13 @@ if (!function_exists('siteLogoNav')) {
     }
 }
 
+if (!function_exists('siteFavicon')) {
+    function siteFavicon()
+    {
+        return config('site.favicon') ? asset(config('site.favicon')) : asset('images/favicon');
+    }
+}
+
 if (!function_exists('siteStyles')) {
     function siteStyles()
     {

@@ -42,10 +42,27 @@ class FichasController extends Controller
     public function index()
     {
         Carbon::setLocale('es');
-        $fichas = Ficha::whereDate('fecha', '>=', Carbon::now()->toDateString())
+        $fichasMostrar = Ficha::whereDate('fecha', '>=', Carbon::now()->toDateString())
             ->where('estado', 0)
             ->orderBy('fecha')
             ->get();
+
+        $fichas = [];
+        foreach ($fichasMostrar as $ficha) {
+            if ($ficha->tipo != 4) {
+                //Si la ficha no es de tipo evento
+                //La mostramos solo para el usuario activo
+                //O para el administrador
+                //O para los usuarios que están en el grupo de la ficha
+                if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('id_usuario', Auth::id())->first()) {
+                    $fichas[] = $ficha;
+                }
+            } else {
+                //Los eventos los mostramos para todos por si los
+                //usuarios quieren apuntarse
+                $fichas[] = $ficha;
+            }
+        }
         $meses = array("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre");
         foreach ($fichas as $ficha) {
 
@@ -97,7 +114,8 @@ class FichasController extends Controller
             'invitados_grupo' => $request->invitados_grupo,
             'estado' => $request->estado,
             'tipo' => $request->tipo,
-            'fecha' => $request->fecha
+            'fecha' => $request->fecha,
+            'hora' => $request->hora
         ]);
         return redirect()->route('fichas.index')
             ->with('success', 'Ficha creada con éxito.');
@@ -115,7 +133,7 @@ class FichasController extends Controller
             $ficha->borrable = false;
         }
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
-        $fechaCambiada = Carbon::parse($ficha->fecha)->todateString();
+        $fechaCambiada = Carbon::parse($ficha->fecha)->todateTimeString();
         return view('fichas.edit', compact('ficha', 'fechaCambiada'));
     }
 
@@ -145,7 +163,8 @@ class FichasController extends Controller
             'invitados_grupo' => $request->invitados_grupo,
             'estado' => $request->estado,
             'tipo' => $request->tipo,
-            'fecha' => $request->fecha
+            'fecha' => $request->fecha,
+            'hora' => $request->hora
         ]);
         return redirect()->route('fichas.index')
             ->with('success', 'Ficha actualizada con éxito.');
@@ -246,6 +265,21 @@ class FichasController extends Controller
         $ficha = Ficha::find($uuid);
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
         $familias = Familia::orderBy('posicion')->get();
+        //Si no es un evento y el usuario activo no está en la ficha lo añadimos
+        if ($ficha->tipo != 4) {
+            $estaUsuarioActivo = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first();
+            if (!$estaUsuarioActivo) {
+                //Si el usuario activo no está en la ficha lo añadimos
+                FichaUsuario::create([
+                    'uuid' => (string) Uuid::uuid4(),
+                    'id_ficha' => $ficha->uuid,
+                    'user_id' => Auth::id(),
+                    'invitados' => 0
+                ]);
+            }
+        }
+        //Si es un evento no hacemos nada
+        //Para que los usuarios puedan apuntarse o no
         return view('fichas.familias', compact('ficha', 'familias'));
     }
 
@@ -254,7 +288,12 @@ class FichasController extends Controller
         $ficha = Ficha::find($uuid);
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
         $familia = Familia::find($uuid2);
-        $productos = Producto::where('familia', $uuid2)->orderBy('posicion')->get();
+        $ajustes = DB::connection('site')->table('ajustes')->first();
+        if ($ajustes->permitir_comprar_sin_stock == 1) {
+            $productos = Producto::where('familia', $uuid2)->orderBy('posicion')->get();
+        } else {
+            $productos = Producto::where('familia', $uuid2)->where('stock', '>', 0)->orderBy('posicion')->get();
+        }
         return view('fichas.productos', compact('ficha', 'familia', 'productos'));
     }
 
@@ -263,16 +302,11 @@ class FichasController extends Controller
         $ficha = Ficha::find($uuid);
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
         $site = app('site');
-        $usuariosFicha = User::where('site_id', $site->id)->orderBy('id')->get();
-        $estaUsuarioActivo = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first();
-        if (!$estaUsuarioActivo) {
-            //Si el usuario activo no está en la ficha lo añadimos
-            FichaUsuario::create([
-                'uuid' => (string) Uuid::uuid4(),
-                'id_ficha' => $ficha->uuid,
-                'user_id' => Auth::id(),
-                'invitados' => 0
-            ]);
+        //Si es una ficha individual sólo mostramos al usuario activo
+        if ($ficha->tipo == 1) {
+            $usuariosFicha = User::where('site_id', $site->id)->where('id', $ficha->user_id)->get();
+        } else {
+            $usuariosFicha = User::where('site_id', $site->id)->orderBy('id')->get();
         }
         foreach ($usuariosFicha as $usuarioFicha) {
             //si el user_id está en FichaUsuario de la ficha lo ponemos como marcado
@@ -407,6 +441,23 @@ class FichasController extends Controller
             $gastoFicha->usuario = User::find($gastoFicha->user_id);
             $gastoFicha->borrable = true;
         }
+
+        //Si es una ficha de compra ha llegado directamente
+        //Hay que comprobar si el usuario activo está en la ficha
+        if ($ficha->tipo == 3) {
+            $estaUsuarioActivo = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first();
+            if (!$estaUsuarioActivo) {
+                //Si el usuario activo no está en la ficha lo añadimos
+                FichaUsuario::create([
+                    'uuid' => (string) Uuid::uuid4(),
+                    'id_ficha' => $ficha->uuid,
+                    'user_id' => Auth::id(),
+                    'invitados' => 0
+                ]);
+            }
+        }
+        //Para el resto de tipos de ficha no hacemos nada ya que se 
+        //controla en otro sitio.
 
         return view('fichas.gastos', compact('ficha', 'gastosFicha'));
     }
@@ -556,10 +607,11 @@ class FichasController extends Controller
         $ficha = Ficha::find($request->idFicha);
         $familia = Familia::find($request->idFamilia);
         $producto = Producto::find($request->idProducto);
+        $cantidad = 1;
         $existe = FichaProducto::where('id_ficha', $ficha->uuid)->where('id_producto', $producto->id)->first();
         if ($existe) {
-            $existe->cantidad += 1;
-            $existe->precio += $producto->precio;
+            $existe->cantidad += $cantidad;
+            $existe->precio += ($producto->precio * $cantidad);
             $existe->save();
         } else {
             $fichaProducto = FichaProducto::create([
@@ -613,13 +665,15 @@ class FichasController extends Controller
         $total = FichaProducto::where('id_ficha', $uuid)->where('id_producto', $uuid2)->sum('cantidad');
         $producto = Producto::find($uuid2);
         if ($cantidad > 0) {
-            $fichaProducto = FichaProducto::create([
-                'uuid' => (string) Uuid::uuid4(),
-                'id_ficha' => $uuid,
-                'id_producto' => $uuid2,
-                'precio' => $producto->precio,
-                'cantidad' => $cantidad
-            ]);
+            for ($cantidad; $cantidad > 0; $cantidad--) {
+                $fichaProducto = FichaProducto::create([
+                    'uuid' => (string) Uuid::uuid4(),
+                    'id_ficha' => $uuid,
+                    'id_producto' => $uuid2,
+                    'precio' => $producto->precio,
+                    'cantidad' => 1
+                ]);
+            }
             return redirect()->route('fichas.lista', $uuid)
                 ->with('success', 'Producto añadido a la ficha');
         } else {

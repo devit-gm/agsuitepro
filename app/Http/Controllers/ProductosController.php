@@ -10,10 +10,23 @@ use Illuminate\Console\View\Components\Component;
 use Illuminate\Support\Facades\File;
 use Ramsey\Uuid\Uuid;
 use App\Models\FichaProducto;
+use App\Models\Site;
 use Illuminate\Support\Facades\Auth;
 
 class ProductosController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            $domain = $request->getHost();
+            $site = Site::where('dominio', $domain)->first();
+            if ($site->central == 1) {
+                abort(403, 'No tiene acceso a este recurso.');
+            }
+
+            return $next($request);
+        });
+    }
     /**
      * Display a listing of the resource.
      */

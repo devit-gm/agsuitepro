@@ -22,6 +22,7 @@ class Ficha extends Model
         'invitados_grupo',
         'fecha',
         'precio',
+        'hora'
     ];
 
     /**

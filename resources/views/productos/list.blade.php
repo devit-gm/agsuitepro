@@ -10,7 +10,7 @@
                 <div class="card-body">
                     <div class="container h-100">
                         <div class="row h-100 justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-6">
+                            <div class="col-12 col-md-8 col-lg-10">
                                 <form action="{{ route('productos.update', $producto->id) }}" method="post" enctype="multipart/form-data">
                                     @csrf
                                     @method('PUT')

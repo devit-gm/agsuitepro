@@ -9,6 +9,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use DragonCode\Contracts\Cashier\Auth\Auth;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 
 class LicenciasController extends Controller
 {
@@ -80,5 +82,41 @@ class LicenciasController extends Controller
         $license = License::find($id);
         $license->delete();
         return redirect()->route('licencias.index')->with('success', 'Licencia eliminada con éxito');
+    }
+
+    public function error(Request $request)
+    {
+        if ($request->method() == 'GET') {
+
+            $license = License::where('site_id', FacadesAuth::user()->site_id)->where('user_id', FacadesAuth::id())->first();
+            if ($license && !Carbon::parse($license->expires_at)->isPast() && $license->actived == 1) {
+                abort(403, 'No tiene acceso a este recurso.');
+            } else {
+                return view('licencias.error');
+            }
+        } else {
+            $license = License::where('site_id', FacadesAuth::user()->site_id)->where('user_id', FacadesAuth::id())->where('license_key', trim($request->licencia))->first();
+            if ($license) {
+                $license->actived = true;
+                $license->save();
+                return $this->checkDomain($request);
+            } else {
+                $errors = new \Illuminate\Support\MessageBag();
+                $errors->add('msg', 'La licencia introducida no es válida');
+                return view('licencias.error', compact('errors'));
+            }
+        }
+    }
+
+    public function checkDomain(Request $request)
+    {
+        $domain = $request->getHost();
+        $site = Site::where('dominio', $domain)->first();
+        if ($site->central == 1) {
+            // Aquí podrías devolver una vista con los detalles del sitio
+            return redirect()->route('sitios.index');
+        } else {
+            return redirect()->route('fichas.index');
+        }
     }
 }

@@ -3055,6 +3055,9 @@ document.addEventListener('DOMContentLoaded', function () {
       if (row.dataset.hrefrestarcantidad != null) {
         var formulario = document.getElementById("frmEditar");
         formulario.action = row.dataset.hrefrestarcantidad;
+        if (row.dataset.hrefrestarcantidadmethod != null) {
+          formulario.method = row.dataset.hrefrestarcantidadmethod;
+        }
         formulario.submit();
       }
     });
@@ -3062,8 +3065,23 @@ document.addEventListener('DOMContentLoaded', function () {
       deslizamiento = true;
       if (row.dataset.hrefsumarcantidad != null) {
         var formulario = document.getElementById("frmEditar");
-        formulario.action = row.dataset.hrefsumarcantidad;
-        formulario.submit();
+        if (row.dataset.hrefsumarcantidadpreguntar != null) {
+          var unidades = prompt('Introduce la cantidad a sumar:');
+          if (unidades != null && unidades != "" && !isNaN(unidades) && parseInt(unidades) > 0) {
+            var unidades = parseInt(unidades);
+            if (unidades > 0) {
+              var partes = row.dataset.hrefsumarcantidad.split('/');
+              var ultimaParte = partes.pop() || partes.pop();
+              partes.push(unidades);
+              var nuevaUrl = partes.join('/');
+              formulario.action = nuevaUrl;
+              formulario.submit();
+            }
+          }
+        } else {
+          formulario.action = row.dataset.hrefsumarcantidad;
+          formulario.submit();
+        }
       }
     });
   });

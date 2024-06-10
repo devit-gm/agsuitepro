@@ -4,16 +4,16 @@
 
 <div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-12 d-flex">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
             <div class="card flex-fill">
                 <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> Editar ficha</div>
 
                 <div class="card-body">
                     <div class="row justify-content-center align-items-center">
-                        <div class="d-grid gap-2 d-md-flex justify-content-end">
+                        <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
                             <button class="btn btn-lg btn-light border border-dark">{{number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i></button>
                         </div>
-                        <div class="col-12 col-md-8 col-lg-6">
+                        <div class="col-12 col-md-8 col-lg-10">
                             <form id="editar-ficha" action="{{ route('fichas.update', ['uuid'=>$ficha->uuid]) }}" method="post">
                                 @csrf
                                 @method('PUT')
@@ -35,6 +35,10 @@
                                 <div class="form-group mb-3 required">
                                     <label for="fecha" class="fw-bold form-label">Fecha:</label><br>
                                     <input type="date" id="fecha" name="fecha" value="{{ $fechaCambiada }}" @if($ficha->estado == 1) disabled @endif>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="hora" class="fw-bold">Hora:</label><br>
+                                    <input type="time" id="hora" name="hora" value="{{ old('hora') }}">
                                 </div>
                                 <div class="form-group mb-3 required">
                                     <label for="tipo" class="fw-bold form-label">Tipo</label>

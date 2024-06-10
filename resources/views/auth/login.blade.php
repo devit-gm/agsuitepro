@@ -1,18 +1,21 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="text-center">
-                <img src="{{ siteLogo() }}" style="width:150px; height:auto" class="mb-2">
-                <h1 class="color-rojo mb-2">{{ siteName() }}</h1>
-            </div>
+<div class="container-fluid">
+    <div class="row justify-content-center d-flex">
+        <div class="col-md-6 flex-fill">
+
             <div class="card">
 
-                <div class="card-header fondo-rojo">{{ __('Login') }}</div>
+                <div class="card-header fondo-rojo">
+                    {{ __('Login') }}
+                </div>
 
                 <div class="card-body">
+                    <div class="text-center">
+                        <img src="{{ siteLogo() }}" style="width:150px; height:auto" class="mb-2">
+                        <h1 class="color-rojo mb-2">{{ siteName() }}</h1>
+                    </div>
                     <form method="POST" action="{{ route('login') }}">
                         @csrf
 
