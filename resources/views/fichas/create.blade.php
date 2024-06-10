@@ -3,13 +3,13 @@
 @section('content')
 <div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-12 d-flex">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
             <div class="card flex-fill">
                 <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> Nueva ficha</div>
 
                 <div class="card-body">
                     <div class="row justify-content-center align-items-center">
-                        <div class="col-12 col-md-8 col-lg-6">
+                        <div class="col-12 col-md-8 col-lg-10">
                             <form id="nueva-ficha" action="{{ route('fichas.store') }}" method="post">
                                 @csrf
                                 @if ($errors->any())
@@ -30,8 +30,13 @@
                                     <input type="text" class="form-control" id="descripcion" name="descripcion">
                                 </div>
                                 <div class="form-group mb-3 required">
-                                    <label for="fecha">Fecha:</label><br>
+                                    <label for="fecha" class="fw-bold">Fecha:</label><br>
                                     <input type="date" id="fecha" name="fecha" value="{{ old('fecha', $currentDateTime->format('Y-m-d')) }}">
+                                </div>
+                                <div class="form-group mb-3">
+                                    Sólo para la creación de eventos<br />
+                                    <label for="hora" class="fw-bold">Hora:</label><br>
+                                    <input type="time" id="hora" name="hora" value="{{ old('hora', $currentDateTime->format('H:i')) }}">
                                 </div>
                                 <div class="form-group mb-3 required">
                                     <label for="tipo" class="fw-bold form-label">Tipo</label>

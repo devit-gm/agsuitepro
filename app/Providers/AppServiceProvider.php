@@ -58,6 +58,7 @@ class AppServiceProvider extends ServiceProvider
         config(['site.name' => $site->nombre]);
         config(['site.logoNav' => $site->ruta_logo_nav]);
         config(['site.styles' => $site->ruta_estilos]);
+        config(['site.favicon' => $site->favicon]);
 
         Log::info('Configuración de la base de datos del sitio activo:', [
             'host' => $site->db_host,

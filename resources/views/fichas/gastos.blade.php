@@ -3,17 +3,17 @@
 @section('content')
 <div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-12 d-flex">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
             <div class="card flex-fill">
                 <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> FICHA - Gastos</div>
 
                 <div class="card-body">
-                    <div class="d-grid gap-2 d-md-flex justify-content-end">
+                    <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
                         <button class="btn btn-lg btn-light border border-dark">{{number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i></button>
                     </div>
                     <div class="container-fluid mt-3">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-6">
+                            <div class="col-12 col-md-8 col-lg-10">
                                 <div class="container mt-3">
                                     <div class="row">
                                         @if ($errors->any())
@@ -78,9 +78,19 @@
                 <div class=" card-footer">
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
+                            @if($ficha->tipo != 3)
                             <a class="btn btn-dark mx-1" href={{ route('fichas.servicios', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
                             <a class="btn btn-info mx-1" href={{ route('fichas.addgastos', $ficha->uuid) }}><i class="bi bi-plus-circle"></i></a>
                             <a class="btn btn-success mx-1" href={{ route('fichas.resumen', $ficha->uuid) }}><i class="bi bi-check-circle"></i></a>
+                            @endif
+
+                            @if($ficha->tipo == 3)
+                            <a class="btn btn-dark mx-1" href={{ route('fichas.index', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+                            <a class="btn btn-info mx-1" href={{ route('fichas.addgastos', $ficha->uuid) }}><i class="bi bi-plus-circle"></i></a>
+                            @if($ficha->precio>0)
+                            <a href="{{ route('fichas.enviar', $ficha->uuid) }}" class="btn btn-success mx-1"><i class="bi bi-send"></i></a>
+                            @endif
+                            @endif
                         </div>
                     </form>
                 </div>

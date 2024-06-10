@@ -120,4 +120,6 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::get('/licencias/{id}/edit', [LicenciasController::class, 'edit'])->name('licencias.edit');
     Route::put('/licencias/{id}/update', [LicenciasController::class, 'update'])->name('licencias.update');
     Route::delete('/licencias/{id}', [LicenciasController::class, 'destroy'])->name('licencias.destroy');
+    Route::get('/licencias/error', [LicenciasController::class, 'error'])->name('licencias.error');
+    Route::put('/licencias/error', [LicenciasController::class, 'error'])->name('licencias.error');
 });

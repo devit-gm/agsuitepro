@@ -13,8 +13,8 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
-    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ siteFavicon() }}-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ siteFavicon() }}-16x16.png">
 
     <!-- Scripts -->
     <link rel="stylesheet" href="{{ siteStyles() }}">
@@ -29,7 +29,7 @@
     </main>
     @else
     <nav class="navbar navbar-expand-md navbar-dark shadow-sm fondo-rojo">
-        <div class="container">
+        <div class="container col-md-12 col-sm-12 col-lg-12">
             <a class="navbar-brand" href="{{ url('/') }}">
                 <img src="{{ siteLogoNav() }}" class="img-fluid logo-figure" alt="{{ siteName() }}"> {{ siteName() }}
             </a>

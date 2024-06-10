@@ -3,14 +3,14 @@
 @section('content')
 <div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-12 d-flex">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
             <div class="card flex-fill">
                 <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> Ficha - Resumen</div>
 
                 <div class="card-body">
                     <div class="container-fluid mt-3">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-6">
+                            <div class="col-12 col-md-8 col-lg-10">
                                 <form id="ficha-resumen" action="{{ route('fichas.enviar', $ficha->uuid) }}" method="post">
                                     @csrf
                                     @method('PUT')
@@ -43,7 +43,9 @@
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
                             <a class="btn btn-dark mx-1" href={{ route('fichas.gastos', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+                            @if($ficha->precio>0)
                             <button type="button" onclick="document.getElementById('ficha-resumen').submit();" class="btn btn-success mx-1"><i class="bi bi-send"></i></button>
+                            @endif
                         </div>
                     </form>
                 </div>

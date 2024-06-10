@@ -3,17 +3,17 @@
 @section('content')
 <div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-12 d-flex">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
             <div class="card flex-fill">
                 <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> FICHA - Asistentes</div>
 
                 <div class="card-body">
-                    <div class="d-grid gap-2 d-md-flex justify-content-end">
+                    <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
                         <button class="btn btn-lg btn-light border border-dark">{{number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i></button>
                     </div>
                     <div class="container-fluid mt-3">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-6">
+                            <div class="col-12 col-md-8 col-lg-10">
 
 
                                 <form id='editar-usuariosficha' action="{{ route('fichas.updateusuarios', $ficha->uuid) }}" method="post">
@@ -54,7 +54,7 @@
 
                                                         <td class="align-middle">
                                                             <div class="form-check form-switch">
-                                                                <input class="form-check-input @if($usuario->id == Auth::user()->id) readonly @endif" type="checkbox" role="switch" name="usuarios[{{ $usuario->id }}]" value="[{{ $usuario->id }}]" id="usuarios[{{ $usuario->id }}]" value="{{ $usuario->id }}" @if($usuario->marcado == 1) checked @endif >
+                                                                <input class="form-check-input @if($usuario->id == $ficha->user_id) readonly @endif" type="checkbox" role="switch" name="usuarios[{{ $usuario->id }}]" value="[{{ $usuario->id }}]" id="usuarios[{{ $usuario->id }}]" value="{{ $usuario->id }}" @if($usuario->marcado == 1) checked @endif >
                                                             </div>
                                                         </td>
                                                         <td class="align-middle col-md-4">

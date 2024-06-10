@@ -27,12 +27,17 @@ class DetectSite
         $site = Site::where('dominio', $domain)->first();
         $user = Auth::user();
         if ($user) {
-            if ($user->role_id != 1) {
-                $license = License::where('site_id', $site->id)
-                    ->where('user_id', $user->id)
-                    ->first();
-                if (!$license || Carbon::parse($license->expires_at)->isPast() || !$license->actived) {
-                    abort(403, 'Licencia no válida contacte con su administrador');
+            if ($site->central == 0) {
+                if ($request->route()->getName() != 'licencias.error') {
+                    if ($user->role_id == 1) {
+                        $license = License::where('site_id', $site->id)
+                            ->where('user_id', $user->id)
+                            ->first();
+
+                        if (!$license || Carbon::parse($license->expires_at)->isPast() || $license->actived == 0) {
+                            return redirect()->route('licencias.error')->with('success');
+                        }
+                    }
                 }
             }
         }
