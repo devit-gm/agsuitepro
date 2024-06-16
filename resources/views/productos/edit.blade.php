@@ -23,6 +23,13 @@
                                         </ul>
                                     </div>
                                     @endif
+                                    @if (session('success'))
+                                    <div class="custom-success-container" id="custom-success-container">
+                                        <ul class="custom-success-list">
+                                            <li class="custom-success-item">{{ session('success') }}</li>
+                                        </ul>
+                                    </div>
+                                    @endif
                                     <div class="form-group required mb-3">
                                         <label for="nombre" class="fw-bold form-label">Nombre</label>
                                         <input type="text" class="form-control" id="nombre" name="nombre" value="{{ $producto->nombre }}" required>

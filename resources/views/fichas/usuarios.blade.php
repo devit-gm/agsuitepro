@@ -54,12 +54,12 @@
 
                                                         <td class="align-middle">
                                                             <div class="form-check form-switch">
-                                                                <input class="form-check-input @if($usuario->id == $ficha->user_id) readonly @endif" type="checkbox" role="switch" name="usuarios[{{ $usuario->id }}]" value="[{{ $usuario->id }}]" id="usuarios[{{ $usuario->id }}]" value="{{ $usuario->id }}" @if($usuario->marcado == 1) checked @endif >
+                                                                <input class="form-check-input @if($usuario->id == $ficha->user_id) readonly @endif" type="checkbox" role="switch" name="usuarios[{{ $usuario->id }}]" value="[{{ $usuario->id }}]" id="usuarios[{{ $usuario->id }}]" value="{{ $usuario->id }}" @if($usuario->marcado == 1) checked @endif @if($ficha->estado == 1) disabled @endif >
                                                             </div>
                                                         </td>
                                                         <td class="align-middle col-md-4">
                                                             <div class="form-group">
-                                                                <input class="form-control" type="number" min="0" max="15" name="invitados[{{ $usuario->id }}]" id="invitados[{{ $usuario->id }}]" value="{{ $usuario->invitados }}">
+                                                                <input class="form-control" type="number" min="0" max="15" name="invitados[{{ $usuario->id }}]" id="invitados[{{ $usuario->id }}]" value="{{ $usuario->invitados }}" @if($ficha->estado == 1) disabled @endif>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -78,7 +78,9 @@
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
                             <a class="btn btn-dark mx-1" href={{ route('fichas.lista', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+                            @if($ficha->estado == 0)
                             <button type="button" onclick="document.getElementById('editar-usuariosficha').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
+                            @endif
                             <a class="btn btn-dark mx-1" href={{ route('fichas.servicios', $ficha->uuid) }}><i class="bi bi-chevron-right"></i></a>
                         </div>
                     </form>

@@ -12,6 +12,7 @@ use App\Http\Controllers\FichasController;
 use App\Http\Controllers\InformesController;
 use App\Http\Controllers\LicenciasController;
 use App\Http\Controllers\SitiosController;
+use App\Http\Controllers\SmsController;
 use App\Http\Middleware\RoleMiddleware;
 
 /*
@@ -62,6 +63,7 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::put('/productos/inventory', ProductosController::class . '@inventory')->name('productos.inventory');
 
     Route::get('/fichas', FichasController::class . '@index')->name('fichas.index');
+    Route::put('/fichas', FichasController::class . '@index')->name('fichas.index');
     Route::get('/fichas/create', FichasController::class . '@create')->name('fichas.create');
     Route::post('/fichas', FichasController::class . '@store')->name('fichas.store');
     Route::get('/fichas/{uuid}/edit', FichasController::class . '@edit')->name('fichas.edit');
@@ -86,8 +88,8 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::put('/fichas/{uuid}/resumen', FichasController::class . '@enviar')->name('fichas.enviar');
 
     Route::get('/informes', [InformesController::class, 'index'])->name('informes.index');
-    Route::put('/informes', [InformesController::class, 'balance'])->name('informes.balance');
-    Route::get('/informes/facturar', [InformesController::class, 'facturar'])->name('informes.facturar');
+    Route::put('/informes', [InformesController::class, 'index'])->name('informes.balance');
+    Route::put('/informes/facturar', [InformesController::class, 'facturar'])->name('informes.facturar');
 
     Route::get('/servicios', ServiciosController::class . '@index')->name('servicios.index');
     Route::get('/servicios/create', ServiciosController::class . '@create')->name('servicios.create');
@@ -122,4 +124,10 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::delete('/licencias/{id}', [LicenciasController::class, 'destroy'])->name('licencias.destroy');
     Route::get('/licencias/error', [LicenciasController::class, 'error'])->name('licencias.error');
     Route::put('/licencias/error', [LicenciasController::class, 'error'])->name('licencias.error');
+
+    Route::post('/send-sms', [SmsController::class, 'sendSms'])->name('sms.enviar');
 });
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

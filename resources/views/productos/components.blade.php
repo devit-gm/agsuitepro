@@ -35,6 +35,22 @@
                                     @method('PUT')
                                     <div class="container mt-3">
                                         <div class="row">
+                                            @if ($errors->any())
+                                            <div class="custom-error-container" id="custom-error-container">
+                                                <ul class="custom-error-list">
+                                                    @foreach ($errors->all() as $error)
+                                                    <li class="custom-error-item">{{ $error }}</li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                            @endif
+                                            @if (session('success'))
+                                            <div class="custom-success-container" id="custom-success-container">
+                                                <ul class="custom-success-list">
+                                                    <li class="custom-success-item">{{ session('success') }}</li>
+                                                </ul>
+                                            </div>
+                                            @endif
                                             <table class="table table-bordered table-responsive table-hover">
                                                 <thead>
                                                     <tr class="">
@@ -45,7 +61,7 @@
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($componentes as $componente)
-                                                    <tr>
+                                                    <tr style="height: 80px;">
                                                         <td class="align-middle">
                                                             {{ $componente->nombre }}
                                                         </td>

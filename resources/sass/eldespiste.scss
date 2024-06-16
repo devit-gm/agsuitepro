@@ -10,6 +10,7 @@
 
 body {
     font-size: 1.2em; /* Adjust the size as needed */
+    background-color: #eef0f2;
 }
 html, body {
     height: 100%;
@@ -17,7 +18,9 @@ html, body {
             display: flex;
             flex-direction: column;
 }
-
+.card-footer{
+    background-color: #FFF !important;
+}
 .full-height {
     height: 100%;
 }
@@ -36,7 +39,14 @@ form .btn{
     font-size: 1.2rem !important;
 }
 .logo-figure {
-    width: 42px;
+    width: 40px;
+}
+.icoDescarga{
+    background-color: #000;
+    padding: 0;
+    font-size: 1.2em;
+    margin: 0;
+    float: right;
 }
 .fondo-rojo{
     background-color: #C23334 !important;
@@ -111,6 +121,21 @@ form .btn{
     font-size: 1.2em !important
 }
 
+.dropdown-item:hover,.dropdown-item:focus, .dropdown-item:active, .dropdown-item.active{
+    background-color: #c23334 !important;
+    color:#FFFFFF !important;
+}
+.circle{
+width: 45px;
+height: 45px;
+background-color: #c23334 !important;
+color: white;
+display: flex;
+justify-content: center;
+align-items: center;
+border-radius: 50%;
+font-size: 1.2em !important;
+}
 .form-select option[selected] {
     background-color: #C23334 !important; /* Change this color to your desired background color */
     color: #FFF !important; /* Change this color to your desired text color */
@@ -121,8 +146,8 @@ form .btn{
     display: block; 
     clear: both;
     text-align: center;
-    width:80px; 
-    height:80px;
+    width:70px; 
+    height:70px;
     background-size: cover;
 }
 

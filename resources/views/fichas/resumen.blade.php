@@ -14,25 +14,36 @@
                                 <form id="ficha-resumen" action="{{ route('fichas.enviar', $ficha->uuid) }}" method="post">
                                     @csrf
                                     @method('PUT')
-                                    <div class="form-group mb-3">
-                                        <label class="fw-bold form-label">CONSUMOS: </label> {{ number_format($ficha->total_consumos,2)}} €
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label class="fw-bold form-label">SERVICIOS: </label> {{ number_format($ficha->total_servicios,2)}} €
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label class="fw-bold form-label">GASTOS: </label> {{ number_format($ficha->total_gastos,2)}} €
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label class="fw-bold form-label">PRECIO: </label> {{ number_format($ficha->precio,2)}} €
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label class="fw-bold form-label">COMENSALES: </label> {{ $ficha->total_comensales }}
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label class="fw-bold form-label">PRECIO / COMENSAL: </label> {{ number_format($ficha->precio_comensal,2)}} €
-                                    </div>
 
+                                    <table class="table table-bordered">
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row">TOTAL CONSUMOS:</th>
+                                                <td>{{ number_format($ficha->total_consumos,2)}} €</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">TOTAL SERVICIOS:</th>
+                                                <td>{{ number_format($ficha->total_servicios,2)}} €</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">TOTAL GASTOS:</th>
+                                                <td>{{ number_format($ficha->total_gastos,2)}} €</td>
+                                            </tr>
+
+                                            <tr>
+                                                <th scope="row">Nº COMENSALES:</th>
+                                                <td>{{ $ficha->total_comensales }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">TOTAL COMENSAL:</th>
+                                                <td>{{ number_format($ficha->precio_comensal,2)}} €</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">TOTAL FICHA:</th>
+                                                <td>{{ number_format($ficha->precio,2)}} €</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </form>
                             </div>
                         </div>
@@ -43,7 +54,7 @@
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
                             <a class="btn btn-dark mx-1" href={{ route('fichas.gastos', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
-                            @if($ficha->precio>0)
+                            @if($ficha->precio>0 && $ficha->estado == 0)
                             <button type="button" onclick="document.getElementById('ficha-resumen').submit();" class="btn btn-success mx-1"><i class="bi bi-send"></i></button>
                             @endif
                         </div>

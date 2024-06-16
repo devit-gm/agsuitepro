@@ -20,7 +20,23 @@ class LicenciasController extends Controller
         //Obtener las licencias de la tabla Licenses
         $sites = Site::where('id', '>', 1)->get();
         if ($request->method() == 'GET') {
-            $licenses = [];
+            $licenses = DB::connection('central')->table('licenses')->whereNotNull('actived')->where('expires_at', '>', Carbon::now())->orderBy('id')->get();
+            foreach ($licenses as $license) {
+                $license->site = Site::find($license->site_id);
+                $license->user = User::find($license->user_id);
+                $license->borrable = false;
+                $license->estado = '<span class="badge btn bt-sm btn-success">Activa</span>';
+
+                if (Carbon::parse($license->expires_at)->isPast()) {
+                    $license->estado = '<span class="badge btn bt-sm btn-danger">Caducada</span>';
+                    $license->borrable = true;
+                } else {
+                    if (!$license->actived) {
+                        $license->estado = '<span class="badge btn bt-sm btn-dark">Inactiva</span>';
+                        $license->borrable = true;
+                    }
+                }
+            }
             return view('licencias.index', compact('licenses', 'sites', 'request'));
         } else {
             switch ($request->estado_licencia) {
@@ -66,12 +82,27 @@ class LicenciasController extends Controller
 
     public function edit($id)
     {
-        $license = License::find($id);
-        return view('licencias.edit', compact('license'));
+        $licencia = License::find($id);
+        $licencia->sitio = Site::find($licencia->site_id);
+        $licencia->usuario = User::find($licencia->user_id);
+        $licencia->borrable = false;
+        $licencia->estado = '<span class="badge btn bt-sm btn-success">Activa</span>';
+
+        if (Carbon::parse($licencia->expires_at)->isPast()) {
+            $licencia->estado = '<span class="badge btn bt-sm btn-danger">Caducada</span>';
+            $licencia->borrable = true;
+        } else {
+            if (!$licencia->actived) {
+                $licencia->estado = '<span class="badge btn bt-sm btn-dark">Inactiva</span>';
+                $licencia->borrable = true;
+            }
+        }
+        return view('licencias.edit', compact('licencia'));
     }
 
     public function update(Request $request, $id)
     {
+
         $license = License::find($id);
         $license->update($request->all());
         return redirect()->route('licencias.index')->with('success', 'Licencia actualizada con éxito');

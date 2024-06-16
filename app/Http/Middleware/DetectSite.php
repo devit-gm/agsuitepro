@@ -26,10 +26,13 @@ class DetectSite
         $domain = $request->getHost();
         $site = Site::where('dominio', $domain)->first();
         $user = Auth::user();
+        if ($request->route()->getName() == "home") {
+            return redirect('/');
+        }
         if ($user) {
             if ($site->central == 0) {
                 if ($request->route()->getName() != 'licencias.error') {
-                    if ($user->role_id == 1) {
+                    if ($user->role_id != 1) {
                         $license = License::where('site_id', $site->id)
                             ->where('user_id', $user->id)
                             ->first();

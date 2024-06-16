@@ -28,6 +28,20 @@ if (!function_exists('siteFavicon')) {
     }
 }
 
+if (!function_exists('getInitials')) {
+    function getInitials($string)
+    {
+        $words = explode(' ', $string);
+        $initials = '';
+
+        foreach ($words as $word) {
+            $initials .= substr($word, 0, 1);
+        }
+
+        return strtoupper($initials);
+    }
+}
+
 if (!function_exists('siteStyles')) {
     function siteStyles()
     {

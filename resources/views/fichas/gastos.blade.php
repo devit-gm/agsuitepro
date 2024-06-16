@@ -40,28 +40,42 @@
                                                 <tr>
                                                     <th colspan="3" class="align-middle fondo-negro">
                                                         {{ $componente->usuario->name }}
+                                                        @if($componente->ticket != "")
+                                                        @php
+                                                        $ruta = URL::to('/') . '/images/' . $componente->ticket;
+                                                        @endphp
+                                                        <a href="{{ $ruta }}" target="_blank" class="btn btn-md btn-dark icoDescarga"><i class="bi bi-file-earmark-arrow-down"></i></a>
+                                                        @endif
                                                     </th>
+
                                                 </tr>
                                                 <tr class="">
 
                                                     <th scope="col-auto">Descripción</th>
                                                     <th scope="col-auto" class="text-center">Precio</th>
-                                                    <th scope="col-auto" class="text-center">Ticket</th>
+                                                    <th scope="col-auto" class="text-center"></th>
                                                 </tr>
-                                                <tr class="clickable-row" data-hrefborrar="{{ route('fichas.destroygastos', ['uuid' => $ficha->uuid, 'uuid2' => $componente->uuid]) }}" data-textoborrar="¿Está seguro de eliminar el gasto de la lista?" data-borrable="{{$componente->borrable}}">
+                                                @php
+                                                if($ficha->estado == 0){
+                                                $clickable = 'clickable-row';
+                                                }else{
+                                                $clickable = '';
+                                                }
+                                                @endphp
+                                                <tr class="{{$clickable}}" data-hrefborrar="{{ route('fichas.destroygastos', ['uuid' => $ficha->uuid, 'uuid2' => $componente->uuid]) }}" data-textoborrar="¿Está seguro de eliminar el gasto de la lista?" data-borrable="{{$componente->borrable}}">
                                                     <td class="align-middle">
                                                         {{ $componente->descripcion }}
                                                     </td>
                                                     <td class="align-middle text-center">
                                                         {{ number_format($componente->precio,2) }} <i class="bi bi-currency-euro">
                                                     </td>
+
                                                     <td class="align-middle text-center">
-                                                        @php
-                                                        $ruta = URL::to('/') . '/images/' . $componente->ticket;
-                                                        @endphp
-                                                        <form>
-                                                            <a href="{{ $ruta }}" target="_blank" class="btn btn-sm btn-white"><i class="bi bi-file-earmark-arrow-down"></i></a>
-                                                        </form>
+                                                        <div class="d-flex justify-content-center">
+                                                            @if($ficha->estado == 0)
+                                                            <a class="btn btn-sm btn-danger" href="#" onclick="triggerParentClick(event,this);"><i class="bi bi-trash"></i></a>
+                                                            @endif
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -80,13 +94,19 @@
                         <div class="d-flex align-items-center justify-content-center">
                             @if($ficha->tipo != 3)
                             <a class="btn btn-dark mx-1" href={{ route('fichas.servicios', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+                            @if($ficha->estado == 0)
                             <a class="btn btn-info mx-1" href={{ route('fichas.addgastos', $ficha->uuid) }}><i class="bi bi-plus-circle"></i></a>
                             <a class="btn btn-success mx-1" href={{ route('fichas.resumen', $ficha->uuid) }}><i class="bi bi-check-circle"></i></a>
+                            @else
+                            <a class="btn btn-dark mx-1" href="{{ route('fichas.resumen', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-chevron-right"></i></a>
+                            @endif
                             @endif
 
                             @if($ficha->tipo == 3)
                             <a class="btn btn-dark mx-1" href={{ route('fichas.index', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+                            @if($ficha->estado == 0)
                             <a class="btn btn-info mx-1" href={{ route('fichas.addgastos', $ficha->uuid) }}><i class="bi bi-plus-circle"></i></a>
+                            @endif
                             @if($ficha->precio>0)
                             <a href="{{ route('fichas.enviar', $ficha->uuid) }}" class="btn btn-success mx-1"><i class="bi bi-send"></i></a>
                             @endif
