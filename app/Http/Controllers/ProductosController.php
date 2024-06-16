@@ -32,7 +32,7 @@ class ProductosController extends Controller
      */
     public function index()
     {
-        $productos = Producto::orderBy('posicion')->get();
+        $productos = Producto::orderBy('nombre')->get();
         foreach ($productos as $producto) {
             $composicion = ComposicionProducto::where('id_producto', $producto->uuid)->get();
             $producto->familia = Familia::find($producto->familia);
@@ -171,7 +171,7 @@ class ProductosController extends Controller
      */
     public function create()
     {
-        $familias = Familia::orderBy('posicion')->get();
+        $familias = Familia::orderBy('nombre')->get();
         return view('productos.create', compact('familias'));
     }
 
@@ -205,7 +205,7 @@ class ProductosController extends Controller
         } else {
             $producto->borrable = false;
         }
-        $familias = Familia::orderBy('posicion')->get();
+        $familias = Familia::orderBy('nombre')->get();
         return view('productos.edit', compact('producto'), compact('familias'));
     }
 
@@ -224,7 +224,7 @@ class ProductosController extends Controller
         $familias = Familia::orderBy('posicion')->get();
         $producto->familia = Familia::find($producto->familia);
 
-        $componentes = Producto::where('combinado', 0)->orderBy('posicion')->get();
+        $componentes = Producto::where('combinado', 0)->orderBy('nombre')->get();
         foreach ($componentes as $componente) {
             $esComposicion = ComposicionProducto::where('id_producto', $id)->where('id_componente', $componente->uuid)->get();
             if ($esComposicion->count() > 0) {
@@ -260,9 +260,9 @@ class ProductosController extends Controller
         $familias = Familia::orderBy('posicion')->get();
         $producto->familia = Familia::find($producto->familia);
 
-        $componentes = Producto::where('combinado', 0)->orderBy('posicion')->get();
+        $componentes = Producto::where('combinado', 0)->orderBy('nombre')->get();
         foreach ($componentes as $componente) {
-            $esComposicion = ComposicionProducto::where('id_producto', $id)->where('id_componente', $componente->id)->get();
+            $esComposicion = ComposicionProducto::where('id_producto', $id)->where('id_componente', $componente->uuid)->get();
 
             if ($esComposicion->count() > 0) {
                 $componente->familia = 1;
@@ -270,7 +270,10 @@ class ProductosController extends Controller
                 $componente->familia = 0;
             }
         }
-        return view('productos.components', compact('producto', 'familias', 'componentes'));
+        $success = new \Illuminate\Support\MessageBag();
+        $success->add('msg', 'Componentes actualizados con éxito.');
+
+        return view('productos.components', compact('producto', 'familias', 'componentes',));
     }
 
     public function inventory(Request $request)

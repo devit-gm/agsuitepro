@@ -35,29 +35,34 @@
                                 <table class="table table-bordered table-responsive">
                                     <thead>
                                         <tr class="">
-                                            <th scope="col-auto" style="width:90px">Producto</th>
-                                            <th scope="col-auto" class="text-center">Unidades</th>
+                                            <th scope="col-auto">Producto</th>
                                             <th scope="col-auto" class="text-center">Total</th>
+                                            <th scope="col-auto" class="text-center"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @php
+                                        if($ficha->estado == 0){
+                                        $clickable = 'clickable-row';
+                                        }else{
+                                        $clickable = '';
+                                        }
+                                        @endphp
                                         @foreach ($productosFicha as $componente)
-                                        <tr class="clickable-row" data-hrefsumarcantidadpreguntar="true" data-hrefsumarcantidad="{{ route('fichas.updatelista', ['uuid' => $ficha->uuid, 'uuid2' => $componente->id_producto, 'cantidad' => 1]) }}" data-hrefrestarcantidad="{{ route('fichas.updatelista', ['uuid' => $ficha->uuid, 'uuid2' => $componente->id_producto, 'cantidad' => -1]) }}" data-hrefborrar="{{ route('fichas.destroylista', ['uuid' => $ficha->uuid, 'uuid2' => $componente->id_producto]) }}" data-textoborrar="¿Está seguro de eliminar el artículo de la lista?" data-borrable="{{$componente->borrable}}">
+                                        <tr style="min-height: 90px;" class="{{ $clickable }}" data-hrefsumarcantidadpreguntar="true" data-hrefsumarcantidad="{{ route('fichas.updatelista', ['uuid' => $ficha->uuid, 'uuid2' => $componente->id_producto, 'cantidad' => 1]) }}" data-hrefrestarcantidad="{{ route('fichas.updatelista', ['uuid' => $ficha->uuid, 'uuid2' => $componente->id_producto, 'cantidad' => -1]) }}" data-hrefborrar="{{ route('fichas.destroylista', ['uuid' => $ficha->uuid, 'uuid2' => $componente->id_producto]) }}" data-textoborrar="¿Está seguro de eliminar el artículo de la lista?" data-borrable="{{$componente->borrable}}">
+                                            <td class="align-middle">
+                                                {{ $componente->cantidad }}x {{ $componente->producto->nombre }}
+                                            </td>
+
                                             <td class="align-middle text-center">
-                                                @php
-                                                $ruta = URL::to('/') . '/images/' . $componente->producto->imagen;
-                                                @endphp
-                                                <div class="fondo-calendario" style="background-image: url('{{ $ruta }}');">
-                                                    <p style="padding-top:22px">
-                                                    </p>
+                                                {{ number_format($componente->precio,2) }}<i class="bi bi-currency-euro">
+                                            </td>
+                                            <td class="align-middle text-center">
+                                                <div class="d-flex justify-content-center">
+                                                    @if($ficha->estado == 0)
+                                                    <a class="btn btn-sm btn-danger" href="#" onclick="triggerParentClick(event,this);"><i class="bi bi-trash"></i></a>
+                                                    @endif
                                                 </div>
-                                                {{ $componente->producto->nombre }}
-                                            </td>
-                                            <td class="align-middle text-center">
-                                                {{ $componente->cantidad }}
-                                            </td>
-                                            <td class="align-middle text-center">
-                                                {{ number_format($componente->precio,2) }} <i class="bi bi-currency-euro">
                                             </td>
                                         </tr>
                                         @endforeach
@@ -70,7 +75,14 @@
                 <div class="card-footer">
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
-                            <a class="btn btn-dark mx-1" href="{{ route('fichas.familias', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-chevron-left"></i></a>
+                            @php
+                            if($ficha->estado == 0){
+                            $ruta = route('fichas.familias', ['uuid'=>$ficha->uuid]);
+                            }else{
+                            $ruta = route('fichas.index');
+                            }
+                            @endphp
+                            <a class="btn btn-dark mx-1" href="{{ $ruta }}"><i class="bi bi-chevron-left"></i></a>
                             <a class="btn btn-dark mx-1" href="{{ route('fichas.usuarios', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-chevron-right"></i></a>
                         </div>
                     </form>

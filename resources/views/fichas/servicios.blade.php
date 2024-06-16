@@ -57,7 +57,7 @@
                                                         </td>
                                                         <td class="align-middle col-md-4">
                                                             <div class="form-check form-switch">
-                                                                <input class="form-check-input" type="checkbox" role="switch" name="servicios[]" value="{{ $servicio->uuid }}" id="servicios[]" @if($servicio->marcado == 1) checked @endif>
+                                                                <input class="form-check-input" type="checkbox" role="switch" name="servicios[]" value="{{ $servicio->uuid }}" id="servicios[]" @if($servicio->marcado == 1) checked @endif @if($ficha->estado == 1) disabled @endif>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -76,7 +76,9 @@
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
                             <a class="btn btn-dark mx-1" href={{ route('fichas.usuarios', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+                            @if($ficha->estado == 0)
                             <button type="button" onclick="document.getElementById('editar-serviciosficha').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
+                            @endif
                             <a class="btn btn-dark mx-1" href={{ route('fichas.gastos', $ficha->uuid) }}><i class="bi bi-chevron-right"></i></a>
                         </div>
                     </form>

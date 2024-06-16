@@ -39,9 +39,16 @@
                                         <label for="precio" class="fw-bold form-label">Precio</label>
                                         <input type="number" step='0.01' value="{{ old('precio') }}" placeholder='0.00' class="form-control" id="precio" name="precio" required>
                                     </div>
-                                    <div class="form-group required mb-3">
+                                    @php
+                                    if($ficha->tipo ==3 ){
+                                    $ticket = 'required';
+                                    }else{
+                                    $ticket = '';
+                                    }
+                                    @endphp
+                                    <div class="form-group mb-3 {{$ticket}}">
                                         <label for="ticket" class="fw-bold form-label">Ticket</label>
-                                        <input type="file" class="form-control" id="ticket" name="ticket" required></input>
+                                        <input type="file" class="form-control" id="ticket" name="ticket" @if($ticket=="required" ) required @endif></input>
                                     </div>
                                 </form>
                             </div>

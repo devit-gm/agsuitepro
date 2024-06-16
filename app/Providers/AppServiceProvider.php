@@ -60,13 +60,6 @@ class AppServiceProvider extends ServiceProvider
         config(['site.styles' => $site->ruta_estilos]);
         config(['site.favicon' => $site->favicon]);
 
-        Log::info('Configuración de la base de datos del sitio activo:', [
-            'host' => $site->db_host,
-            'database' => $site->db_name,
-            'username' => $site->db_user,
-            'password' => $site->db_password,
-        ]);
-
         $this->defineSiteRoutes($site);
     }
 

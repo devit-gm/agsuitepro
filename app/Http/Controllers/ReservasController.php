@@ -16,8 +16,12 @@ class ReservasController extends Controller
     public function index()
     {
         Carbon::setLocale('es');
-        $reservas = Reserva::where('start_time', '>', now())
-            ->orderBy('start_time')->get();
+        $ahora = Carbon::now();
+        $reservas = Reserva::where('start_time', '>', $ahora)->orWhere('end_time', '>', $ahora)
+            ->orWhere(function ($query) use ($ahora) {
+                $query->where('start_time', '<', $ahora)
+                    ->where('end_time', '>', $ahora);
+            })->orderBy('start_time')->get();
         // ...
         $meses = array("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre");
         foreach ($reservas as $reserva) {
@@ -44,7 +48,13 @@ class ReservasController extends Controller
                 $reserva->borrable = false;
             }
         }
-        return view('reservas.index', compact('reservas'));
+        $errors = new \Illuminate\Support\MessageBag();
+        if ($reservas == null || count($reservas) == 0) {
+            $errors->add('msg', 'No se encontraron reservas para mostrar.');
+            return view('reservas.index', compact('reservas', 'errors'));
+        } else {
+            return view('reservas.index', compact('reservas'));
+        }
     }
 
     public function create()

@@ -16,7 +16,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'El Despiste'),
+    'name' => env('APP_NAME', 'GastroManager Plus'),
 
     /*
     |--------------------------------------------------------------------------

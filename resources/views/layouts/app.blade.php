@@ -29,7 +29,7 @@
     </main>
     @else
     <nav class="navbar navbar-expand-md navbar-dark shadow-sm fondo-rojo">
-        <div class="container col-md-12 col-sm-12 col-lg-12">
+        <div class="container col-md-10 col-sm-12 col-lg-8">
             <a class="navbar-brand" href="{{ url('/') }}">
                 <img src="{{ siteLogoNav() }}" class="img-fluid logo-figure" alt="{{ siteName() }}"> {{ siteName() }}
             </a>
@@ -44,52 +44,66 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('fichas.*') || Request::is('/') ? 'active' : '' }}" href="{{ url('') }}">{{ __('Tokens') }}</a>
                     </li>
-                    @if (Auth::user()->role_id < 3) <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ url('/usuarios') }}">Usuarios</a>
+                    @if (Auth::user()->role_id < 4) <li class="nav-item dropdown">
+                        <a id="navbarDropdown" class="nav-link dropdown-toggle {{ (request()->routeIs('usuarios.*') || request()->routeIs('familias.*') || request()->routeIs('productos.*') || request()->routeIs('servicios.*')) ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                            GESTIÓN
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            @if (Auth::user()->role_id < 4) <a class="dropdown-item {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ url('/usuarios') }}">USUARIOS</a>
+                                @endif
+                                <a class="dropdown-item {{ request()->routeIs('familias.*') ? 'active' : '' }}" href="{{ url('/familias') }}">FAMILIAS</a>
+
+                                <a class="dropdown-item {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ url('/productos') }}">PRODUCTOS</a>
+
+                                <a class="dropdown-item {{ request()->routeIs('servicios.*') ? 'active' : '' }}" href="{{ url('/servicios') }}">SERVICIOS</a>
+                        </div>
                         </li>
                         @endif
+
+
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('reservas.*') ? 'active' : '' }}" href="{{ url('/reservas') }}">{{ __('Bookings') }}</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a id="navbarDropdown" class="nav-link dropdown-toggle {{ request()->routeIs('informes.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                INFORMES
+                            </a>
+
+                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+
+                                <a class="dropdown-item {{ request()->routeIs('informes.*') ? 'active' : '' }}" href="{{ url('/informes') }}">BALANCE POR SOCIO</a>
+                            </div>
+                        </li>
                         @if (Auth::user()->role_id < 4) <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('familias.*') ? 'active' : '' }}" href="{{ url('/familias') }}">{{ __('Families') }}</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ url('/productos') }}">{{ __('Products') }}</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('servicios.*') ? 'active' : '' }}" href="{{ url('/servicios') }}">{{ __('Services') }}</a>
+                            <a class="nav-link {{ request()->routeIs('ajustes.*') ? 'active' : '' }}" href="{{ url('/ajustes') }}">{{ __('Settings') }}</a>
                             </li>
                             @endif
 
+                            @else
                             <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('reservas.*') ? 'active' : '' }}" href="{{ url('/reservas') }}">{{ __('Bookings') }}</a>
+                                <a class="nav-link {{ request()->routeIs('sitios.*') ? 'active' : '' }}" href="{{ url('/sitios') }}">SOCIEDADES</a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('informes.*') ? 'active' : '' }}" href="{{ url('/informes') }}">{{ __('Reports') }}</a>
+                                <a class="nav-link {{ request()->routeIs('licencias.*') ? 'active' : '' }}" href="{{ url('/licencias') }}">Licencias</a>
                             </li>
-                            @if (Auth::user()->role_id < 4) <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('ajustes.*') ? 'active' : '' }}" href="{{ url('/ajustes') }}">{{ __('Settings') }}</a>
-                                </li>
-                                @endif
-
-                                @else
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('sitios.*') ? 'active' : '' }}" href="{{ url('/sitios') }}">SOCIEDADES</a>
-                                </li>
-
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('licencias.*') ? 'active' : '' }}" href="{{ url('/licencias') }}">Licencias</a>
-                                </li>
-                                @endif
+                            @endif
                 </ul>
 
                 <!-- Right Side Of Navbar -->
                 <ul class="navbar-nav ms-auto">
                     <!-- Authentication Links -->
                     <li class="nav-item dropdown">
-                        <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                            {{ Auth::user()->name }}
+                        <a id="navbarDropdown" class="nav-link dropdown-toggle {{ request()->routeIs('usuarios.edit') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                            {{ getInitials(Auth::user()->name) }}
                         </a>
 
                         <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+
+                            <a class="dropdown-item {{ request()->routeIs('usuarios.edit') ? 'active' : '' }}" href="{{ route('usuarios.edit', Auth::id()) }}">
+                                MI CUENTA
+                            </a>
+
                             <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault();
                                                     document.getElementById('logout-form').submit();">
                                 CERRAR SESIÓN
@@ -118,7 +132,21 @@
         @csrf
         @method('PUT')
     </form>
-
+    <script>
+        function triggerParentClick(event, tdElement) {
+            event.stopPropagation();
+            const row = tdElement.closest('tr');
+            if (row.dataset.borrable) {
+                if (row.dataset.hrefborrar != null) {
+                    if (confirm(row.dataset.textoborrar)) {
+                        var formulario = document.getElementById("frmBorrar");
+                        formulario.action = row.dataset.hrefborrar;
+                        formulario.submit();
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 </body>
 

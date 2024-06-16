@@ -6,7 +6,7 @@
         <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
             <div class="card flex-fill">
                 <div class="card-header fondo-rojo">
-                    <i class="bi bi-card-list"></i> INFORMES - BALANCE
+                    <i class="bi bi-card-list"></i> BALANCE POR SOCIO
                 </div>
 
                 <div class="card-body">
@@ -34,17 +34,17 @@
                                     @endif
                                     <div class="form-group required mb-3">
                                         <label for="fecha_inicial" class="fw-bold form-label">Fecha inicial</label><br />
-                                        <input class="w-100" type="date" name="fecha_inicial" id="fecha_inicial" value="{{ old('fecha_inicial') }}">
+                                        <input class="w-100" type="date" name="fecha_inicial" id="fecha_inicial" value="{{ $request->fecha_inicial }}">
                                     </div>
                                     <div class="form-group required mb-3">
                                         <label for="fecha_final" class="fw-bold form-label">Fecha final</label><br />
-                                        <input type="date" class="w-100" name="fecha_final" id="fecha_final" value="{{ old('fecha_final') }}">
+                                        <input type="date" class="w-100" name="fecha_final" id="fecha_final" value="{{ $request->fecha_final }}">
                                     </div>
                                     <div class="form-group mb-3 required">
                                         <label for="incluir_facturados" class="fw-bold form-label">Incluir facturados:</label>
                                         <select name="incluir_facturados" id="incluir_facturados" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
-                                            <option value="0">No</option>
-                                            <option value="1">Sí</option>
+                                            <option value="0" @if ($request->incluir_facturados == 0) selected @endif >No</option>
+                                            <option value="1" @if ($request->incluir_facturados == 1) selected @endif>Sí</option>
                                         </select>
                                     </div>
                                     <br />
@@ -85,21 +85,23 @@
                 </div>
 
                 <div class="card-footer">
-                    <form>
+                    <form id="form-facturar" method="POST" action={{ route('informes.facturar'); }}>
+                        @csrf
+                        @method('PUT')
                         <div class="d-flex align-items-center justify-content-center">
                             <button type="button" onclick="document.getElementById('realizar-busqueda').submit();" class="btn btn-secondary mx-1"><i class="bi bi-search"></i></button>
                             @if ($mostrarBotonFacturar == true)
-                            @php
-                            $ruta = route('informes.facturar');
-                            @endphp
-                            @if (Auth::user()->role_id < 4) <button class="btn btn-success fondo-rojo borde-rojo fs-3" onclick="if(confirm('Se marcará como facturado todo lo pendiente. ¿Desea continuar?')){location.href='{{ $ruta }}'}"><i class="bi bi-cash-coin"></i></button>
+                            @if (Auth::user()->role_id < 4) </form>
+                                <a class="btn btn-success fondo-rojo borde-rojo fs-3" href="#" onclick="if(confirm('Se marcará como facturado todo lo pendiente. ¿Desea continuar?')){ document.getElementById('form-facturar').submit(); }"><i class="bi bi-cash-coin"></i></a>
                                 @endif
                                 @endif
                         </div>
-                    </form>
+
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+</form>
 @endsection

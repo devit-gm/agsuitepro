@@ -28,41 +28,52 @@
                                     </ul>
                                 </div>
                                 @endif
+                                @if($reservas->count() > 0)
+
+                                @foreach ($reservas as $reserva)
                                 <table class="table table-bordered table-responsive">
-                                    <thead>
-                                        <tr class="">
-                                            <th scope="col-auto" style="width:90px">Fecha</th>
+                                    <tr>
+                                        <th colspan="3" class="align-middle fondo-negro">
+                                            {{ $reserva->usuario->name }}
 
-                                            <th scope="col-auto">Usuario</th>
-                                            <th scope="col-auto">Nombre</th>
+                                        </th>
 
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($reservas as $reserva)
-                                        <tr class="clickable-row" data-href="{{ route('reservas.edit', $reserva->uuid) }}" data-hrefborrar="{{ route('reservas.destroy', $reserva->uuid) }}" data-textoborrar="¿Está seguro de eliminar la reserva?" data-borrable="{{$reserva->borrable}}">
-                                            <td class="align-middle">
-                                                <div class="fondo-calendario">
-                                                    <p style="padding-top:22px">
-                                                        <span style="font-size:0.8em; text-transform:uppercase"><b>{{ $reserva->mes }}</b></span>
-                                                        <span style="clear: both;display: block; margin-top: -8px;">{{ $reserva->dia }}</span>
-                                                    </p>
-                                                </div>
-                                            </td>
+                                    </tr>
+                                    <tr class="">
+                                        <th scope="col-auto" style="width:85px" class="text-center">Fecha</th>
+                                        <th scope="col-auto">Nombre</th>
+                                        <th scope="col-auto"></th>
+                                    </tr>
 
-                                            <td class="align-middle">
-                                                {{ $reserva->usuario->name }}
-                                            </td>
-                                            <td class="align-middle">
-                                                {{ $reserva->name }}
-                                            </td>
+                                    <tr class="clickable-row" data-href="{{ route('reservas.edit', $reserva->uuid) }}" data-hrefborrar="{{ route('reservas.destroy', $reserva->uuid) }}" data-textoborrar="¿Está seguro de eliminar la reserva?" data-borrable="{{$reserva->borrable}}">
+                                        <td class="align-middle">
+                                            <div class="fondo-calendario">
+                                                <p style="padding-top:14px">
+                                                    <span style="font-size:0.8em; text-transform:uppercase"><b>{{ $reserva->mes }}</b></span>
+                                                    <span style="clear: both;display: block; margin-top: -8px;">{{ $reserva->dia }}</span>
+                                                </p>
+                                            </div>
+                                        </td>
 
 
-                                        </tr>
-                                        @endforeach
+                                        <td class="align-middle">
+                                            {{ $reserva->name }}
+                                        </td>
 
-                                    </tbody>
+                                        <td class="align-middle text-center">
+                                            <div class="d-flex justify-content-center">
+                                                @if($reserva->borrable)
+                                                <a class="btn btn-sm btn-danger" href="#" onclick="triggerParentClick(event,this);"><i class="bi bi-trash"></i></a>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+
                                 </table>
+                                @endforeach
+
+
+                                @endif
                             </div>
                         </div>
                     </div>

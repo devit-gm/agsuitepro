@@ -31,22 +31,34 @@ class FichasController extends Controller
             $site = Site::where('dominio', $domain)->first();
             if ($site->central == 1) {
                 abort(403, 'No tiene acceso a este recurso.');
+            } else {
+                return $next($request);
             }
-
-            return $next($request);
         });
     }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         Carbon::setLocale('es');
-        $fichasMostrar = Ficha::whereDate('fecha', '>=', Carbon::now()->toDateString())
-            ->where('estado', 0)
-            ->orderBy('fecha')
-            ->get();
-
+        if ($request->method() == "GET") {
+            $fichasMostrar = Ficha::whereDate('fecha', '>=', Carbon::now()->toDateString())
+                ->where('estado', 0)
+                ->orderBy('fecha')
+                ->get();
+        } else {
+            if ($request->incluir_cerradas == 0) {
+                $fichasMostrar = Ficha::whereDate('fecha', '>=', Carbon::now()->toDateString())
+                    ->where('estado', 0)
+                    ->orderBy('fecha')
+                    ->get();
+            } else {
+                $fichasMostrar = Ficha::whereDate('fecha', '>=', Carbon::now()->toDateString())
+                    ->orderBy('fecha')
+                    ->get();
+            }
+        }
         $fichas = [];
         foreach ($fichasMostrar as $ficha) {
             if ($ficha->tipo != 4) {
@@ -54,7 +66,7 @@ class FichasController extends Controller
                 //La mostramos solo para el usuario activo
                 //O para el administrador
                 //O para los usuarios que están en el grupo de la ficha
-                if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('id_usuario', Auth::id())->first()) {
+                if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first()) {
                     $fichas[] = $ficha;
                 }
             } else {
@@ -77,13 +89,21 @@ class FichasController extends Controller
             //O si el usuario está en el grupo de la ficha
             //La ficha se puede borrar
             if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('id_usuario', Auth::id())->first()) {
-                $ficha->borrable = true;
+                if ($ficha->estado == 0)
+                    $ficha->borrable = true;
+                else
+                    $ficha->borrable = false;
             } else {
                 $ficha->borrable = false;
             }
         }
-
-        return view('fichas.index', compact('fichas'));
+        $errors = new \Illuminate\Support\MessageBag();
+        if ($fichas == null || count($fichas) == 0) {
+            $errors->add('msg', 'No se encontraron fichas para mostrar.');
+            return view('fichas.index', compact('fichas', 'errors', 'request'));
+        } else {
+            return view('fichas.index', compact('fichas', 'request'));
+        }
     }
 
     /**
@@ -458,8 +478,13 @@ class FichasController extends Controller
         }
         //Para el resto de tipos de ficha no hacemos nada ya que se 
         //controla en otro sitio.
-
-        return view('fichas.gastos', compact('ficha', 'gastosFicha'));
+        $errors = new \Illuminate\Support\MessageBag();
+        if ($gastosFicha == null || count($gastosFicha) == 0) {
+            $errors->add('msg', 'No se han introducido gastos.');
+            return view('fichas.gastos', compact('ficha', 'gastosFicha', 'errors'));
+        } else {
+            return view('fichas.gastos', compact('ficha', 'gastosFicha'));
+        }
     }
 
     public function addgastos($uuid)
@@ -502,23 +527,38 @@ class FichasController extends Controller
 
     public function updategastos($uuid, Request $request)
     {
-        $request->validate([
-            'descripcion' => 'max:255',
-            'ticket' => 'required|image|mimes:png,jpg,jpeg|max:2048',
-            'precio' => 'required'
-        ]);
+        if ($request->ticket == null) {
+            $request->validate([
+                'descripcion' => 'max:255',
+                'precio' => 'required'
+            ]);
+            $fichaGasto = FichaGasto::create([
+                'uuid' => (string) Uuid::uuid4(),
+                'id_ficha' => $uuid,
+                'user_id' => Auth::id(),
+                'descripcion' => $request->descripcion,
+                'ticket' => '',
+                'precio' => $request->precio
+            ]);
+        } else {
+            $request->validate([
+                'descripcion' => 'max:255',
+                'ticket' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+                'precio' => 'required'
+            ]);
 
-        $imageName = time() . '.' . $request->ticket->extension();
-        $request->ticket->move(public_path('images'), $imageName);
+            $imageName = time() . '.' . $request->ticket->extension();
+            $request->ticket->move(public_path('images'), $imageName);
 
-        $fichaGasto = FichaGasto::create([
-            'uuid' => (string) Uuid::uuid4(),
-            'id_ficha' => $uuid,
-            'user_id' => Auth::id(),
-            'descripcion' => $request->descripcion,
-            'ticket' => $imageName,
-            'precio' => $request->precio
-        ]);
+            $fichaGasto = FichaGasto::create([
+                'uuid' => (string) Uuid::uuid4(),
+                'id_ficha' => $uuid,
+                'user_id' => Auth::id(),
+                'descripcion' => $request->descripcion,
+                'ticket' => $imageName,
+                'precio' => $request->precio
+            ]);
+        }
 
         return redirect()->route('fichas.gastos', $uuid)->with('success', 'Gastos de la ficha actualizados con éxito');
     }
@@ -607,6 +647,16 @@ class FichasController extends Controller
         $ficha = Ficha::find($request->idFicha);
         $familia = Familia::find($request->idFamilia);
         $producto = Producto::find($request->idProducto);
+        //Si el producto es combinado hay que sumar el precio de sus componentes
+        if ($producto->combinado == 1) {
+            $productosCombinados = DB::connection('site')->table('composicion_productos')->where('id_producto', $producto->uuid)->get();
+            $precio = 0;
+            foreach ($productosCombinados as $productoCombinado) {
+                $producto2 = Producto::find($productoCombinado->id_componente);
+                $precio += $producto2->precio;
+            }
+            $producto->precio = $precio;
+        }
         $cantidad = 1;
         $existe = FichaProducto::where('id_ficha', $ficha->uuid)->where('id_producto', $producto->id)->first();
         if ($existe) {
@@ -664,6 +714,15 @@ class FichasController extends Controller
         //Si la cantidad es negativa eliminar un elemento en FichaProducto
         $total = FichaProducto::where('id_ficha', $uuid)->where('id_producto', $uuid2)->sum('cantidad');
         $producto = Producto::find($uuid2);
+        if ($producto->combinado == 1) {
+            $productosCombinados = DB::connection('site')->table('composicion_productos')->where('id_producto', $producto->uuid)->get();
+            $precio = 0;
+            foreach ($productosCombinados as $productoCombinado) {
+                $producto2 = Producto::find($productoCombinado->id_componente);
+                $precio += $producto2->precio;
+            }
+            $producto->precio = $precio;
+        }
         if ($cantidad > 0) {
             for ($cantidad; $cantidad > 0; $cantidad--) {
                 $fichaProducto = FichaProducto::create([

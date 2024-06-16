@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Dashboard') }}</div>
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
+            <div class="card flex-fill">
+                <div class="card-header fondo-rojo">Bienvenido</div>
 
                 <div class="card-body">
                     @if (session('status'))

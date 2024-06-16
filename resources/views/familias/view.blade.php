@@ -5,7 +5,7 @@
     <div class="row justify-content-center">
         <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
             <div class="card flex-fill">
-                <div class="card-header fondo-rojo"><i class="bi bi-tag"></i> Artículos de la familia</div>
+                <div class="card-header fondo-rojo"><i class="bi bi-tag"></i> Productos de la familia</div>
 
                 <div class="card-body">
                     <div class="container-fluid">
@@ -18,8 +18,7 @@
                                         <tr>
 
                                             <td class="align-middle">
-
-                                                <h1>{{ $familia->nombre }}</h1>
+                                                <span class="badge btn btn-lg bg-success fs-5">{{ $familia->nombre }}</span>
                                             </td>
 
                                         </tr>
