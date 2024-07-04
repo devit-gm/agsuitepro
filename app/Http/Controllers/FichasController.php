@@ -43,18 +43,18 @@ class FichasController extends Controller
     {
         Carbon::setLocale('es');
         if ($request->method() == "GET") {
-            $fichasMostrar = Ficha::whereDate('fecha', '>=', Carbon::now()->toDateString())
+            $fichasMostrar = Ficha::whereDate('fecha', '<=', Carbon::now()->toDateString())
                 ->where('estado', 0)
                 ->orderBy('fecha')
                 ->get();
         } else {
             if ($request->incluir_cerradas == 0) {
-                $fichasMostrar = Ficha::whereDate('fecha', '>=', Carbon::now()->toDateString())
+                $fichasMostrar = Ficha::whereDate('fecha', '<=', Carbon::now()->toDateString())
                     ->where('estado', 0)
                     ->orderBy('fecha')
                     ->get();
             } else {
-                $fichasMostrar = Ficha::whereDate('fecha', '>=', Carbon::now()->toDateString())
+                $fichasMostrar = Ficha::whereDate('fecha', '<=', Carbon::now()->toDateString())
                     ->orderBy('fecha')
                     ->get();
             }

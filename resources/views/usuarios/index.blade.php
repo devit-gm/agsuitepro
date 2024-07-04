@@ -36,8 +36,8 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($usuarios as $usuario)
-                                        <tr class="clickable-row" data-href="{{ route('usuarios.edit', $usuario->id) }}" data-hrefborrar="{{ route('usuarios.destroy', $usuario->id) }}" data-textoborrar="¿Está seguro de eliminar el usuario?" data-borrable="{{$usuario->borrable}}">
-                                            <td class="align-middle"><img width="80" class="img-fluid rounded img-responsive" src="{{ URL::to('/') }}/images/{{ $usuario->image }}" /></td>
+                                        <tr style="height:120px;" class="clickable-row" data-href="{{ route('usuarios.edit', $usuario->id) }}" data-hrefborrar="{{ route('usuarios.destroy', $usuario->id) }}" data-textoborrar="¿Está seguro de eliminar el usuario?" data-borrable="{{$usuario->borrable}}">
+                                            <td class="align-middle"><img width="80" height="80" class="img-fluid rounded img-responsive" src="{{ URL::to('/') }}/images/{{ $usuario->image }}" /></td>
                                             <td class="align-middle">
                                                 {{ $usuario->name }}
                                                 <br />
