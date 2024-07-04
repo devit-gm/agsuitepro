@@ -1,4 +1,5 @@
 import './bootstrap';
+// Import the functions you need from the SDKs you need
 
 document.addEventListener('DOMContentLoaded', function () {
     var rows = document.querySelectorAll('.clickable-row');
