@@ -62,7 +62,7 @@
             <form>
                 <div class="d-flex align-items-center justify-content-center">
                     <a class="btn btn-dark mx-1" href={{ route('fichas.gastos', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
-                    @if($ficha->precio>0 || ($ficha->tipo == 3 && $ficha->gastos > 0) && $ficha->estado == 0)
+                    @if(($ficha->precio>0 || ($ficha->tipo == 3 && $ficha->gastos > 0)) && $ficha->estado == 0)
                     <button type="button" onclick="document.getElementById('ficha-resumen').submit();" class="btn btn-success mx-1"><i class="bi bi-send"></i></button>
                     @endif
                 </div>

@@ -61,7 +61,7 @@
                                     } else {
                                     $ruta = route('fichas.gastos', ['uuid' => $ficha->uuid]);
                                     }
-                                    if($ficha->estado == 1){
+                                    if($ficha->estado == 1 && $ficha->tipo != 3){
                                     $ruta = route('fichas.lista', ['uuid' => $ficha->uuid]);
                                     }
                                     if($ficha->tipo == 4){

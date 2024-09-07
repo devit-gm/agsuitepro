@@ -120,7 +120,7 @@
             @if($ficha->estado == 0)
             <a class="btn btn-info mx-1" href={{ route('fichas.addgastos', $ficha->uuid) }}><i class="bi bi-plus-circle"></i></a>
             @endif
-            @if(count($gastosFicha)>0)
+            @if(count($gastosFicha)>0 && $ficha->estado == 0)
             <button type="button" onclick="document.getElementById('ficha-resumen').submit();" class="btn btn-success mx-1"><i class="bi bi-send"></i></button>
             @endif
             @endif
