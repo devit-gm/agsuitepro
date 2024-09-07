@@ -42,17 +42,18 @@ class FichasController extends Controller
     public function index(Request $request)
     {
         Carbon::setLocale('es');
+        $site = app('site');
         if ($request->method() == "GET") {
             $fichasMostrar = Ficha::where('estado', 0)
-                ->orderBy('fecha')
+                ->orderBy('fecha')->orderBy('hora')
                 ->get();
         } else {
             if ($request->incluir_cerradas == 0) {
                 $fichasMostrar = Ficha::where('estado', 0)
-                    ->orderBy('fecha')
+                    ->orderBy('fecha')->orderBy('hora')
                     ->get();
             } else {
-                $fichasMostrar = Ficha::orderBy('fecha')
+                $fichasMostrar = Ficha::where('estado', 1)->orderBy('fecha')->orderBy('hora')
                     ->get();
             }
         }
@@ -78,6 +79,7 @@ class FichasController extends Controller
             $fecha = Carbon::parse($ficha->fecha);
             $mes = substr($meses[intval($fecha->format('m')) - 1], 0, 3);
             $ficha->usuario = User::find($ficha->user_id);
+            $ficha->apuntado = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first();
             $ficha->precio = $this->ObtenerImporteFicha($ficha);
             $ficha->uuid = $ficha->uuid;
             $ficha->mes = $mes;
@@ -85,7 +87,7 @@ class FichasController extends Controller
             //O si el usuario activo es administrador
             //O si el usuario está en el grupo de la ficha
             //La ficha se puede borrar
-            if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('id_usuario', Auth::id())->first()) {
+            if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first()) {
                 if ($ficha->estado == 0)
                     $ficha->borrable = true;
                 else
@@ -93,6 +95,21 @@ class FichasController extends Controller
             } else {
                 $ficha->borrable = false;
             }
+            if ($ficha->tipo == 1) {
+                $usuariosFicha = User::where('site_id', $site->id)->where('id', $ficha->user_id)->get();
+            } else {
+                $usuariosFicha = FichaUsuario::where('id_ficha', $ficha->uuid)->get();
+            }
+            $total_comensales = 0;
+            $total_ninos = 0;
+            foreach ($usuariosFicha as $usuario) {
+                $total_comensales += $usuario->invitados;
+                $total_comensales += $usuario->ninos;
+                $total_ninos += $usuario->ninos;
+                $total_comensales++;
+            }
+            $ficha->total_comensales = $total_comensales;
+            $ficha->total_ninos = $total_ninos;
         }
         $errors = new \Illuminate\Support\MessageBag();
         if ($fichas == null || count($fichas) == 0) {
@@ -122,9 +139,9 @@ class FichasController extends Controller
         }
 
         // ...
-
-        Ficha::create([
-            'uuid' => (string) Uuid::uuid4(),
+        $uuid = (string) Uuid::uuid4();
+        $ficha = Ficha::create([
+            'uuid' => $uuid,
             'descripcion' => $descripcion,
             'user_id' => $request->user_id,
             'precio' => $request->precio,
@@ -132,10 +149,19 @@ class FichasController extends Controller
             'estado' => $request->estado,
             'tipo' => $request->tipo,
             'fecha' => $request->fecha,
-            'hora' => $request->hora
+            'hora' => $request->hora,
+            'menu' => $request->menu,
+            'responsables' => $request->responsables
         ]);
-        return redirect()->route('fichas.index')
-            ->with('success', 'Ficha creada con éxito.');
+        if ($request->tipo == 1 || $request->tipo == 2) {
+            return redirect()->route('fichas.familias', ['uuid' => $ficha->uuid]);
+        } else {
+            if ($request->tipo == 4) {
+                return redirect()->route('fichas.usuarios', ['uuid' => $ficha->uuid]);
+            } else {
+                return redirect()->route('fichas.gastos', ['uuid' => $ficha->uuid]);
+            }
+        }
     }
 
     /**
@@ -144,7 +170,7 @@ class FichasController extends Controller
     public function show(string $uuid)
     {
         $ficha = Ficha::find($uuid);
-        if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('id_usuario', Auth::id())->first()) {
+        if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first()) {
             $ficha->borrable = true;
         } else {
             $ficha->borrable = false;
@@ -181,7 +207,9 @@ class FichasController extends Controller
             'estado' => $request->estado,
             'tipo' => $request->tipo,
             'fecha' => $request->fecha,
-            'hora' => $request->hora
+            'hora' => $request->hora,
+            'menu' => $request->menu,
+            'responsables' => $request->responsables
         ]);
         return redirect()->route('fichas.index')
             ->with('success', 'Ficha actualizada con éxito.');
@@ -238,12 +266,15 @@ class FichasController extends Controller
         $ficha = Ficha::where('uuid', $uuid)->get()->first();
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
         $fechaCambiada = Carbon::parse($ficha->fecha)->todateString();
-        if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('id_usuario', Auth::id())->first()) {
+        if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first()) {
             $ficha->borrable = true;
         } else {
             $ficha->borrable = false;
         }
-        return view('fichas.edit', compact('ficha', 'fechaCambiada'));
+
+        $userTimezone = 'Europe/Madrid';
+        $currentDateTime = Carbon::now($userTimezone);
+        return view('fichas.edit', compact('ficha', 'fechaCambiada', 'currentDateTime'));
     }
 
     private function ObtenerImporteFicha($ficha)
@@ -309,7 +340,11 @@ class FichasController extends Controller
         if ($ajustes->permitir_comprar_sin_stock == 1) {
             $productos = Producto::where('familia', $uuid2)->orderBy('posicion')->get();
         } else {
-            $productos = Producto::where('familia', $uuid2)->where('stock', '>', 0)->orderBy('posicion')->get();
+            $productos = Producto::where('familia', $uuid2)
+                ->where(function ($query) {
+                    $query->where('stock', '>', 0)
+                        ->orWhere('combinado', 1);
+                })->orderBy('posicion')->get();
         }
         return view('fichas.productos', compact('ficha', 'familia', 'productos'));
     }
@@ -325,17 +360,27 @@ class FichasController extends Controller
         } else {
             $usuariosFicha = User::where('site_id', $site->id)->orderBy('id')->get();
         }
+        $total_comensales = 0;
+
         foreach ($usuariosFicha as $usuarioFicha) {
             //si el user_id está en FichaUsuario de la ficha lo ponemos como marcado
             $fichaUsuario = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', $usuarioFicha->id)->first();
             if ($fichaUsuario) {
                 $usuarioFicha->marcado = true;
                 $usuarioFicha->invitados = $fichaUsuario->invitados;
+                $usuarioFicha->ninos = $fichaUsuario->ninos;
+                $total_comensales += $fichaUsuario->invitados;
+                $total_comensales += $fichaUsuario->ninos;
+                $total_comensales++;
             } else {
                 $usuarioFicha->marcado = false;
                 $usuarioFicha->invitados = 0;
+                $usuarioFicha->ninos = 0;
             }
         }
+
+
+        $ficha->total_comensales = $total_comensales;
         return view('fichas.usuarios', compact('ficha', 'usuariosFicha'));
     }
 
@@ -358,9 +403,14 @@ class FichasController extends Controller
         $ficha->usuarios = FichaUsuario::where('id_ficha', $uuid)->get();
 
         $total_comensales = 0;
-        foreach ($ficha->usuarios as $usuario) {
-            $total_comensales += $usuario->invitados;
-            $total_comensales++;
+        if ($ficha->tipo == 3) {
+            $total_comensales = 1;
+        } else {
+            foreach ($ficha->usuarios as $usuario) {
+                $total_comensales += $usuario->invitados;
+                $total_comensales += $usuario->ninos;
+                $total_comensales++;
+            }
         }
         // De momento los invitados de grupo no cuentan
         // if ($ficha->invitados_grupo > 0) {
@@ -395,54 +445,56 @@ class FichasController extends Controller
                 'fecha' => Carbon::now()
             ]);
         }
-        //Obtenemos el precio total por comensal
-        $total_comensales = 0;
-        $usuarios = FichaUsuario::where('id_ficha', $uuid)->get();
-        foreach ($usuarios as $usuario) {
-            $total_comensales += $usuario->invitados;
-            $total_comensales++;
-        }
-        // De momento los invitados de grupo no cuentan
-        // if ($ficha->invitados_grupo > 0) {
-        //     $total_comensales += $ficha->invitados_grupo;
-        // }
-        $precio_comensal = $ficha->precio / $total_comensales;
-        //Insertamos en la tabla ficha_recibos el gasto por comensal
-        //Que es el precio por comensal * número de invitados de cada usuario
-        //Hay que añadir el gasto del propio comensal
-        foreach ($usuarios as $usuario) {
-            $num_invitados = $usuario->invitados;
+        if ($ficha->tipo != 3) {
+            //Obtenemos el precio total por comensal
+            $total_comensales = 0;
+            $usuarios = FichaUsuario::where('id_ficha', $uuid)->get();
+            foreach ($usuarios as $usuario) {
+                $total_comensales += $usuario->invitados;
+                $total_comensales++;
+            }
 
-            FichaRecibo::create([
-                'uuid' => (string) Uuid::uuid4(),
-                'id_ficha' => $uuid,
-                'user_id' => $usuario->user_id,
-                'tipo' => 1,
-                'estado' => 0,
-                //Sumamos 1 porque el propio comensal también paga
-                'precio' => $precio_comensal * ($num_invitados + 1),
-                'fecha' => Carbon::now()
-            ]);
-        }
+            // De momento los invitados de grupo no cuentan
+            // if ($ficha->invitados_grupo > 0) {
+            //     $total_comensales += $ficha->invitados_grupo;
+            // }
+            $precio_comensal = $ficha->precio / $total_comensales;
+            //Insertamos en la tabla ficha_recibos el gasto por comensal
+            //Que es el precio por comensal * número de invitados de cada usuario
+            //Hay que añadir el gasto del propio comensal
+            foreach ($usuarios as $usuario) {
+                $num_invitados = $usuario->invitados;
 
-        //Descontamos el stock de cada artículo consumido
-        $productos = FichaProducto::where('id_ficha', $uuid)->get();
-        foreach ($productos as $producto) {
-            $productoFicha = Producto::where('uuid', $producto->id_producto)->first();
-            if ($productoFicha->combinado == 1) {
-                $productosCombinados = DB::connection('site')->table('composicion_productos')->where('id_producto', $productoFicha->uuid)->get();
-                foreach ($productosCombinados as $productoCombinado) {
-                    $producto2 = Producto::find($productoCombinado->id_componente);
-                    $producto2->stock -= $producto->cantidad;
-                    $producto2->save();
+                FichaRecibo::create([
+                    'uuid' => (string) Uuid::uuid4(),
+                    'id_ficha' => $uuid,
+                    'user_id' => $usuario->user_id,
+                    'tipo' => 1,
+                    'estado' => 0,
+                    //Sumamos 1 porque el propio comensal también paga
+                    'precio' => $precio_comensal * ($num_invitados + 1),
+                    'fecha' => Carbon::now()
+                ]);
+            }
+
+            //Descontamos el stock de cada artículo consumido
+            $productos = FichaProducto::where('id_ficha', $uuid)->get();
+            foreach ($productos as $producto) {
+                $productoFicha = Producto::where('uuid', $producto->id_producto)->first();
+                if ($productoFicha->combinado == 1) {
+                    $productosCombinados = DB::connection('site')->table('composicion_productos')->where('id_producto', $productoFicha->uuid)->get();
+                    foreach ($productosCombinados as $productoCombinado) {
+                        $producto2 = Producto::find($productoCombinado->id_componente);
+                        $producto2->stock -= $producto->cantidad;
+                        $producto2->save();
+                    }
+                } else {
+                    $producto->producto = Producto::find($producto->id_producto);
+                    $producto->producto->stock -= $producto->cantidad;
+                    $producto->producto->save();
                 }
-            } else {
-                $producto->producto = Producto::find($producto->id_producto);
-                $producto->producto->stock -= $producto->cantidad;
-                $producto->producto->save();
             }
         }
-
         $ficha->estado = 1;
         $ficha->save();
         return redirect()->route('fichas.index')
@@ -461,7 +513,8 @@ class FichasController extends Controller
 
         //Si es una ficha de compra ha llegado directamente
         //Hay que comprobar si el usuario activo está en la ficha
-        if ($ficha->tipo == 3) {
+        //El usuario activo tiene que ser el usuario de la ficha
+        if ($ficha->tipo == 3 && $ficha->user_id == Auth::id()) {
             $estaUsuarioActivo = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first();
             if (!$estaUsuarioActivo) {
                 //Si el usuario activo no está en la ficha lo añadimos
@@ -571,7 +624,8 @@ class FichasController extends Controller
                     'uuid' => (string) Uuid::uuid4(),
                     'id_ficha' => $uuid,
                     'user_id' => $idUsuario,
-                    'invitados' => $request->invitados[$idUsuario] ?? 0
+                    'invitados' => $request->invitados[$idUsuario] ?? 0,
+                    'ninos' => $request->ninos[$idUsuario] ?? 0
                 ]);
             }
         }
@@ -584,9 +638,11 @@ class FichasController extends Controller
             if ($fichaUsuario) {
                 $usuarioFicha->marcado = true;
                 $usuarioFicha->invitados = $fichaUsuario->invitados;
+                $usuarioFicha->ninos = $fichaUsuario->ninos;
             } else {
                 $usuarioFicha->marcado = false;
                 $usuarioFicha->invitados = 0;
+                $usuarioFicha->ninos = 0;
             }
         }
         return redirect()->route('fichas.usuarios', compact('uuid'))->with('success', 'Usuarios de la ficha actualizados con éxito');
@@ -654,7 +710,7 @@ class FichasController extends Controller
             }
             $producto->precio = $precio;
         }
-        $cantidad = 1;
+        $cantidad = $request->cantidad;
         $existe = FichaProducto::where('id_ficha', $ficha->uuid)->where('id_producto', $producto->id)->first();
         if ($existe) {
             $existe->cantidad += $cantidad;
@@ -665,15 +721,15 @@ class FichasController extends Controller
                 'uuid' => (string) Uuid::uuid4(),
                 'id_ficha' => $ficha->uuid,
                 'id_producto' => $producto->uuid,
-                'precio' => $producto->precio,
-                'cantidad' => 1
+                'precio' => $producto->precio * $cantidad,
+                'cantidad' => $cantidad
             ]);
         }
         $productos = Producto::where('familia', $familia)->orderBy('posicion')->get();
         return redirect()->route('fichas.productos', [
             'uuid' => $ficha,
             'uuid2' => $familia
-        ])->with('success', $producto->nombre . ' añadido a la ficha');;
+        ])->with('success', $cantidad . 'x ' . $producto->nombre . ' añadido a la ficha');;
     }
 
     public function lista($uuid)

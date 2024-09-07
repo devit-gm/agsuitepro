@@ -58,6 +58,13 @@
                         </div>
                     </div>
                 </div>
+				
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+@section('footer')
                 <div class="card-footer">
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
@@ -65,9 +72,5 @@
                             <button type="button" onclick="document.getElementById('nuevo-producto').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
                         </div>
                     </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                </div>	
 @endsection

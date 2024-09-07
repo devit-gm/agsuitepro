@@ -19,6 +19,7 @@ class FichaUsuario extends Model
         'id_ficha',
         'user_id',
         'invitados',
+        'ninos'
     ];
 
     /**

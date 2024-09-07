@@ -27,19 +27,6 @@
                                 </div>
                                 @endif
                                 <input type="hidden" name="user_id" value="{{ $ficha->user_id }}" />
-
-                                <div class="form-group mb-3">
-                                    <label for="descripcion" class="fw-bold form-label">Nombre</label>
-                                    <input type="text" class="form-control" id="descripcion" name="descripcion" value="{{ $ficha->descripcion }}" @if($ficha->estado == 1) disabled @endif>
-                                </div>
-                                <div class="form-group mb-3 required">
-                                    <label for="fecha" class="fw-bold form-label">Fecha:</label><br>
-                                    <input type="date" id="fecha" name="fecha" value="{{ $fechaCambiada }}" @if($ficha->estado == 1) disabled @endif>
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label for="hora" class="fw-bold">Hora:</label><br>
-                                    <input type="time" id="hora" name="hora" value="{{ old('hora') }}">
-                                </div>
                                 <div class="form-group mb-3 required">
                                     <label for="tipo" class="fw-bold form-label">Tipo</label>
                                     <select name="tipo" id="tipo" class="form-select form-select-sm" aria-label=".form-select-sm example" required @if($ficha->estado == 1) disabled @endif>
@@ -48,6 +35,14 @@
                                         <option value="3" @if($ficha->tipo == 3) selected @endif>Compra</option>
                                         <option value="4" @if($ficha->tipo == 4) selected @endif>Evento</option>
                                     </select>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="descripcion" class="fw-bold form-label">Nombre</label>
+                                    <input type="text" class="form-control" id="descripcion" name="descripcion" value="{{ $ficha->descripcion }}" @if($ficha->estado == 1) disabled @endif>
+                                </div>
+                                <div class="form-group mb-3 required">
+                                    <label for="fecha" class="fw-bold form-label">Fecha:</label><br>
+                                    <input type="date" id="fecha" name="fecha" value="{{ $fechaCambiada }}" @if($ficha->estado == 1) disabled @endif>
                                 </div>
                                 <div class="form-group mb-3 required">
                                     <label for="estado" class="fw-bold form-label">Estado</label>
@@ -64,6 +59,21 @@
                                 @else
                                 <input type="hidden" name="invitados_grupo" value="{{ $ficha->invitados_grupo }}" />
                                 @endif
+
+                                Sólo para la edición de eventos<br />
+                                <div class="form-group mb-3">
+                                    <label for="hora" class="fw-bold">Hora:</label><br>
+                                    <input type="time" id="hora" name="hora" value="{{ $ficha->hora }}">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="menu" class="fw-bold">Menú:</label><br>
+                                    <input type="text" class="form-control" id="menu" name="menu" value="{{ $ficha->menu }}">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="menu" class="fw-bold">Responsable/s:</label><br>
+                                    <input type="text" class="form-control" id="responsables" name="responsables" value="{{ $ficha->responsables }}">
+                                </div>
+
                                 <div class="form-group mb-3 required">
 
                                     <input type="hidden" id="precio" name="precio" value="{{ $ficha->precio }}" disabled>
@@ -72,6 +82,15 @@
                         </div>
                     </div>
                 </div>
+			
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+	@section('footer')
+
                 <div class="card-footer">
                     <form action="{{ route('fichas.destroy', ['uuid'=>$ficha->uuid]) }}" method="post">
                         <div class="d-flex align-items-center justify-content-center">
@@ -94,8 +113,4 @@
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection

@@ -121,17 +121,22 @@
 
     <main class="py-3 main-content">
         @yield('content')
+        <form id="frmBorrar" action="" method="post">
+            @csrf
+            @method('DELETE')
+        </form>
+        <form id="frmEditar" action="" method="post">
+            @csrf
+            @method('PUT')
+        </form>
     </main>
+
+    <footer class="card flex-fill">
+        @yield('footer')
+    </footer>
     @endguest
 
-    <form id="frmBorrar" action="" method="post">
-        @csrf
-        @method('DELETE')
-    </form>
-    <form id="frmEditar" action="" method="post">
-        @csrf
-        @method('PUT')
-    </form>
+
     <script>
         function triggerParentClick(event, tdElement) {
             event.stopPropagation();

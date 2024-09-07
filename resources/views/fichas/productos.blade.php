@@ -34,12 +34,13 @@
                         @foreach($productos as $producto)
                         <div class="col-6 mb-4 col-md-2 col-lg-3">
                             <div class="card border-0">
-                                <form action="{{ route('fichas.addproduct',[$ficha->uuid, $familia->uuid]) }}" method="post">
+                                <form action="{{ route('fichas.addproduct',[$ficha->uuid, $familia->uuid]) }}" method="post" name="sumarcantidadform" id="sumarcantidadform">
                                     @csrf
                                     <input type="hidden" name="idFicha" value="{{ $ficha->uuid }}" />
                                     <input type="hidden" name="idProducto" value="{{ $producto->uuid }}" />
                                     <input type="hidden" name="idFamilia" value="{{ $familia->uuid }}" />
-                                    <button type="submit" class="btn p-0 clickable-row"><img src="{{ URL::to('/') }}/images/{{ $producto->imagen }}" class="img-fluid rounded img-responsive w-100" style="max-width:150px !important;" alt="{{ $producto->nombre }}"></button>
+                                    <input type="hidden" name="cantidad" id="sumarcantidadformcantidad" value="1" />
+                                    <button type="button" class="btn p-0 clickable-row" data-hrefsumarcantidadpreguntar="true" data-hrefsumarcantidad="self"><img src="{{ URL::to('/') }}/images/{{ $producto->imagen }}" class="img-fluid rounded img-responsive w-100" style="max-width:150px !important;" alt="{{ $producto->nombre }}"></button>
                                 </form>
                             </div>
                         </div>
@@ -51,15 +52,20 @@
                     </div>
 
                 </div>
-                <div class="card-footer">
-                    <form>
-                        <div class="d-flex align-items-center justify-content-center">
-                            <a class="btn btn-dark mx-1" href="{{ route('fichas.familias', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-chevron-left"></i></a>
-                            <a class="btn btn-primary mx-1" href="{{ route('fichas.lista', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-cart"></i></a>
-                        </div>
-                    </form>
-                </div>
+
             </div>
         </div>
+    </div>
+    @endsection
+
+    @section('footer')
+
+    <div class="card-footer">
+        <form>
+            <div class="d-flex align-items-center justify-content-center">
+                <a class="btn btn-dark mx-1" href="{{ route('fichas.familias', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-chevron-left"></i></a>
+                <a class="btn btn-primary mx-1" href="{{ route('fichas.lista', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-cart"></i></a>
+            </div>
+        </form>
     </div>
     @endsection
