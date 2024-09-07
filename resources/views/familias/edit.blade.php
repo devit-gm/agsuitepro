@@ -45,7 +45,13 @@
                     </div>
                 </div>
 
-                <div class="card-footer">
+                
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+<div class="card-footer">
                     <form action="{{ route('familias.destroy', $familia->uuid) }}" method="post">
                         <div class="d-flex align-items-center justify-content-center">
                             <a class="btn btn-dark mx-1" href={{ route('familias.index') }}><i class="bi bi-chevron-left"></i></a>
@@ -59,8 +65,5 @@
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
+@section('footer')
 @endsection

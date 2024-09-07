@@ -72,6 +72,14 @@
                         </div>
                     </div>
                 </div>
+			
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+	@section('footer')
+
                 <div class="card-footer">
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
@@ -87,8 +95,4 @@
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection

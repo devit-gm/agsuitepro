@@ -42,6 +42,12 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+@section('footer')
                 <div class="card-footer">
                     <form action="{{ route('reservas.destroy', $reserva->uuid) }}" method="post">
                         <div class="d-flex align-items-center justify-content-center">
@@ -55,8 +61,4 @@
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
+				@endsection

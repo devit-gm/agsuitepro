@@ -54,6 +54,12 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+@section('footer')
 
                 <div class="card-footer">
                     <form>
@@ -62,8 +68,4 @@
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection

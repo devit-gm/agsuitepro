@@ -3029,15 +3029,23 @@ function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length)
 document.addEventListener('DOMContentLoaded', function () {
   var rows = document.querySelectorAll('.clickable-row');
   var deslizamiento = false; // Variable para evitar que se ejecute el evento click al deslizar
+  var isPressed = false; // Nueva variable para detectar si se ha hecho "press"
 
   rows.forEach(function (row) {
-    row.addEventListener('click', function () {
-      if (!deslizamiento) {
+    row.addEventListener('click', function (event) {
+      if (!deslizamiento && !isPressed) {
         if (row.dataset.href) {
           document.location.href = row.dataset.href;
+        } else {
+          if (row.dataset.hrefsumarcantidad == "self") {
+            var formulario2 = document.getElementById("sumarcantidadform");
+            document.getElementById("sumarcantidadformcantidad").value = 1;
+            formulario2.submit();
+          }
         }
       }
       deslizamiento = false;
+      isPressed = false; // Reinicia el estado de isPressed después del click
     });
     var hammertime = new Hammer(row);
     hammertime.on('swipeleft', function () {
@@ -3065,6 +3073,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     hammertime.on('press', function () {
       deslizamiento = true;
+      isPressed = true; // Marca que se ha hecho "press"
       if (row.dataset.hrefsumarcantidad != null) {
         var formulario = document.getElementById("frmEditar");
         if (row.dataset.hrefsumarcantidadpreguntar != null) {
@@ -3072,13 +3081,23 @@ document.addEventListener('DOMContentLoaded', function () {
           if (unidades != null && unidades != "" && !isNaN(unidades) && parseInt(unidades) > 0) {
             var unidades = parseInt(unidades);
             if (unidades > 0) {
-              var partes = row.dataset.hrefsumarcantidad.split('/');
-              var ultimaParte = partes.pop() || partes.pop();
-              partes.push(unidades);
-              var nuevaUrl = partes.join('/');
-              formulario.action = nuevaUrl;
-              formulario.submit();
+              if (row.dataset.hrefsumarcantidad != "self") {
+                var partes = row.dataset.hrefsumarcantidad.split('/');
+                var ultimaParte = partes.pop() || partes.pop();
+                partes.push(unidades);
+                var nuevaUrl = partes.join('/');
+                formulario.action = nuevaUrl;
+                formulario.submit();
+              } else {
+                var formulario2 = document.getElementById("sumarcantidadform");
+                document.getElementById("sumarcantidadformcantidad").value = unidades;
+                formulario2.submit();
+              }
+            } else {
+              return false;
             }
+          } else {
+            return false;
           }
         } else {
           formulario.action = row.dataset.hrefsumarcantidad;

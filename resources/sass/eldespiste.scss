@@ -8,15 +8,25 @@
 @import 'bootstrap/scss/bootstrap';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
 
+html {
+    height: 100%;
+            margin: 0;
+            
+}
+
 body {
     font-size: 1.2em; /* Adjust the size as needed */
     background-color: #eef0f2;
+    display: grid;
+            grid-template-rows: auto 1fr auto;
+            overflow: hidden;
+            margin:0;
+            height: 100%;
+        
 }
-html, body {
+main{
+    overflow-y: scroll;
     height: 100%;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
 }
 .card-footer{
     background-color: #FFF !important;
@@ -229,3 +239,19 @@ font-size: 1.2em !important;
     background-color: #e9ecef; /* Color de fondo */
     border-color: #ced4da; /* Color del borde */
 }
+
+.circulo-izquierda::before {
+    content: ""; /* Agrega el símbolo de check */
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 0 0 0 100px;
+    background-color: blue;
+    color: white; /* Color del check */
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centra el check en el círculo */
+    font-size: 15px; /* Tamaño del check */
+  }

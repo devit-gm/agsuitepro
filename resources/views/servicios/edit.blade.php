@@ -40,6 +40,13 @@
                         </div>
                     </div>
                 </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+@section('footer')
                 <div class="card-footer">
                     <form action="{{ route('servicios.destroy', $servicio->uuid) }}" method="post">
                         <div class="d-flex align-items-center justify-content-center">
@@ -53,8 +60,5 @@
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
+				
 @endsection

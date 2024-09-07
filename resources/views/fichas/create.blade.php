@@ -25,19 +25,6 @@
                                 <input type="hidden" name="estado" value="0" />
                                 <input type="hidden" name="invitados_grupo" value="0" />
                                 <input type="hidden" name="precio" value="0.0" />
-                                <div class="form-group mb-3">
-                                    <label for="descripcion" class="fw-bold form-label">Nombre</label>
-                                    <input type="text" class="form-control" id="descripcion" name="descripcion">
-                                </div>
-                                <div class="form-group mb-3 required">
-                                    <label for="fecha" class="fw-bold">Fecha:</label><br>
-                                    <input type="date" id="fecha" name="fecha" value="{{ old('fecha', $currentDateTime->format('Y-m-d')) }}">
-                                </div>
-                                <div class="form-group mb-3">
-                                    Sólo para la creación de eventos<br />
-                                    <label for="hora" class="fw-bold">Hora:</label><br>
-                                    <input type="time" id="hora" name="hora" value="{{ old('hora', $currentDateTime->format('H:i')) }}">
-                                </div>
                                 <div class="form-group mb-3 required">
                                     <label for="tipo" class="fw-bold form-label">Tipo</label>
                                     <select name="tipo" id="tipo" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
@@ -47,10 +34,39 @@
                                         <option value="4">Evento</option>
                                     </select>
                                 </div>
+                                <div class="form-group mb-3">
+                                    <label for="descripcion" class="fw-bold form-label">Nombre</label>
+                                    <input type="text" class="form-control" id="descripcion" name="descripcion">
+                                </div>
+                                <div class="form-group mb-3 required">
+                                    <label for="fecha" class="fw-bold">Fecha:</label><br>
+                                    <input type="date" id="fecha" name="fecha" value="{{ old('fecha', $currentDateTime->format('Y-m-d')) }}">
+                                </div>
+                                Sólo para la creación de eventos<br />
+                                <div class="form-group mb-3">
+                                    <label for="hora" class="fw-bold">Hora:</label><br>
+                                    <input type="time" id="hora" name="hora" value="{{ old('hora', $currentDateTime->format('H:i')) }}">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="menu" class="fw-bold">Menú:</label><br>
+                                    <input type="text" class="form-control" id="menu" name="menu" value="{{ old('menu') }}">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="menu" class="fw-bold">Responsable/s:</label><br>
+                                    <input type="text" class="form-control" id="responsables" name="responsables" value="{{ old('responsables') }}">
+                                </div>
                             </form>
                         </div>
                     </div>
                 </div>
+			
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+	@section('footer')
+
                 <div class="card-footer">
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
@@ -59,8 +75,5 @@
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 @endsection

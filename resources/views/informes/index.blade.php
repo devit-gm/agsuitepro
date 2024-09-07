@@ -84,24 +84,26 @@
                     </div>
                 </div>
 
-                <div class="card-footer">
-                    <form id="form-facturar" method="POST" action={{ route('informes.facturar'); }}>
-                        @csrf
-                        @method('PUT')
-                        <div class="d-flex align-items-center justify-content-center">
-                            <button type="button" onclick="document.getElementById('realizar-busqueda').submit();" class="btn btn-secondary mx-1"><i class="bi bi-search"></i></button>
-                            @if ($mostrarBotonFacturar == true)
-                            @if (Auth::user()->role_id < 4) </form>
-                                <a class="btn btn-success fondo-rojo borde-rojo fs-3" href="#" onclick="if(confirm('Se marcará como facturado todo lo pendiente. ¿Desea continuar?')){ document.getElementById('form-facturar').submit(); }"><i class="bi bi-cash-coin"></i></a>
-                                @endif
-                                @endif
-                        </div>
 
-                </div>
             </div>
         </div>
     </div>
 </div>
 
-</form>
+@endsection
+@section('footer')
+<div class="card-footer">
+    <form id="form-facturar" method="POST" action={{ route('informes.facturar'); }}>
+        @csrf
+        @method('PUT')
+        <div class="d-flex align-items-center justify-content-center">
+            <button type="button" onclick="document.getElementById('realizar-busqueda').submit();" class="btn btn-secondary mx-1"><i class="bi bi-search"></i></button>
+            @if ($mostrarBotonFacturar == true)
+            @if (Auth::user()->role_id < 4) </form>
+                <a class="btn btn-success fondo-rojo borde-rojo fs-3" href="#" onclick="if(confirm('Se marcará como facturado todo lo pendiente. ¿Desea continuar?')){ document.getElementById('form-facturar').submit(); }"><i class="bi bi-cash-coin"></i></a>
+                @endif
+                @endif
+        </div>
+    </form>
+</div>
 @endsection

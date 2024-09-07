@@ -53,7 +53,13 @@
                     </div>
                 </div>
 
-                <div class="card-footer">
+                
+            </div>
+        </div>
+    </div>
+    @endsection
+	@section('footer')
+	<div class="card-footer">
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
                             @if (Auth::user()->role_id < 4) <a href="{{ route('familias.create') }}" class="btn btn-primary fondo-rojo borde-rojo mx-1"><i class="bi bi-plus-circle"></i></a>
@@ -61,7 +67,4 @@
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
-    </div>
-    @endsection
+				@endsection

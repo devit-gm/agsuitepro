@@ -11,6 +11,10 @@
                     <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
                         <button class="btn btn-lg btn-light border border-dark">{{number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i></button>
                     </div>
+                    <br />
+                    <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
+                        <button class="btn btn-lg btn-light border border-dark"><i class="bi bi-people"></i> {{ $ficha->total_comensales }} Asist.</button>
+                    </div>
                     <div class="container-fluid mt-3">
                         <div class="row justify-content-center align-items-center">
                             <div class="col-12 col-md-8 col-lg-10">
@@ -41,8 +45,9 @@
                                                 <thead>
                                                     <tr class="">
                                                         <th scope="col-auto">Nombre</th>
-                                                        <th scope="col-auto">Añadir</th>
-                                                        <th scope="col-auto">Invitados</th>
+                                                        <th scope="col-auto">-</th>
+                                                        <th scope="col-auto" style="width: 60px; text-align:center"><i class="bi bi-person-standing"></i></th>
+                                                        <th scope="col-auto" style="width: 60px; text-align:center"><i class="bi bi-person-fill"></i></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -54,12 +59,17 @@
 
                                                         <td class="align-middle">
                                                             <div class="form-check form-switch">
-                                                                <input class="form-check-input @if($usuario->id == $ficha->user_id) readonly @endif" type="checkbox" role="switch" name="usuarios[{{ $usuario->id }}]" value="[{{ $usuario->id }}]" id="usuarios[{{ $usuario->id }}]" value="{{ $usuario->id }}" @if($usuario->marcado == 1) checked @endif @if($ficha->estado == 1) disabled @endif >
+                                                                <input class="form-check-input @if($ficha->tipo != 4 && $usuario->id == $ficha->user_id) readonly @endif" type="checkbox" role="switch" name="usuarios[{{ $usuario->id }}]" value="[{{ $usuario->id }}]" id="usuarios[{{ $usuario->id }}]" value="{{ $usuario->id }}" @if($usuario->marcado == 1) checked @endif @if($ficha->estado == 1) disabled @endif >
                                                             </div>
                                                         </td>
                                                         <td class="align-middle col-md-4">
                                                             <div class="form-group">
                                                                 <input class="form-control" type="number" min="0" max="15" name="invitados[{{ $usuario->id }}]" id="invitados[{{ $usuario->id }}]" value="{{ $usuario->invitados }}" @if($ficha->estado == 1) disabled @endif>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle col-md-4">
+                                                            <div class="form-group">
+                                                                <input class="form-control" type="number" min="0" max="15" name="ninos[{{ $usuario->id }}]" id="ninos[{{ $usuario->id }}]" value="{{ $usuario->ninos }}" @if($ficha->estado == 1) disabled @endif>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -74,19 +84,23 @@
                     </div>
                 </div>
 
-                <div class="card-footer">
-                    <form>
-                        <div class="d-flex align-items-center justify-content-center">
-                            <a class="btn btn-dark mx-1" href={{ route('fichas.lista', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
-                            @if($ficha->estado == 0)
-                            <button type="button" onclick="document.getElementById('editar-usuariosficha').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
-                            @endif
-                            <a class="btn btn-dark mx-1" href={{ route('fichas.servicios', $ficha->uuid) }}><i class="bi bi-chevron-right"></i></a>
-                        </div>
-                    </form>
-                </div>
             </div>
         </div>
     </div>
+</div>
+@endsection
+
+@section('footer')
+
+<div class="card-footer">
+    <form>
+        <div class="d-flex align-items-center justify-content-center">
+            <a class="btn btn-dark mx-1" href={{ route('fichas.lista', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+            @if($ficha->estado == 0)
+            <button type="button" onclick="document.getElementById('editar-usuariosficha').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
+            @endif
+            <a class="btn btn-dark mx-1" href={{ route('fichas.servicios', $ficha->uuid) }}><i class="bi bi-chevron-right"></i></a>
+        </div>
+    </form>
 </div>
 @endsection
