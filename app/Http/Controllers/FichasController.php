@@ -360,6 +360,20 @@ class FichasController extends Controller
         } else {
             $usuariosFicha = User::where('site_id', $site->id)->orderBy('id')->get();
         }
+        //Si la ficha está cerrada (estado = 1) solo mostramos los usuarios que están en FichaUsuario
+        if ($ficha->estado == 1) {
+            $usuariosFicha = [];
+            //Buscar los usuarios que están dentro de FichaUsuario
+            $usuarios = User::where('site_id', $site->id)->orderBy('id')->get();
+            foreach ($usuarios as $usuario) {
+                //si el user_id está en FichaUsuario de la ficha lo ponemos como marcado
+                $fichaUsuario = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', $usuario->id)->first();
+                if ($fichaUsuario) {
+                    $usuariosFicha[] = $usuario;
+                }
+            }
+        }
+
         $total_comensales = 0;
 
         foreach ($usuariosFicha as $usuarioFicha) {

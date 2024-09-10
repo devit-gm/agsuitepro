@@ -45,23 +45,27 @@
                                                 <thead>
                                                     <tr class="">
                                                         <th scope="col-auto">Nombre</th>
+                                                        @if($ficha->estado == 0)
                                                         <th scope="col-auto">-</th>
+                                                        @endif
                                                         <th scope="col-auto" style="width: 60px; text-align:center"><i class="bi bi-person-standing"></i></th>
                                                         <th scope="col-auto" style="width: 60px; text-align:center"><i class="bi bi-person-fill"></i></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($usuariosFicha as $usuario)
+
                                                     <tr style="height: 80px;">
                                                         <td class="align-middle">
                                                             {{ $usuario->name }}
                                                         </td>
-
+                                                        @if($ficha->estado == 0)
                                                         <td class="align-middle">
                                                             <div class="form-check form-switch">
                                                                 <input class="form-check-input @if($ficha->tipo != 4 && $usuario->id == $ficha->user_id) readonly @endif" type="checkbox" role="switch" name="usuarios[{{ $usuario->id }}]" value="[{{ $usuario->id }}]" id="usuarios[{{ $usuario->id }}]" value="{{ $usuario->id }}" @if($usuario->marcado == 1) checked @endif @if($ficha->estado == 1) disabled @endif >
                                                             </div>
                                                         </td>
+                                                        @endif
                                                         <td class="align-middle col-md-4">
                                                             <div class="form-group">
                                                                 <input class="form-control" type="number" min="0" max="15" name="invitados[{{ $usuario->id }}]" id="invitados[{{ $usuario->id }}]" value="{{ $usuario->invitados }}" @if($ficha->estado == 1) disabled @endif>

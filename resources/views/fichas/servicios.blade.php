@@ -42,12 +42,23 @@
                                                     <tr class="">
                                                         <th scope="col-auto">Servicio</th>
                                                         <th scope="col-auto">Precio</th>
+                                                        @if($ficha->estado == 0)
                                                         <th scope="col-auto">Añadir</th>
+                                                        @endif
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($serviciosFicha as $servicio)
-                                                    <tr style="height: 80px;">
+                                                    @if($servicio->marcado == 0 && $ficha->estado == 1)
+                                                    @php
+                                                    $ocultar = "d-none";
+                                                    @endphp
+                                                    @else
+                                                    @php
+                                                    $ocultar = "";
+                                                    @endphp
+                                                    @endif
+                                                    <tr class="{{$ocultar}}" style="height: 80px;">
                                                         <td class="align-middle">
                                                             {{ $servicio->nombre }}
                                                         </td>
@@ -55,11 +66,13 @@
                                                         <td class="align-middle">
                                                             {{ number_format($servicio->precio,2) }} <i class="bi bi-currency-euro">
                                                         </td>
+                                                        @if($ficha->estado == 0)
                                                         <td class="align-middle col-md-4">
                                                             <div class="form-check form-switch">
                                                                 <input class="form-check-input" type="checkbox" role="switch" name="servicios[]" value="{{ $servicio->uuid }}" id="servicios[]" @if($servicio->marcado == 1) checked @endif @if($ficha->estado == 1) disabled @endif>
                                                             </div>
                                                         </td>
+                                                        @endif
                                                     </tr>
                                                     @endforeach
                                                 </tbody>
@@ -80,15 +93,15 @@
 
 @section('footer')
 
-                <div class="card-footer">
-                    <form>
-                        <div class="d-flex align-items-center justify-content-center">
-                            <a class="btn btn-dark mx-1" href={{ route('fichas.usuarios', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
-                            @if($ficha->estado == 0)
-                            <button type="button" onclick="document.getElementById('editar-serviciosficha').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
-                            @endif
-                            <a class="btn btn-dark mx-1" href={{ route('fichas.gastos', $ficha->uuid) }}><i class="bi bi-chevron-right"></i></a>
-                        </div>
-                    </form>
-                </div>
+<div class="card-footer">
+    <form>
+        <div class="d-flex align-items-center justify-content-center">
+            <a class="btn btn-dark mx-1" href={{ route('fichas.usuarios', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+            @if($ficha->estado == 0)
+            <button type="button" onclick="document.getElementById('editar-serviciosficha').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
+            @endif
+            <a class="btn btn-dark mx-1" href={{ route('fichas.gastos', $ficha->uuid) }}><i class="bi bi-chevron-right"></i></a>
+        </div>
+    </form>
+</div>
 @endsection

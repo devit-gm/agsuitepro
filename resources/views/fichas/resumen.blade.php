@@ -15,34 +15,34 @@
                                     @csrf
                                     @method('PUT')
 
-                                    <table class="table table-bordered">
+                                    <table class="table table-hover table-striped table-bordered">
                                         <tbody>
                                             @if($ficha->tipo != 3)
                                             <tr>
-                                                <th scope="row">TOTAL CONSUMOS:</th>
-                                                <td>{{ number_format($ficha->total_consumos,2)}} €</td>
+                                                <th scope="row">Total consumos:</th>
+                                                <td>{{ number_format($ficha->total_consumos,2)}} <i class="bi bi-currency-euro"></i></td>
                                             </tr>
                                             <tr>
-                                                <th scope="row">TOTAL SERVICIOS:</th>
-                                                <td>{{ number_format($ficha->total_servicios,2)}} €</td>
+                                                <th scope="row">Total servicios:</th>
+                                                <td>{{ number_format($ficha->total_servicios,2)}} <i class="bi bi-currency-euro"></i></td>
                                             </tr>
                                             @endif
                                             <tr>
-                                                <th scope="row">TOTAL GASTOS:</th>
-                                                <td>{{ number_format($ficha->total_gastos,2)}} €</td>
+                                                <th scope="row">Total gastos:</th>
+                                                <td>{{ number_format($ficha->total_gastos,2)}} <i class="bi bi-currency-euro"></i></td>
                                             </tr>
                                             @if($ficha->tipo != 3)
                                             <tr>
-                                                <th scope="row">Nº COMENSALES:</th>
+                                                <th scope="row">Comensales:</th>
                                                 <td>{{ $ficha->total_comensales }}</td>
                                             </tr>
                                             <tr>
-                                                <th scope="row">TOTAL COMENSAL:</th>
-                                                <td>{{ number_format($ficha->precio_comensal,2)}} €</td>
+                                                <th scope="row">Total / comensal:</th>
+                                                <td>{{ number_format($ficha->precio_comensal,2)}} <i class="bi bi-currency-euro"></i></td>
                                             </tr>
                                             <tr>
                                                 <th scope="row">TOTAL FICHA:</th>
-                                                <td>{{ number_format($ficha->precio,2)}} €</td>
+                                                <td><b>{{ number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i><b></td>
                                             </tr>
                                             @endif
                                         </tbody>
@@ -56,16 +56,18 @@
 
             </div>
         </div>
-        @endsection
-        @section('footer')
-        <div class="card-footer">
-            <form>
-                <div class="d-flex align-items-center justify-content-center">
-                    <a class="btn btn-dark mx-1" href={{ route('fichas.gastos', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
-                    @if(($ficha->precio>0 || ($ficha->tipo == 3 && $ficha->gastos > 0)) && $ficha->estado == 0)
-                    <button type="button" onclick="document.getElementById('ficha-resumen').submit();" class="btn btn-success mx-1"><i class="bi bi-send"></i></button>
-                    @endif
-                </div>
-            </form>
+    </div>
+</div>
+@endsection
+@section('footer')
+<div class="card-footer">
+    <form>
+        <div class="d-flex align-items-center justify-content-center">
+            <a class="btn btn-dark mx-1" href={{ route('fichas.gastos', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+            @if(($ficha->precio>0 || ($ficha->tipo == 3 && $ficha->gastos > 0)) && $ficha->estado == 0)
+            <button type="button" onclick="document.getElementById('ficha-resumen').submit();" class="btn btn-success mx-1"><i class="bi bi-send"></i></button>
+            @endif
         </div>
-        @endsection
+    </form>
+</div>
+@endsection
