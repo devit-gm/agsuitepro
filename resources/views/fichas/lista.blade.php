@@ -37,7 +37,9 @@
                                         <tr class="">
                                             <th scope="col-auto">Producto</th>
                                             <th scope="col-auto" class="text-center">Total</th>
+                                            @if($ficha->estado == 0)
                                             <th scope="col-auto" class="text-center"></th>
+                                            @endif
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -57,6 +59,7 @@
                                             <td class="align-middle text-center">
                                                 {{ number_format($componente->precio,2) }}<i class="bi bi-currency-euro">
                                             </td>
+                                            @if($ficha->estado == 0)
                                             <td class="align-middle text-center">
                                                 <div class="d-flex justify-content-center">
                                                     @if($ficha->estado == 0)
@@ -64,6 +67,7 @@
                                                     @endif
                                                 </div>
                                             </td>
+                                            @endif
                                         </tr>
                                         @endforeach
                                     </tbody>
@@ -72,27 +76,27 @@
                         </div>
                     </div>
                 </div>
-			
+
             </div>
         </div>
     </div>
 </div>
 @endsection
-	@section('footer')
+@section('footer')
 
-                <div class="card-footer">
-                    <form>
-                        <div class="d-flex align-items-center justify-content-center">
-                            @php
-                            if($ficha->estado == 0){
-                            $ruta = route('fichas.familias', ['uuid'=>$ficha->uuid]);
-                            }else{
-                            $ruta = route('fichas.index');
-                            }
-                            @endphp
-                            <a class="btn btn-dark mx-1" href="{{ $ruta }}"><i class="bi bi-chevron-left"></i></a>
-                            <a class="btn btn-dark mx-1" href="{{ route('fichas.usuarios', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-chevron-right"></i></a>
-                        </div>
-                    </form>
-                </div>
+<div class="card-footer">
+    <form>
+        <div class="d-flex align-items-center justify-content-center">
+            @php
+            if($ficha->estado == 0){
+            $ruta = route('fichas.familias', ['uuid'=>$ficha->uuid]);
+            }else{
+            $ruta = route('fichas.index');
+            }
+            @endphp
+            <a class="btn btn-dark mx-1" href="{{ $ruta }}"><i class="bi bi-chevron-left"></i></a>
+            <a class="btn btn-dark mx-1" href="{{ route('fichas.usuarios', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-chevron-right"></i></a>
+        </div>
+    </form>
+</div>
 @endsection

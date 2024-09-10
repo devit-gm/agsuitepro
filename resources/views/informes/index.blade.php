@@ -48,19 +48,29 @@
                                         </select>
                                     </div>
                                     <br />
-                                    @foreach ($usuariosInforme as $usuario) <table class="table table-bordered table-responsive table-hover">
-
+                                    @php
+                                    $totalGastos = 0;
+                                    $totalCompras = 0;
+                                    $totalBalance = 0;
+                                    @endphp
+                                    @foreach ($usuariosInforme as $usuario)
+                                    <table class="table table-bordered table-responsive table-hover">
+                                        @php
+                                        $totalGastos += $usuario->gastos;
+                                        $totalCompras += $usuario->compras;
+                                        $totalBalance += $usuario->balance;
+                                        @endphp
                                         <tbody>
                                             <tr>
-                                                <th colspan="3" class="align-middle fondo-negro">
+                                                <th colspan="3" class="align-middle">
                                                     {{ $usuario->name }}
                                                 </th>
                                             </tr>
                                             <tr class="">
 
-                                                <th scope="col-auto" class="text-center">Gastos</th>
-                                                <th scope="col-auto" class="text-center">Compras</th>
-                                                <th scope="col-auto" class="text-center">Balance</th>
+                                                <th scope="col-auto" class="text-center"><i class="bi bi-cup-straw"></i></th>
+                                                <th scope="col-auto" class="text-center"><i class="bi bi-cart2"></i></th>
+                                                <th scope="col-auto" class="text-center"><i class="bi bi-graph-up"></i></th>
                                             </tr>
                                             <tr>
 
@@ -77,7 +87,34 @@
                                         </tbody>
                                     </table>
                                     @endforeach
+                                    <table class="table table-bordered table-responsive table-hover">
 
+                                        <tbody>
+                                            <tr>
+                                                <th colspan="3" class="align-middle">
+                                                    TOTAL
+                                                </th>
+                                            </tr>
+                                            <tr class="">
+
+                                                <th scope="col-auto" class="text-center"><i class="bi bi-cup-straw"></i></th>
+                                                <th scope="col-auto" class="text-center"><i class="bi bi-cart2"></i></th>
+                                                <th scope="col-auto" class="text-center"><i class="bi bi-graph-up"></i></th>
+                                            </tr>
+                                            <tr>
+
+                                                <td class="text-center">
+                                                    {{ number_format($totalGastos,2) }}€
+                                                </td>
+                                                <td class="text-center">
+                                                    {{ number_format($totalCompras,2) }}€
+                                                </td>
+                                                <td class="text-center">
+                                                    {{ number_format($totalBalance,2) }}€
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </form>
                             </div>
                         </div>

@@ -12,6 +12,19 @@
                     <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
                         <button class="btn btn-lg btn-light border border-dark">{{number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i></button>
                     </div>
+                    @else
+                    @php
+                    $totalGastos = 0;
+                    @endphp
+                    @foreach ($gastosFicha as $componente)
+                    @php
+                    $totalGastos += $componente->precio;
+                    @endphp
+                    @endforeach
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
+                        <button class="btn btn-lg btn-light border border-dark">{{number_format($totalGastos,2)}} <i class="bi bi-currency-euro"></i></button>
+                    </div>
                     @endif
                     <div class="container-fluid mt-3">
                         <div class="row justify-content-center align-items-center">
@@ -40,23 +53,18 @@
 
                                             <tbody>
                                                 <tr>
-                                                    <th colspan="3" class="align-middle fondo-negro">
+                                                    <th colspan="3" class="align-middle">
                                                         {{ $componente->usuario->name }}
                                                         @if($componente->ticket != "")
                                                         @php
                                                         $ruta = URL::to('/') . '/images/' . $componente->ticket;
                                                         @endphp
-                                                        <a href="{{ $ruta }}" target="_blank" class="btn btn-md btn-dark icoDescarga"><i class="bi bi-file-earmark-arrow-down"></i></a>
+                                                        <a href="{{ $ruta }}" target="_blank" class="btn btn-md btn-white icoDescarga"><i class="bi bi-file-earmark-arrow-down"></i></a>
                                                         @endif
                                                     </th>
 
                                                 </tr>
-                                                <tr class="">
 
-                                                    <th scope="col-auto">Descripción</th>
-                                                    <th scope="col-auto" class="text-center">Precio</th>
-                                                    <th scope="col-auto" class="text-center"></th>
-                                                </tr>
                                                 @php
                                                 if($ficha->estado == 0){
                                                 $clickable = 'clickable-row';
@@ -68,17 +76,18 @@
                                                     <td class="align-middle">
                                                         {{ $componente->descripcion }}
                                                     </td>
-                                                    <td class="align-middle text-center">
+                                                    <td class="align-middle text-center" style="width: 100px;">
                                                         {{ number_format($componente->precio,2) }} <i class="bi bi-currency-euro">
                                                     </td>
-
-                                                    <td class="align-middle text-center">
+                                                    @if($ficha->estado == 0)
+                                                    <td class="align-middle text-center" style="width: 50px;">
                                                         <div class="d-flex justify-content-center">
-                                                            @if($ficha->estado == 0)
+
                                                             <a class="btn btn-sm btn-danger" href="#" onclick="triggerParentClick(event,this);"><i class="bi bi-trash"></i></a>
-                                                            @endif
+
                                                         </div>
                                                     </td>
+                                                    @endif
                                                 </tr>
                                             </tbody>
                                         </table>

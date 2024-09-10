@@ -34,13 +34,13 @@
                         @foreach($productos as $producto)
                         <div class="col-6 mb-4 col-md-2 col-lg-3">
                             <div class="card border-0">
-                                <form action="{{ route('fichas.addproduct',[$ficha->uuid, $familia->uuid]) }}" method="post" name="sumarcantidadform" id="sumarcantidadform">
+                                <form action="{{ route('fichas.addproduct',[$ficha->uuid, $familia->uuid]) }}" method="post" name="sumarcantidadform_{{$producto->uuid}}" id="sumarcantidadform_{{$producto->uuid}}">
                                     @csrf
                                     <input type="hidden" name="idFicha" value="{{ $ficha->uuid }}" />
                                     <input type="hidden" name="idProducto" value="{{ $producto->uuid }}" />
                                     <input type="hidden" name="idFamilia" value="{{ $familia->uuid }}" />
-                                    <input type="hidden" name="cantidad" id="sumarcantidadformcantidad" value="1" />
-                                    <button type="button" class="btn p-0 clickable-row" data-hrefsumarcantidadpreguntar="true" data-hrefsumarcantidad="self"><img src="{{ URL::to('/') }}/images/{{ $producto->imagen }}" class="img-fluid rounded img-responsive w-100" style="max-width:150px !important;" alt="{{ $producto->nombre }}"></button>
+                                    <input type="hidden" name="cantidad" id="sumarcantidadformcantidad_{{$producto->uuid}}" value="1" />
+                                    <button type="button" id="{{$producto->uuid}}" class="btn p-0 clickable-row" data-hrefsumarcantidadpreguntar="true" data-hrefsumarcantidad="self"><img src="{{ URL::to('/') }}/images/{{ $producto->imagen }}" class="img-fluid rounded img-responsive w-100" style="max-width:150px !important;" alt="{{ $producto->nombre }}"></button>
                                 </form>
                             </div>
                         </div>

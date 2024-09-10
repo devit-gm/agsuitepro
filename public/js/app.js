@@ -3038,8 +3038,9 @@ document.addEventListener('DOMContentLoaded', function () {
           document.location.href = row.dataset.href;
         } else {
           if (row.dataset.hrefsumarcantidad == "self") {
-            var formulario2 = document.getElementById("sumarcantidadform");
-            document.getElementById("sumarcantidadformcantidad").value = 1;
+            var id = row.id;
+            var formulario2 = document.getElementById("sumarcantidadform_" + id);
+            document.getElementById("sumarcantidadformcantidad_" + id).value = 1;
             formulario2.submit();
           }
         }
@@ -3089,8 +3090,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 formulario.action = nuevaUrl;
                 formulario.submit();
               } else {
-                var formulario2 = document.getElementById("sumarcantidadform");
-                document.getElementById("sumarcantidadformcantidad").value = unidades;
+                var id = row.id;
+                var formulario2 = document.getElementById("sumarcantidadform_" + id);
+                document.getElementById("sumarcantidadformcantidad_" + id).value = unidades;
                 formulario2.submit();
               }
             } else {
