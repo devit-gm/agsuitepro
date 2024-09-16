@@ -27,7 +27,10 @@
                                         <label for="usuario" class="fw-bold form-label">Usuario</label>
                                         <select name="usuario" id="usuario" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
                                             @foreach ($usuariosFicha as $usuario)
+                                            <!-- Si el usuario es el que esta logueado, lo seleccionamos por defecto -->
+                                            @if($usuario->id == Auth::user()->id)
                                             <option value="{{ $usuario->id }}">{{ $usuario->name }}</option>
+                                            @endif
                                             @endforeach
                                         </select>
                                     </div>
@@ -55,20 +58,20 @@
                         </div>
                     </div>
                 </div>
-			
+
             </div>
         </div>
     </div>
 </div>
 @endsection
-	@section('footer')
+@section('footer')
 
-                <div class="card-footer">
-                    <form>
-                        <div class="d-flex align-items-center justify-content-center">
-                            <a class="btn btn-dark mx-1" href={{ route('fichas.gastos', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
-                            <button type="button" onclick="document.getElementById('nuevo-gasto').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
-                        </div>
-                    </form>
-                </div>
+<div class="card-footer">
+    <form>
+        <div class="d-flex align-items-center justify-content-center">
+            <a class="btn btn-dark mx-1" href={{ route('fichas.gastos', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+            <button type="button" onclick="document.getElementById('nuevo-gasto').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
+        </div>
+    </form>
+</div>
 @endsection
