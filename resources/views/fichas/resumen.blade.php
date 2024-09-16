@@ -33,7 +33,7 @@
                                             </tr>
                                             @if($ficha->tipo != 3)
                                             <tr>
-                                                <th scope="row">Comensales:</th>
+                                                <th scope="row" style="vertical-align:middle;">Comensales:<br /><span style="font-size:0.9em; font-weight:normal;">(No incluye niños)</span></th>
                                                 <td>{{ $ficha->total_comensales }}</td>
                                             </tr>
                                             <tr>

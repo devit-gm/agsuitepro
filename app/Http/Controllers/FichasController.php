@@ -417,6 +417,7 @@ class FichasController extends Controller
         $ficha->usuarios = FichaUsuario::where('id_ficha', $uuid)->get();
 
         $total_comensales = 0;
+        $total_ninos = 0;
         if ($ficha->tipo == 3) {
             $total_comensales = 1;
         } else {
@@ -424,13 +425,14 @@ class FichasController extends Controller
                 $total_comensales += $usuario->invitados;
                 $total_comensales += $usuario->ninos;
                 $total_comensales++;
+                $total_ninos += $usuario->ninos;
             }
         }
         // De momento los invitados de grupo no cuentan
         // if ($ficha->invitados_grupo > 0) {
         //     $total_comensales += $ficha->invitados_grupo;
         // }
-        $ficha->total_comensales = $total_comensales;
+        $ficha->total_comensales = $total_comensales - $total_ninos;
         $ficha->gastos = FichaGasto::where('id_ficha', $uuid)->get();
         $total_gastos = 0;
         foreach ($ficha->gastos as $gasto) {
@@ -438,7 +440,7 @@ class FichasController extends Controller
         }
         $ficha->total_gastos = $total_gastos;
 
-        $ficha->precio_comensal = $ficha->precio / $total_comensales;
+        $ficha->precio_comensal = $ficha->precio / ($total_comensales - $total_ninos);
         return view('fichas.resumen', compact('ficha'));
     }
 
