@@ -300,6 +300,10 @@ class FichasController extends Controller
         foreach ($servicios as $servicio) {
             $precio += $servicio->precio;
         }
+        $gastos = FichaGasto::where('id_ficha', $ficha->uuid)->get();
+        foreach ($gastos as $gasto) {
+            $precio += $gasto->precio;
+        }
         if ($ajustes->activar_invitados_grupo) {
             if ($ficha->invitados_grupo > 0) {
                 $precio = $precio + $ficha->invitados_grupo;
@@ -439,7 +443,6 @@ class FichasController extends Controller
             $total_gastos += $gasto->precio;
         }
         $ficha->total_gastos = $total_gastos;
-
         $ficha->precio_comensal = $ficha->precio / ($total_comensales - $total_ninos);
         return view('fichas.resumen', compact('ficha'));
     }
