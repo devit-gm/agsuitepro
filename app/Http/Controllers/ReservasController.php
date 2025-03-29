@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon; // Add this line to import the Carbon class
 use Ramsey\Uuid\Uuid;
+use Illuminate\Support\Facades\Log; // Add this line to import the Log facade
 
 class ReservasController extends Controller
 {
@@ -110,7 +111,7 @@ class ReservasController extends Controller
             $whatsAppController = new WhatsAppController(app('App\Services\TwilioService'));
             $whatsAppController->sendReservaNotification($reserva);
         } catch (\Exception $e) {
-            \Log::error('Error al enviar notificación de WhatsApp: ' . $e->getMessage());
+            Log::error('Error al enviar notificación de WhatsApp: ' . $e->getMessage());
             // No interrumpimos el flujo si falla el envío de WhatsApp
         }
 
@@ -180,7 +181,7 @@ class ReservasController extends Controller
             $whatsAppController = new WhatsAppController(app('App\Services\TwilioService'));
             $whatsAppController->sendReservaNotification($reserva);
         } catch (\Exception $e) {
-            \Log::error('Error al enviar notificación de WhatsApp: ' . $e->getMessage());
+            Log::error('Error al enviar notificación de WhatsApp: ' . $e->getMessage());
             // No interrumpimos el flujo si falla el envío de WhatsApp
         }
 
