@@ -13,6 +13,7 @@ use App\Http\Controllers\InformesController;
 use App\Http\Controllers\LicenciasController;
 use App\Http\Controllers\SitiosController;
 use App\Http\Controllers\SmsController;
+use App\Http\Controllers\WhatsAppController;
 use App\Http\Middleware\RoleMiddleware;
 
 /*
@@ -86,7 +87,7 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::delete('/fichas/{uuid}/gastos/{uuid2}', FichasController::class . '@destroygastos')->name('fichas.destroygastos');
     Route::get('/fichas/{uuid}/resumen', FichasController::class . '@resumen')->name('fichas.resumen');
     Route::put('/fichas/{uuid}/resumen', FichasController::class . '@enviar')->name('fichas.enviar');
-
+    Route::post('/fichas/{uuid}/resumen/compartir', FichasController::class . '@compartirResumen')->name('fichas.compartir');
     Route::get('/informes', [InformesController::class, 'index'])->name('informes.index');
     Route::put('/informes', [InformesController::class, 'index'])->name('informes.balance');
     Route::put('/informes/facturar', [InformesController::class, 'facturar'])->name('informes.facturar');
@@ -124,6 +125,11 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::delete('/licencias/{id}', [LicenciasController::class, 'destroy'])->name('licencias.destroy');
     Route::get('/licencias/error', [LicenciasController::class, 'error'])->name('licencias.error');
     Route::put('/licencias/error', [LicenciasController::class, 'error'])->name('licencias.error');
+
+    // Rutas para WhatsApp
+    Route::post('/whatsapp/send', [WhatsAppController::class, 'sendMessage'])->name('whatsapp.send');
+    Route::post('/whatsapp/send-media', [WhatsAppController::class, 'sendMedia'])->name('whatsapp.send-media');
+    Route::post('/whatsapp/send-template', [WhatsAppController::class, 'sendTemplate'])->name('whatsapp.send-template');
 
     Route::post('/send-sms', [SmsController::class, 'sendSms'])->name('sms.enviar');
 });

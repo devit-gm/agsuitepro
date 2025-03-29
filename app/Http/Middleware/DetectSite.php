@@ -25,13 +25,22 @@ class DetectSite
     {
         $domain = $request->getHost();
         $site = Site::where('dominio', $domain)->first();
+
+        // Si el sitio no existe, permitir continuar la solicitud
+        // para que otros middlewares puedan manejar la respuesta adecuada
+        if (!$site) {
+            return $next($request);
+        }
+
         $user = Auth::user();
-        if ($request->route()->getName() == "home") {
+        if ($request->route() && $request->route()->getName() == "home") {
             return redirect('/');
         }
+
         if ($user) {
             if ($site->central == 0) {
-                if ($request->route()->getName() != 'licencias.error') {
+                // Solo verificar licencia si hay una ruta definida y no es la página de error
+                if ($request->route() && $request->route()->getName() != 'licencias.error') {
                     if ($user->role_id != 1) {
                         $license = License::where('site_id', $site->id)
                             ->where('user_id', $user->id)

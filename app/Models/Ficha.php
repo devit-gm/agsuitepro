@@ -35,6 +35,38 @@ class Ficha extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Get the productos for the ficha.
+     */
+    public function productos()
+    {
+        return $this->hasMany(FichaProducto::class, 'id_ficha', 'uuid');
+    }
+
+    /**
+     * Get the servicios for the ficha.
+     */
+    public function servicios()
+    {
+        return $this->hasMany(FichaServicio::class, 'id_ficha', 'uuid');
+    }
+
+    /**
+     * Get the gastos for the ficha.
+     */
+    public function gastos()
+    {
+        return $this->hasMany(FichaGasto::class, 'id_ficha', 'uuid');
+    }
+
+    /**
+     * Get the usuarios relacionados with the ficha.
+     */
+    public function usuarios()
+    {
+        return $this->belongsToMany(User::class, 'ficha_usuario', 'ficha_uuid', 'user_id');
+    }
+
     protected static function boot()
     {
         parent::boot();

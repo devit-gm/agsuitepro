@@ -30,7 +30,7 @@ class ModuleDataManagementContext extends InstanceContext
      * Initialize the ModuleDataManagementContext
      *
      * @param Version $version Version that contains the resource
-     * @param string $sid 
+     * @param string $sid The unique identifier of a Listing.
      */
     public function __construct(
         Version $version,
@@ -57,7 +57,8 @@ class ModuleDataManagementContext extends InstanceContext
     public function fetch(): ModuleDataManagementInstance
     {
 
-        $payload = $this->version->fetch('GET', $this->uri, [], []);
+        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
+        $payload = $this->version->fetch('GET', $this->uri, [], [], $headers);
 
         return new ModuleDataManagementInstance(
             $this->version,
@@ -90,9 +91,14 @@ class ModuleDataManagementContext extends InstanceContext
                 $options['policies'],
             'Support' =>
                 $options['support'],
+            'Configuration' =>
+                $options['configuration'],
+            'Pricing' =>
+                $options['pricing'],
         ]);
 
-        $payload = $this->version->update('POST', $this->uri, [], $data);
+        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
+        $payload = $this->version->update('POST', $this->uri, [], $data, $headers);
 
         return new ModuleDataManagementInstance(
             $this->version,
