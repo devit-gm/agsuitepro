@@ -8,7 +8,7 @@
  *
  * @author Andrey Helldar <helldar@dragon-code.pro>
  *
- * @copyright 2023 Andrey Helldar
+ * @copyright 2025 Andrey Helldar
  *
  * @license MIT
  *
@@ -34,20 +34,16 @@ class Arr
 {
     /**
      * Get a new arrayable object from the given array.
-     *
-     * @return \DragonCode\Support\Helpers\Ables\Arrayable
      */
-    public function of(array|ArrayObject|null $value = []): Ables\Arrayable
+    public function of(array|ArrayObject|null $value = []): ArrayableHelper
     {
-        return new Ables\Arrayable($value);
+        return new ArrayableHelper($value);
     }
 
     /**
      * Get a new arrayable object from the given array from the php or json array file.
-     *
-     * @return \DragonCode\Support\Helpers\Ables\Arrayable
      */
-    public function ofFile(string $path): Ables\Arrayable
+    public function ofFile(string $path): ArrayableHelper
     {
         $content = File::load($path);
 
@@ -158,7 +154,7 @@ class Arr
     {
         $sorter = array_intersect($sorter, array_keys($array));
 
-        return array_merge(array_flip($sorter), $array);
+        return $this->merge(array_flip($sorter), $array);
     }
 
     /**
@@ -266,8 +262,6 @@ class Arr
 
     /**
      * If the given value is not an array and not null, wrap it in one.
-     *
-     * @param  mixed  $value
      */
     public function wrap(mixed $value = null): array
     {
@@ -303,7 +297,7 @@ class Arr
     /**
      * Determine if the given key exists in the provided array.
      *
-     * @param  ArrayAccess|\DragonCode\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Arrayable|array  $array  |\ArrayAccess
+     * @param  ArrayAccess|Arrayable|ArrayableIlluminate|array  $array  |\ArrayAccess
      *     $array
      */
     public function exists(mixed $array, mixed $key): bool
@@ -331,7 +325,7 @@ class Arr
     /**
      * Determine if the given key doesn't exist in the provided array.
      *
-     * @param  ArrayAccess|\DragonCode\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Arrayable|array  $array
+     * @param  ArrayAccess|Arrayable|ArrayableIlluminate|array  $array
      */
     public function doesntExist(mixed $array, mixed $key): bool
     {
@@ -341,7 +335,7 @@ class Arr
     /**
      * Determine if the given key exists in the provided array without dot divider.
      *
-     * @param  ArrayAccess|\DragonCode\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Arrayable|array  $array  |\ArrayAccess
+     * @param  ArrayAccess|Arrayable|ArrayableIlluminate|array  $array  |\ArrayAccess
      *     $array
      */
     public function existsWithoutDot(mixed $array, mixed $key): bool
@@ -356,7 +350,7 @@ class Arr
     /**
      * Determine if the given key doesn't exist in the provided array without dot divider.
      *
-     * @param  ArrayAccess|\DragonCode\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Arrayable|array  $array  |\ArrayAccess
+     * @param  ArrayAccess|Arrayable|ArrayableIlluminate|array  $array  |\ArrayAccess
      *     $array
      */
     public function doesntExistWithoutDot(mixed $array, mixed $key): bool
@@ -369,7 +363,7 @@ class Arr
      *
      * @see https://github.com/illuminate/collections/blob/master/Arr.php
      *
-     * @param  ArrayAccess|\DragonCode\Contracts\Support\Arrayable|\Illuminate\Contracts\Support\Arrayable|array  $array  |ArrayAccess
+     * @param  ArrayAccess|Arrayable|ArrayableIlluminate|array  $array  |ArrayAccess
      *     $array
      *
      * @return mixed|null
@@ -408,7 +402,6 @@ class Arr
      * If the element key exists, then return the name of the key, otherwise the default value.
      *
      * @param  array|ArrayAccess  $array
-     * @param  mixed  $default
      *
      * @return mixed|null
      */
@@ -549,7 +542,7 @@ class Arr
             if (is_array($value)) {
                 $values = $this->flattenKeys($value, $delimiter, $new_key);
 
-                $result = array_merge($result, $values);
+                $result = $this->merge($result, $values);
 
                 continue;
             }
@@ -613,7 +606,6 @@ class Arr
      * Assigns a value to an array key.
      *
      * @param  array|ArrayAccess  $array
-     * @param  mixed  $value
      */
     public function set(mixed $array, mixed $key, mixed $value = null): array
     {
@@ -656,13 +648,15 @@ class Arr
 
     /**
      * Check if the item is an array.
-     *
-     * @param  mixed  $value
      */
     public function isArrayable(mixed $value = null): bool
     {
         if (is_array($value) || is_object($value)) {
             return true;
+        }
+
+        if (is_string($value) && in_array(trim($value), ['/', '\\'])) {
+            return false;
         }
 
         if (
@@ -701,9 +695,20 @@ class Arr
     }
 
     /**
-     * Determines if the value is doesn't empty.
+     * Determines if the value doesn't empty.
+     *
+     * @deprecated
+     * @see self::isNotEmpty()
      */
     public function doesntEmpty(mixed $value): bool
+    {
+        return ! $this->isEmpty($value);
+    }
+
+    /**
+     * Determines if the value isn't empty.
+     */
+    public function isNotEmpty(mixed $value): bool
     {
         return ! $this->isEmpty($value);
     }
@@ -758,7 +763,6 @@ class Arr
      * @see https://php.net/manual/en/function.array-splice.php
      *
      * @param  array  $array
-     * @param  mixed  $replacement
      */
     public function splice(array|ArrayObject $array, int $offset, ?int $length = null, mixed $replacement = null): array
     {

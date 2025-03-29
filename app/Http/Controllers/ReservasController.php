@@ -97,13 +97,22 @@ class ReservasController extends Controller
             return back()->withErrors(['error' => 'Ya hay una reserva en esas fechas'])->withInput();
         }
 
-        Reserva::create([
+        $reserva = Reserva::create([
             'uuid' => (string) Uuid::uuid4(),
             'name' => $request->name,
             'user_id' => $request->user_id,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time
         ]);
+
+        // Enviar notificación por WhatsApp al cliente
+        try {
+            $whatsAppController = new WhatsAppController(app('App\Services\TwilioService'));
+            $whatsAppController->sendReservaNotification($reserva);
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar notificación de WhatsApp: ' . $e->getMessage());
+            // No interrumpimos el flujo si falla el envío de WhatsApp
+        }
 
         return redirect()->route('reservas.index')->with('success', 'Reserva creada con éxito.');
     }
@@ -165,6 +174,15 @@ class ReservasController extends Controller
             'start_time' => $request->start_time,
             'end_time' => $request->end_time
         ]);
+
+        // Enviar notificación por WhatsApp al cliente sobre la actualización
+        try {
+            $whatsAppController = new WhatsAppController(app('App\Services\TwilioService'));
+            $whatsAppController->sendReservaNotification($reserva);
+        } catch (\Exception $e) {
+            \Log::error('Error al enviar notificación de WhatsApp: ' . $e->getMessage());
+            // No interrumpimos el flujo si falla el envío de WhatsApp
+        }
 
         return redirect()->route('reservas.index')->with('success', 'Reserva actualizada con éxito.');
     }

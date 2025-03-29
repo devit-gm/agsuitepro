@@ -18,6 +18,7 @@ namespace Twilio\Rest\Marketplace\V1\InstalledAddOn;
 
 use Twilio\Exceptions\TwilioException;
 use Twilio\ListResource;
+use Twilio\Values;
 use Twilio\Version;
 
 
@@ -27,7 +28,7 @@ class InstalledAddOnUsageList extends ListResource
      * Construct the InstalledAddOnUsageList
      *
      * @param Version $version Version that contains the resource
-     * @param string $installedAddOnSid 
+     * @param string $installedAddOnSid Customer Installation SID to report usage on.
      */
     public function __construct(
         Version $version,
@@ -49,14 +50,15 @@ class InstalledAddOnUsageList extends ListResource
     /**
      * Create the InstalledAddOnUsageInstance
      *
-     * @param CreateMarketplaceBillingUsageRequest $createMarketplaceBillingUsageRequest
+     * @param MarketplaceV1InstalledAddOnInstalledAddOnUsage $marketplaceV1InstalledAddOnInstalledAddOnUsage
      * @return InstalledAddOnUsageInstance Created InstalledAddOnUsageInstance
      * @throws TwilioException When an HTTP error occurs.
      */
-    public function create(CreateMarketplaceBillingUsageRequest $createMarketplaceBillingUsageRequest): InstalledAddOnUsageInstance
+    public function create(MarketplaceV1InstalledAddOnInstalledAddOnUsage $marketplaceV1InstalledAddOnInstalledAddOnUsage): InstalledAddOnUsageInstance
     {
 
-        $data = $createMarketplaceBillingUsageRequest->toArray();
+        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
+        $data = $marketplaceV1InstalledAddOnInstalledAddOnUsage->toArray();
         $headers['Content-Type'] = 'application/json';
         $payload = $this->version->create('POST', $this->uri, [], $data, $headers);
 

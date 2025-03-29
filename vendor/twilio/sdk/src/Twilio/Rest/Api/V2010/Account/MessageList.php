@@ -88,6 +88,8 @@ class MessageList extends ListResource
                 Serialize::booleanToString($options['smartEncoded']),
             'PersistentAction' =>
                 Serialize::map($options['persistentAction'], function ($e) { return $e; }),
+            'TrafficType' =>
+                $options['trafficType'],
             'ShortenUrls' =>
                 Serialize::booleanToString($options['shortenUrls']),
             'ScheduleType' =>
@@ -112,7 +114,8 @@ class MessageList extends ListResource
                 $options['contentSid'],
         ]);
 
-        $payload = $this->version->create('POST', $this->uri, [], $data);
+        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
+        $payload = $this->version->create('POST', $this->uri, [], $data, $headers);
 
         return new MessageInstance(
             $this->version,

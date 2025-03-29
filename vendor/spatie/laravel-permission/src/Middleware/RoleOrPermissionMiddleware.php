@@ -16,15 +16,15 @@ class RoleOrPermissionMiddleware
         $user = $authGuard->user();
 
         // For machine-to-machine Passport clients
-        if (!$user && $request->bearerToken() && config('permission.use_passport_client_credentials')) {
+        if (! $user && $request->bearerToken() && config('permission.use_passport_client_credentials')) {
             $user = Guard::getPassportClient($guard);
         }
 
-        if (!$user) {
+        if (! $user) {
             throw UnauthorizedException::notLoggedIn();
         }
 
-        if (!method_exists($user, 'hasAnyRole') || !method_exists($user, 'hasAnyPermission')) {
+        if (! method_exists($user, 'hasAnyRole') || ! method_exists($user, 'hasAnyPermission')) {
             throw UnauthorizedException::missingTraitHasRoles($user);
         }
 
@@ -32,7 +32,7 @@ class RoleOrPermissionMiddleware
             ? $roleOrPermission
             : explode('|', $roleOrPermission);
 
-        if (!$user->canAny($rolesOrPermissions) && !$user-- > hasAnyRole($rolesOrPermissions)) {
+        if (! $user->canAny($rolesOrPermissions) && ! $user->hasAnyRole($rolesOrPermissions)) {
             throw UnauthorizedException::forRolesOrPermissions($rolesOrPermissions);
         }
 
@@ -51,6 +51,6 @@ class RoleOrPermissionMiddleware
         $roleOrPermissionString = is_string($roleOrPermission) ? $roleOrPermission : implode('|', $roleOrPermission);
         $args = is_null($guard) ? $roleOrPermissionString : "$roleOrPermissionString,$guard";
 
-        return static::class . ':' . $args;
+        return static::class.':'.$args;
     }
 }

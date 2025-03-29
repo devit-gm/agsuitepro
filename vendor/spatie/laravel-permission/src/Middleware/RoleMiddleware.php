@@ -16,23 +16,21 @@ class RoleMiddleware
         $user = $authGuard->user();
 
         // For machine-to-machine Passport clients
-        if (!$user && $request->bearerToken() && config('permission.use_passport_client_credentials')) {
+        if (! $user && $request->bearerToken() && config('permission.use_passport_client_credentials')) {
             $user = Guard::getPassportClient($guard);
         }
 
-        if (!$user) {
+        if (! $user) {
             throw UnauthorizedException::notLoggedIn();
         }
 
-        if (!method_exists($user, 'hasAnyRole')) {
+        if (! method_exists($user, 'hasAnyRole')) {
             throw UnauthorizedException::missingTraitHasRoles($user);
         }
 
-        $roles = is_array($role)
-            ? $role
-            : explode('|', $role);
+        $roles = explode('|', self::parseRolesToString($role));
 
-        if (!$user-- > hasAnyRole($roles)) {
+        if (! $user->hasAnyRole($roles)) {
             throw UnauthorizedException::forRoles($roles);
         }
 
@@ -42,15 +40,37 @@ class RoleMiddleware
     /**
      * Specify the role and guard for the middleware.
      *
-     * @param  array|string  $role
+     * @param  array|string|\BackedEnum  $role
      * @param  string|null  $guard
      * @return string
      */
     public static function using($role, $guard = null)
     {
-        $roleString = is_string($role) ? $role : implode('|', $role);
+        $roleString = self::parseRolesToString($role);
+
         $args = is_null($guard) ? $roleString : "$roleString,$guard";
 
-        return static::class . ':' . $args;
+        return static::class.':'.$args;
+    }
+
+    /**
+     * Convert array or string of roles to string representation.
+     *
+     * @return string
+     */
+    protected static function parseRolesToString(array|string|\BackedEnum $role)
+    {
+        // Convert Enum to its value if an Enum is passed
+        if ($role instanceof \BackedEnum) {
+            $role = $role->value;
+        }
+
+        if (is_array($role)) {
+            $role = array_map(fn ($r) => $r instanceof \BackedEnum ? $r->value : $r, $role);
+
+            return implode('|', $role);
+        }
+
+        return (string) $role;
     }
 }

@@ -443,7 +443,14 @@ class FichasController extends Controller
             $total_gastos += $gasto->precio;
         }
         $ficha->total_gastos = $total_gastos;
-        $ficha->precio_comensal = $ficha->precio / ($total_comensales - $total_ninos);
+
+        // Evitar división por cero
+        if ($total_comensales - $total_ninos > 0) {
+            $ficha->precio_comensal = $ficha->precio / ($total_comensales - $total_ninos);
+        } else {
+            $ficha->precio_comensal = 0; // Asignar cero si no hay comensales adultos
+        }
+
         return view('fichas.resumen', compact('ficha'));
     }
 
@@ -814,6 +821,37 @@ class FichasController extends Controller
             }
             return redirect()->route('fichas.lista', $uuid)
                 ->with('success', 'Producto eliminado de la ficha');
+        }
+    }
+
+    /**
+     * Comparte el resumen de la ficha por WhatsApp
+     * 
+     * @param string $uuid
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function compartirResumen(string $uuid, Request $request)
+    {
+        $request->validate([
+            'telefono' => 'required|string',
+        ]);
+
+        $ficha = Ficha::find($uuid);
+        if (!$ficha) {
+            return back()->withErrors(['error' => 'Ficha no encontrada'])->withInput();
+        }
+
+        // Inicializar el controlador de WhatsApp
+        $whatsAppController = new WhatsAppController(app('App\Services\TwilioService'));
+
+        // Enviar el resumen por WhatsApp
+        $success = $whatsAppController->shareResumenFicha($ficha, $request->telefono);
+
+        if ($success) {
+            return back()->with('success', 'Resumen compartido con éxito por WhatsApp');
+        } else {
+            return back()->withErrors(['error' => 'Error al compartir el resumen por WhatsApp'])->withInput();
         }
     }
 }
