@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
-            <div class="card flex-fill">
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
                 <div class="card-header fondo-rojo"><i class="bi bi-people"></i> {{ __('Users') }}</div>
-                <div class="card-body">
+                <div class="card-body overflow-auto flex-fill">
                     <div class="container-fluid">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
                                 @if ($errors->any())
                                 <div class="custom-error-container" id="custom-error-container">
                                     <ul class="custom-error-list">
@@ -30,14 +30,21 @@
                                 <table class="table table-bordered table-responsive">
                                     <thead>
                                         <tr class="">
-                                            <th scope="col-auto" style="width:90px">Imagen</th>
-                                            <th scope="col-auto">Nombre</th>
+                                            <th scope="col-auto" style="width:90px">{{ __('Imagen') }}</th>
+                                            <th scope="col-auto">{{ __('Nombre') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach ($usuarios as $usuario)
-                                        <tr style="height:120px;" class="clickable-row" data-href="{{ route('usuarios.edit', $usuario->id) }}" data-hrefborrar="{{ route('usuarios.destroy', $usuario->id) }}" data-textoborrar="¿Está seguro de eliminar el usuario?" data-borrable="{{$usuario->borrable}}">
-                                            <td class="align-middle"><img width="80" height="80" class="img-fluid rounded img-responsive" src="{{ URL::to('/') }}/images/{{ $usuario->image }}" /></td>
+                                        <tr style="height:120px;" class="clickable-row" data-href="{{ route('usuarios.edit', $usuario->id) }}" data-hrefborrar="{{ route('usuarios.destroy', $usuario->id) }}" data-textoborrar="{{ __('¿Está seguro de eliminar el usuario?') }}" data-borrable="{{$usuario->borrable}}">
+                                            <td class="align-middle">
+                                                <img width="80" height="80" 
+                                                     class="img-fluid rounded img-responsive" 
+                                                     src="{{ cachedImage($usuario->image) }}" 
+                                                     alt="{{ $usuario->name }}"
+                                                     loading="lazy"
+                                                     decoding="async" />
+                                            </td>
                                             <td class="align-middle">
                                                 {{ $usuario->name }}
                                                 <br />

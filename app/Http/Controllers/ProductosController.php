@@ -12,6 +12,7 @@ use Ramsey\Uuid\Uuid;
 use App\Models\FichaProducto;
 use App\Models\Site;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ProductosController extends Controller
 {
@@ -32,37 +33,48 @@ class ProductosController extends Controller
      */
     public function index()
     {
-        $productos = Producto::orderBy('nombre')->get();
-        foreach ($productos as $producto) {
-            $composicion = ComposicionProducto::where('id_producto', $producto->uuid)->get();
-            $producto->familia = Familia::find($producto->familia);
-            if ($producto->combinado == 1) {
-                $precio = 0.00;
-                foreach ($composicion as $componente) {
-                    $precio += Producto::find($componente->id_componente)->precio;
-                }
+        $productos = Producto::with([
+        'familiaObj',     // familia del producto
+        'composicion',    // filas de composición (id_producto → id_componente)
+        'componentes',    // productos componentes
+        'fichas'          // fichas en las que aparece el producto
+    ])
+    ->orderBy('nombre')
+    ->get();
 
-                $producto->precio =  number_format((float)$precio, 2, '.', '');
-                //Obtener todos las fichas en las que está este producto
-                $producto->fichas = FichaProducto::where('id_producto', $producto->id)->get();
-                //Si alguna de esas fichas está en estado 0 (pendiente) no se puede borrar
-                if (Auth::user()->role_id == 1) {
-                    $producto->borrable = true;
-                    foreach ($producto->fichas as $ficha) {
-                        if ($ficha->estado == 0) {
-                            $producto->borrable = false;
-                            break;
-                        }
-                    }
-                } else {
-                    $producto->borrable = false;
-                }
-            } else {
-                $producto->precio = number_format((float)$producto->precio, 2, '.', '');
-                $producto->borrable = true;
-            }
+foreach ($productos as $producto) {
+
+    // Reemplazar familia con su relación real
+    $producto->familia = $producto->familiaObj;
+
+    if ($producto->combinado == 1) {
+
+        // Calcular precio sumando los componentes YA cargados (sin consultas SQL)
+        $precio = $producto->componentes->sum('precio');
+
+        $producto->precio = number_format((float)$precio, 2, '.', '');
+
+        // Determinar si es borrable
+        if (Auth::user()->role_id == 1) {
+            // Si alguna ficha del producto está en estado pendiente (0), NO se borra
+            $tienePendientes = $producto->fichas->contains(fn($f) => $f->estado == 0);
+            $producto->borrable = !$tienePendientes;
+        } else {
+            $producto->borrable = false;
         }
-        return view('productos.index', compact('productos'));
+
+    } else {
+
+        // Producto no combinado → usa su precio real
+        $producto->precio = number_format((float)$producto->precio, 2, '.', '');
+
+        // No está en ninguna ficha y no depende de componentes
+        $producto->borrable = true;
+    }
+}
+
+return view('productos.index', compact('productos'));
+
     }
 
     /**
@@ -88,10 +100,11 @@ class ProductosController extends Controller
             'posicion' => $request->posicion,
             'familia' => $request->familia,
             'combinado' => $request->combinado,
-            'precio' => $request->precio
+            'precio' => $request->precio,
+            'ean13' => $request->ean13
         ]);
         return redirect()->route('productos.index')
-            ->with('success', 'Producto creado con éxito.');
+            ->with('success', __('Producto creado con éxito.'));
     }
 
     /**
@@ -145,10 +158,11 @@ class ProductosController extends Controller
             'posicion' => $request->posicion,
             'familia' => $request->familia,
             'combinado' => $request->combinado,
-            'precio' => $request->precio
+            'precio' => $request->precio,
+            'ean13' => $request->ean13
         ]);
         return redirect()->route('productos.index')
-            ->with('success', 'Producto actualizado con éxito.');
+            ->with('success', __('Producto actualizado con éxito.'));
     }
 
     /**
@@ -163,7 +177,7 @@ class ProductosController extends Controller
         ComposicionProducto::where('id_producto', $id)->delete();
         $producto->delete();
         return redirect()->route('productos.index')
-            ->with('success', 'Producto eliminado con éxito');
+            ->with('success', __('Producto eliminado con éxito'));
     }
 
     /**
@@ -172,7 +186,8 @@ class ProductosController extends Controller
     public function create()
     {
         $familias = Familia::orderBy('nombre')->get();
-        return view('productos.create', compact('familias'));
+        $ajustes = DB::connection('site')->table('ajustes')->first();
+        return view('productos.create', compact('familias', 'ajustes'));
     }
 
     /**
@@ -206,7 +221,8 @@ class ProductosController extends Controller
             $producto->borrable = false;
         }
         $familias = Familia::orderBy('nombre')->get();
-        return view('productos.edit', compact('producto'), compact('familias'));
+        $ajustes = DB::connection('site')->table('ajustes')->first();
+        return view('productos.edit', compact('producto', 'familias', 'ajustes'));
     }
 
     public function components($id)
@@ -281,16 +297,55 @@ class ProductosController extends Controller
         if ($request->isMethod('put')) {
             $productos = $request->stock;
             $uuids = $request->uuid;
+            $stockService = new \App\Services\StockNotificationService();
+            
             foreach ($uuids as $uuid) {
+                $stockAnterior = Producto::where('uuid', $uuid)->value('stock');
+                
                 Producto::where('uuid', $uuid)->update([
                     'stock' =>  $productos[$uuid]
                 ]);
+                
+                // Si el stock ha disminuido, verificar si hay que notificar
+                if ($productos[$uuid] < $stockAnterior) {
+                    $stockService->verificarYNotificar($uuid);
+                }
             }
 
             return redirect()->route('productos.inventory')
-                ->with('success', 'Inventario actualizado con éxito.');
+                ->with('success', __('Inventario actualizado con éxito.'));
         }
         $productos = Producto::where('combinado', 0)->orderBy('posicion')->get();
-        return view('productos.inventory', compact('productos'));
+        $ajustes = \App\Models\Ajustes::first();
+        return view('productos.inventory', compact('productos', 'ajustes'));
+    }
+
+    public function buscarPorBarcode(Request $request)
+    {
+        $request->validate([
+            'ean13' => 'required|string|max:50'
+        ]);
+
+        $ean13 = $request->input('ean13');
+
+        // Buscar producto por código EAN13
+        $producto = Producto::where('ean13', $ean13)->first();
+
+        if (!$producto) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Producto no encontrado con código: ') . $ean13
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'producto' => [
+                'uuid' => $producto->uuid,
+                'nombre' => $producto->nombre,
+                'ean13' => $producto->ean13,
+                'stock' => $producto->stock
+            ]
+        ]);
     }
 }

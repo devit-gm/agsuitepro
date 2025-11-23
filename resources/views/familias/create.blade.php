@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
-            <div class="card flex-fill">
-                <div class="card-header fondo-rojo"><i class="bi bi-tag"></i> Nueva familia</div>
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
+                <div class="card-header fondo-rojo"><i class="bi bi-tag"></i> {{ __('Nueva familia') }}</div>
 
-                <div class="card-body">
+                <div class="card-body overflow-auto flex-fill">
                     <div class="container-fluid">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
                                 <form id="nueva-familia" action="{{ route('familias.store') }}" method="post" enctype="multipart/form-data">
                                     @csrf
                                     @if ($errors->any())
@@ -23,15 +23,19 @@
                                     </div>
                                     @endif
                                     <div class="form-group mb-3 required">
-                                        <label for="title" class="fw-bold form-label">Nombre</label>
+                                        <label for="title" class="fw-bold form-label">{{ __('Nombre') }}</label>
                                         <input type="text" class="form-control" id="nombre" name="nombre" required>
                                     </div>
                                     <div class="form-group mb-3 required">
-                                        <label for="body" class="fw-bold form-label">Imagen</label>
-                                        <input type="file" class="form-control" id="imagen" name="imagen" required></input>
+                                        <label for="body" class="fw-bold form-label">{{ __('Imagen') }}</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="file-name-imagen" readonly placeholder="{{ __('Ningún archivo seleccionado') }}">
+                                            <label class="input-group-text" for="imagen" style="cursor: pointer;">{{ __('Seleccionar archivo') }}</label>
+                                            <input type="file" id="imagen" name="imagen" required onchange="updateFileName(this, 'file-name-imagen')" style="display: none;">
+                                        </div>
                                     </div>
                                     <div class="form-group mb-3 required">
-                                        <label for="title" class="fw-bold form-label">Posición</label>
+                                        <label for="title" class="fw-bold form-label">{{ __('Posición') }}</label>
                                         <input type="number" class="form-control" id="posicion" name="posicion" required>
                                     </div>
                                 </form>
@@ -55,4 +59,10 @@
                         </div>
                     </form>
                 </div>
+<script>
+function updateFileName(input, inputId) {
+    const fileName = input.files[0] ? input.files[0].name : '';
+    document.getElementById(inputId).value = fileName;
+}
+</script>
 @endsection

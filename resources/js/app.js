@@ -9,10 +9,10 @@ document.addEventListener('DOMContentLoaded', function () {
     rows.forEach(function (row) {
         row.addEventListener('click', function (event) {
             if (!deslizamiento && !isPressed) {
-                if(row.dataset.href){
+                if (row.dataset.href) {
                     document.location.href = row.dataset.href;
-                }else{
-                    if(row.dataset.hrefsumarcantidad == "self"){
+                } else {
+                    if (row.dataset.hrefsumarcantidad == "self") {
                         var id = row.id;
                         var formulario2 = document.getElementById("sumarcantidadform_" + id);
                         document.getElementById("sumarcantidadformcantidad_" + id).value = 1;
@@ -25,12 +25,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         var hammertime = new Hammer(row);
-        
-        hammertime.on('swipeleft', function() {
+
+        hammertime.on('swipeleft', function () {
             deslizamiento = true;
-            if(row.dataset.borrable){
-                if(row.dataset.hrefborrar != null){
-                    if(confirm(row.dataset.textoborrar)){
+            if (row.dataset.borrable) {
+                if (row.dataset.hrefborrar != null) {
+                    if (confirm(row.dataset.textoborrar)) {
                         var formulario = document.getElementById("frmBorrar");
                         formulario.action = row.dataset.hrefborrar;
                         formulario.submit();
@@ -39,48 +39,48 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        hammertime.on('swiperight', function() {
+        hammertime.on('swiperight', function () {
             deslizamiento = true;
-            if(row.dataset.hrefrestarcantidad != null){
+            if (row.dataset.hrefrestarcantidad != null) {
                 var formulario = document.getElementById("frmEditar");
                 formulario.action = row.dataset.hrefrestarcantidad;
-                if(row.dataset.hrefrestarcantidadmethod != null){
+                if (row.dataset.hrefrestarcantidadmethod != null) {
                     formulario.method = row.dataset.hrefrestarcantidadmethod;
                 }
                 formulario.submit();
             }
         });
 
-        hammertime.on('press', function() {
+        hammertime.on('press', function () {
             deslizamiento = true;
             isPressed = true; // Marca que se ha hecho "press"
-            if(row.dataset.hrefsumarcantidad != null){
+            if (row.dataset.hrefsumarcantidad != null) {
                 var formulario = document.getElementById("frmEditar");
-                if(row.dataset.hrefsumarcantidadpreguntar != null){
+                if (row.dataset.hrefsumarcantidadpreguntar != null) {
                     var unidades = prompt('Introduce la cantidad a sumar:');
-                    if(unidades != null && unidades != "" && !isNaN(unidades) && parseInt(unidades) > 0){
+                    if (unidades != null && unidades != "" && !isNaN(unidades) && parseInt(unidades) > 0) {
                         var unidades = parseInt(unidades);
-                        if(unidades > 0){
-                            if(row.dataset.hrefsumarcantidad != "self"){
+                        if (unidades > 0) {
+                            if (row.dataset.hrefsumarcantidad != "self") {
                                 var partes = row.dataset.hrefsumarcantidad.split('/');
-                                var ultimaParte = partes.pop() || partes.pop(); 
+                                var ultimaParte = partes.pop() || partes.pop();
                                 partes.push(unidades);
-                                var nuevaUrl = partes.join('/');  
-                                formulario.action = nuevaUrl;      
+                                var nuevaUrl = partes.join('/');
+                                formulario.action = nuevaUrl;
                                 formulario.submit();
-                            }else{ 
+                            } else {
                                 var id = row.id;
                                 var formulario2 = document.getElementById("sumarcantidadform_" + id);
                                 document.getElementById("sumarcantidadformcantidad_" + id).value = unidades;
                                 formulario2.submit();
                             }
-                        }else{
+                        } else {
                             return false;
                         }
-                    }else{
+                    } else {
                         return false;
                     }
-                }else{
+                } else {
                     formulario.action = row.dataset.hrefsumarcantidad;
                     formulario.submit();
                 }
@@ -90,14 +90,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const togglePassword = document.querySelector('#togglePassword');
     const password = document.querySelector('#password');
-    if(togglePassword && password){
-        togglePassword.addEventListener('click', function() {
+    if (togglePassword && password) {
+        togglePassword.addEventListener('click', function () {
             const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
             password.setAttribute('type', type);
             this.classList.toggle('bi-eye-slash');
         });
     }
-   
+
     function getElementByIds(ids) {
         for (let id of ids) {
             let element = document.getElementById(id);
@@ -109,12 +109,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Ocultar el mensaje después de 2 segundos
-    setTimeout(function() {
+    setTimeout(function () {
         let flashMessage = getElementByIds(['custom-success-container', 'custom-error-container']);
         if (flashMessage) {
             flashMessage.style.transition = 'opacity 0.5s ease';
             flashMessage.style.opacity = '0';
-            setTimeout(function() {
+            setTimeout(function () {
                 flashMessage.remove();
             }, 500);
         }
@@ -127,6 +127,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    
+
 });
-  
+
+// Importar scanner de códigos de barras
+import './barcode-scanner.js';

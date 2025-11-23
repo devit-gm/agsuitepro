@@ -1,17 +1,17 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center d-flex">
-        <div class="col-md-6 flex-fill">
+<div class="container-fluid min-vh-100 d-flex align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-8">
 
-            <div class="card">
+            <div class="card d-flex flex-column">
 
-                <div class="card-header fondo-rojo">
+                <div class="card-header d-none fondo-rojo">
                     {{ __('Login') }}
                 </div>
 
-                <div class="card-body">
+                <div class="card-body d-flex flex-column justify-content-center">
                     <div class="text-center">
                         <img src="{{ siteLogo() }}" style="width:150px; height:auto" class="mb-2">
                         <h1 class="color-rojo mb-2">{{ siteName() }}</h1>

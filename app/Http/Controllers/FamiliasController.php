@@ -55,7 +55,7 @@ class FamiliasController extends Controller
             'posicion' => $request->posicion
         ]);
         return redirect()->route('familias.index')
-            ->with('success', 'Familia creada con éxito.');
+            ->with('success', __('Familia creada con éxito.'));
     }
 
     /**
@@ -95,7 +95,7 @@ class FamiliasController extends Controller
             'posicion' => $request->posicion
         ]);
         return redirect()->route('familias.index')
-            ->with('success', 'Familia actualizada con éxito.');
+            ->with('success', __('Familia actualizada con éxito.'));
     }
 
     /**
@@ -109,7 +109,7 @@ class FamiliasController extends Controller
         }
         $familia->delete();
         return redirect()->route('familias.index')
-            ->with('success', 'Familia eliminada con éxito');
+            ->with('success', __('Familia eliminada con éxito'));
     }
 
     /**

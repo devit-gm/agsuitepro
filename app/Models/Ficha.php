@@ -24,7 +24,23 @@ class Ficha extends Model
         'precio',
         'hora',
         'menu',
-        'responsables'
+        'responsables',
+        'numero_mesa',
+        'numero_comensales',
+        'modo',
+        'estado_mesa',
+        'camarero_id',
+        'hora_apertura',
+        'hora_cierre',
+        'ultimo_camarero_id',
+        'importe',
+        'nombre'
+    ];
+
+    protected $casts = [
+        'fecha' => 'date',
+        'hora_apertura' => 'datetime',
+        'hora_cierre' => 'datetime'
     ];
 
     /**
@@ -32,39 +48,17 @@ class Ficha extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * Get the productos for the ficha.
-     */
-    public function productos()
+    public function usuario()
     {
-        return $this->hasMany(FichaProducto::class, 'id_ficha', 'uuid');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * Get the servicios for the ficha.
-     */
-    public function servicios()
+    public function inscritos()
     {
-        return $this->hasMany(FichaServicio::class, 'id_ficha', 'uuid');
-    }
-
-    /**
-     * Get the gastos for the ficha.
-     */
-    public function gastos()
-    {
-        return $this->hasMany(FichaGasto::class, 'id_ficha', 'uuid');
-    }
-
-    /**
-     * Get the usuarios relacionados with the ficha.
-     */
-    public function usuarios()
-    {
-        return $this->belongsToMany(User::class, 'ficha_usuario', 'ficha_uuid', 'user_id');
+        return $this->hasMany(FichaUsuario::class, 'id_ficha', 'uuid');
     }
 
     protected static function boot()
@@ -75,4 +69,51 @@ class Ficha extends Model
             $model->{$model->getKeyName()} = Uuid::uuid4()->toString();
         });
     }
+
+    public function productos() { return $this->hasMany(FichaProducto::class, 'id_ficha', 'uuid'); }
+public function servicios() { return $this->hasMany(FichaServicio::class, 'id_ficha', 'uuid'); }
+public function gastos() { return $this->hasMany(FichaGasto::class, 'id_ficha', 'uuid'); }
+
+// Relaciones para mesas
+public function camarero()
+{
+    return $this->belongsTo(User::class, 'camarero_id');
+}
+
+public function ultimoCamarero()
+{
+    return $this->belongsTo(User::class, 'ultimo_camarero_id');
+}
+
+public function historial()
+{
+    return $this->hasMany(MesaHistorial::class, 'mesa_id', 'uuid');
+}
+
+// Scopes útiles
+public function scopeMesas($query)
+{
+    return $query->where('modo', 'mesa');
+}
+
+public function scopeFichas($query)
+{
+    return $query->where('modo', 'ficha');
+}
+
+public function scopeLibres($query)
+{
+    return $query->where('estado_mesa', 'libre');
+}
+
+public function scopeOcupadas($query)
+{
+    return $query->where('estado_mesa', 'ocupada');
+}
+
+public function scopeDeCamarero($query, $camareroId)
+{
+    return $query->where('camarero_id', $camareroId);
+}
+
 }

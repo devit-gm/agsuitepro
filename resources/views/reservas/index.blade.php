@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
-            <div class="card flex-fill">
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
                 <div class="card-header fondo-rojo"><i class="bi bi-calendar3"></i> {{ __('Bookings') }}</div>
 
-                <div class="card-body">
+                <div class="card-body overflow-auto flex-fill">
                     <div class="container-fluid">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
                                 @if ($errors->any())
                                 <div class="custom-error-container" id="custom-error-container">
                                     <ul class="custom-error-list">
@@ -30,47 +30,107 @@
                                 @endif
                                 @if($reservas->count() > 0)
 
-                                @foreach ($reservas as $reserva)
-                                <table class="table table-bordered table-responsive">
-                                    <tr>
-                                        <th colspan="3" class="align-middle fondo-negro">
-                                            {{ $reserva->usuario->name }}
+                                @push('styles')
+<style>
+/* ===================== */
+/* Estilo minimalista reservas */
+/* ===================== */
 
-                                        </th>
+.reserva-item {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
 
-                                    </tr>
-                                    <tr class="">
-                                        <th scope="col-auto" style="width:85px" class="text-center">Fecha</th>
-                                        <th scope="col-auto">Nombre</th>
-                                        <th scope="col-auto"></th>
-                                    </tr>
+.reserva-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
 
-                                    <tr class="clickable-row" data-href="{{ route('reservas.edit', $reserva->uuid) }}" data-hrefborrar="{{ route('reservas.destroy', $reserva->uuid) }}" data-textoborrar="¿Está seguro de eliminar la reserva?" data-borrable="{{$reserva->borrable}}">
-                                        <td class="align-middle">
-                                            <div class="fondo-calendario">
-                                                <p style="padding-top:14px">
-                                                    <span style="font-size:0.8em; text-transform:uppercase"><b>{{ $reserva->mes }}</b></span>
-                                                    <span style="clear: both;display: block; margin-top: -8px;">{{ $reserva->dia }}</span>
-                                                </p>
-                                            </div>
-                                        </td>
+.fecha-badge {
+    width: 60px;
+    flex-shrink: 0;
+    text-align: center;
+}
 
+.fecha-badge .mes {
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #6c757d;
+}
 
-                                        <td class="align-middle">
-                                            {{ $reserva->name }}
-                                        </td>
+.fecha-badge .dia {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111;
+}
 
-                                        <td class="align-middle text-center">
-                                            <div class="d-flex justify-content-center">
-                                                @if($reserva->borrable)
-                                                <a class="btn btn-sm btn-danger" href="#" onclick="triggerParentClick(event,this);"><i class="bi bi-trash"></i></a>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
+.reserva-info {
+    flex-grow: 1;
+    padding-left: 12px;
+}
 
-                                </table>
-                                @endforeach
+.reserva-info .usuario {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #111;
+}
+
+.reserva-info .nombre-reserva {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.reserva-actions {
+    flex-shrink: 0;
+}
+
+.btn-outline-danger {
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+}
+</style>
+@endpush
+
+@foreach ($reservas as $reserva)
+<div class="reserva-item clickable-row"
+     data-href="{{ route('reservas.edit', $reserva->uuid) }}" 
+     data-hrefborrar="{{ route('reservas.destroy', $reserva->uuid) }}" 
+     data-textoborrar="{{ __('¿Está seguro de eliminar la reserva?') }}" 
+     data-borrable="{{ $reserva->borrable }}">
+    
+    <!-- Fecha -->
+    <div class="fecha-badge">
+        <div class="mes">{{ $reserva->mes }}</div>
+        <div class="dia">{{ $reserva->dia }}</div>
+    </div>
+
+    <!-- Info reserva -->
+    <div class="reserva-info">
+        <div class="usuario">{{ $reserva->usuario->name }}</div>
+        <div class="nombre-reserva">{{ $reserva->name }}</div>
+    </div>
+
+    <!-- Botón borrar -->
+    <div class="reserva-actions">
+        @if($reserva->borrable)
+        <button class="btn btn-md btn-borrar-min btn-danger" onclick="triggerParentClick(event,this);">
+            <i class="bi bi-trash"></i>
+        </button>
+        @endif
+    </div>
+
+</div>
+@endforeach
+
 
 
                                 @endif

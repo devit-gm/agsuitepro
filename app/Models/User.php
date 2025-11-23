@@ -16,6 +16,11 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
+     * Specify the database connection for this model
+     */
+    protected $connection = 'central';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -27,7 +32,9 @@ class User extends Authenticatable
         'image',
         'role_id',
         'phone_number',
-        'site_id'
+        'site_id',
+        'locale',
+        'fcm_token'
     ];
 
     /**
@@ -72,4 +79,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Permission::class);
     }
+
+    public function fichaUsuarios()
+{
+    return $this->hasMany(FichaUsuario::class, 'user_id', 'id');
+}
 }

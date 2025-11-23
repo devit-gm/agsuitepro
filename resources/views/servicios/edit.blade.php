@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
-            <div class="card flex-fill">
-                <div class="card-header fondo-rojo"><i class="bi bi-tools"></i> Editar servicio</div>
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
+                <div class="card-header fondo-rojo"><i class="bi bi-tools"></i> {{ __('Editar servicio') }}</div>
 
-                <div class="card-body">
+                <div class="card-body overflow-auto flex-fill">
                     <div class="container-fluid">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
                                 <form id="editar-servicio" action="{{ route('servicios.update', $servicio->uuid) }}" method="post">
                                     @csrf
                                     @method('PUT')
@@ -24,15 +24,15 @@
                                     </div>
                                     @endif
                                     <div class="form-group required mb-3">
-                                        <label for="nombre" class="fw-bold form-label">Nombre</label>
+                                        <label for="nombre" class="fw-bold form-label">{{ __('Nombre') }}</label>
                                         <input type="text" class="form-control" id="nombre" name="nombre" value="{{ $servicio->nombre }}" required>
                                     </div>
                                     <div class="form-group required mb-3">
-                                        <label for="posicion" class="fw-bold form-label">Posición</label>
+                                        <label for="posicion" class="fw-bold form-label">{{ __('Posición') }}</label>
                                         <input type="number" class="form-control" id="posicion" name="posicion" value="{{ $servicio->posicion }}" required>
                                     </div>
                                     <div class="form-group required mb-3">
-                                        <label for="precio" class="fw-bold form-label">Precio</label>
+                                        <label for="precio" class="fw-bold form-label">{{ __('Precio') }}</label>
                                         <input type="number" step='0.01' placeholder='0.00' class="form-control" id="precio" name="precio" value="{{ $servicio->precio }}" required>
                                     </div>
                                 </form>
@@ -55,7 +55,7 @@
                             @if ($servicio->borrable == 1)
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger mx-1 my-1" title="Eliminar servicio" onclick="return confirm('¿Está seguro de eliminar el servicio?');"><i class="bi bi-trash"></i></button>
+                            <button type="submit" class="btn btn-danger mx-1 my-1" title="{{ __('Eliminar servicio') }}" onclick="return confirm('{{ __('¿Está seguro de eliminar el servicio?') }}');"><i class="bi bi-trash"></i></button>
                             @endif
                         </div>
                     </form>

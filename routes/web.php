@@ -10,11 +10,13 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\ReservasController;
 use App\Http\Controllers\FichasController;
 use App\Http\Controllers\InformesController;
+use App\Http\Controllers\FacturacionController;
 use App\Http\Controllers\LicenciasController;
 use App\Http\Controllers\SitiosController;
 use App\Http\Controllers\SmsController;
-use App\Http\Controllers\WhatsAppController;
+use App\Http\Controllers\ContactoController;
 use App\Http\Middleware\RoleMiddleware;
+use App\Services\FirebaseService;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,11 +29,31 @@ use App\Http\Middleware\RoleMiddleware;
 |
 */
 
-Auth::routes();
+//Auth::routes();
 
 Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
-    Route::get('/', FichasController::class . '@index')->name('fichas.index');
-    Route::get('/home', FichasController::class . '@index')->name('fichas.index');
+    // Ruta raíz dinámica según modo de operación
+    Route::get('/', function () {
+        $ajustes = \App\Models\Ajustes::first();
+        $modoOperacion = $ajustes->modo_operacion ?? 'fichas';
+        
+        if ($modoOperacion === 'mesas') {
+            return redirect()->route('mesas.index');
+        }
+        
+        return app(FichasController::class)->index();
+    })->name('home');
+    
+    Route::get('/home', function () {
+        $ajustes = \App\Models\Ajustes::first();
+        $modoOperacion = $ajustes->modo_operacion ?? 'fichas';
+        
+        if ($modoOperacion === 'mesas') {
+            return redirect()->route('mesas.index');
+        }
+        
+        return app(FichasController::class)->index();
+    });
 
     Route::get('/usuarios', UsuariosController::class . '@index')->name('usuarios.index');
     Route::get('/usuarios/create', UsuariosController::class . '@create')->name('usuarios.create');
@@ -62,12 +84,14 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::delete('/productos/{uuid}', ProductosController::class . '@destroy')->name('productos.destroy');
     Route::get('/productos/inventory', ProductosController::class . '@inventory')->name('productos.inventory');
     Route::put('/productos/inventory', ProductosController::class . '@inventory')->name('productos.inventory');
+    Route::post('/productos/buscar-barcode', [ProductosController::class, 'buscarPorBarcode'])->name('productos.buscar.barcode');
 
     Route::get('/fichas', FichasController::class . '@index')->name('fichas.index');
     Route::put('/fichas', FichasController::class . '@index')->name('fichas.index');
     Route::get('/fichas/create', FichasController::class . '@create')->name('fichas.create');
     Route::post('/fichas', FichasController::class . '@store')->name('fichas.store');
     Route::get('/fichas/{uuid}/edit', FichasController::class . '@edit')->name('fichas.edit');
+    Route::get('/fichas/{uuid}/download', FichasController::class . '@download')->name('fichas.download');
     Route::get('/fichas/{uuid}/familias', FichasController::class . '@familias')->name('fichas.familias');
     Route::get('/fichas/{uuid}', FichasController::class . '@show')->name('fichas.show');
     Route::get('fichas/{uuid}/familias/{uuid2}/productos', FichasController::class . '@productos')->name('fichas.productos');
@@ -77,6 +101,7 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::get('/fichas/{uuid}/lista', FichasController::class . '@lista')->name('fichas.lista');
     Route::delete('/fichas/{uuid}/lista/{uuid2}', FichasController::class . '@destroylista')->name('fichas.destroylista');
     Route::put('/fichas/{uuid}/lista/{uuid2}/{cantidad}', FichasController::class . '@updatelista')->name('fichas.updatelista');
+    Route::post('/fichas/buscar-barcode', [FichasController::class, 'buscarPorBarcode'])->name('fichas.buscar.barcode');
     Route::get('/fichas/{uuid}/usuarios', FichasController::class . '@usuarios')->name('fichas.usuarios');
     Route::put('/fichas/{uuid}/usuarios', FichasController::class . '@updateusuarios')->name('fichas.updateusuarios');
     Route::get('/fichas/{uuid}/servicios', FichasController::class . '@servicios')->name('fichas.servicios');
@@ -87,10 +112,59 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::delete('/fichas/{uuid}/gastos/{uuid2}', FichasController::class . '@destroygastos')->name('fichas.destroygastos');
     Route::get('/fichas/{uuid}/resumen', FichasController::class . '@resumen')->name('fichas.resumen');
     Route::put('/fichas/{uuid}/resumen', FichasController::class . '@enviar')->name('fichas.enviar');
-    Route::post('/fichas/{uuid}/resumen/compartir', FichasController::class . '@compartirResumen')->name('fichas.compartir');
+    Route::post('/fichas/{mesaId}/abrir', [FichasController::class, 'abrirMesa'])->name('fichas.abrir');
+    Route::post('/fichas/{mesaId}/tomar', [FichasController::class, 'tomarMesa'])->name('fichas.tomar');
+    Route::post('/fichas/{mesaId}/cerrar', [FichasController::class, 'cerrarMesa'])->name('fichas.cerrar');
+    Route::post('/fichas/{mesaId}/liberar', [FichasController::class, 'liberarMesa'])->name('fichas.liberar');
+
+    // Rutas para sistema de mesas
+    Route::get('/mesas', [FichasController::class, 'indexMesas'])->name('mesas.index');
+    Route::post('/mesas/generar', [FichasController::class, 'generarMesas'])->name('mesas.generar');
+    Route::post('/mesas/crear-individual', [FichasController::class, 'crearMesaIndividual'])->name('mesas.crear-individual');
+    Route::put('/mesas/{mesaUuid}/actualizar', [FichasController::class, 'actualizarMesa'])->name('mesas.actualizar');
+    Route::delete('/mesas/{mesaUuid}', [FichasController::class, 'eliminarMesa'])->name('mesas.eliminar');
+    Route::post('/mesas/reordenar', [FichasController::class, 'reordenarMesas'])->name('mesas.reordenar');
+    Route::post('/mesas/{mesaId}/abrir', [FichasController::class, 'abrirMesa'])->name('mesas.abrir');
+    Route::post('/mesas/{mesaId}/tomar', [FichasController::class, 'tomarMesa'])->name('mesas.tomar');
+    Route::get('/mesas/{mesaId}/resumen', [FichasController::class, 'resumenMesa'])->name('mesas.resumen');
+    Route::post('/mesas/{mesaId}/cerrar', [FichasController::class, 'cerrarMesa'])->name('mesas.cerrar');
+    Route::post('/mesas/{mesaId}/liberar', [FichasController::class, 'liberarMesa'])->name('mesas.liberar');
+    
+    // Rutas alias para mesas (apuntan al mismo controlador que fichas)
+    Route::get('/mesas/{uuid}/lista', [FichasController::class, 'lista'])->name('mesas.lista');
+    Route::get('/mesas/{uuid}/familias', [FichasController::class, 'familias'])->name('mesas.familias');
+    Route::get('/mesas/{uuid}/familias/{uuid2}/productos', [FichasController::class, 'productos'])->name('mesas.productos');
+    Route::post('/mesas/{uuid}/familias/{uuid2}/productos', [FichasController::class, 'addproduct'])->name('mesas.addproduct');
+    Route::delete('/mesas/{uuid}/lista/{uuid2}', [FichasController::class, 'destroylista'])->name('mesas.destroylista');
+    Route::put('/mesas/{uuid}/lista/{uuid2}/{cantidad}', [FichasController::class, 'updatelista'])->name('mesas.updatelista');
+    Route::post('/mesas/buscar-barcode', [FichasController::class, 'buscarPorBarcode'])->name('mesas.buscar.barcode');
+    Route::get('/mesas/{uuid}/usuarios', [FichasController::class, 'usuarios'])->name('mesas.usuarios');
+    Route::put('/mesas/{uuid}/usuarios', [FichasController::class, 'updateusuarios'])->name('mesas.updateusuarios');
+    Route::get('/mesas/{uuid}/servicios', [FichasController::class, 'servicios'])->name('mesas.servicios');
+    Route::put('/mesas/{uuid}/servicios', [FichasController::class, 'updateservicios'])->name('mesas.updateservicios');
+    Route::get('/mesas/{uuid}/gastos', [FichasController::class, 'gastos'])->name('mesas.gastos');
+    Route::get('/mesas/{uuid}/gastos/add', [FichasController::class, 'addgastos'])->name('mesas.addgastos');
+    Route::put('/mesas/{uuid}/gastos', [FichasController::class, 'updategastos'])->name('mesas.updategastos');
+    Route::delete('/mesas/{uuid}/gastos/{uuid2}', [FichasController::class, 'destroygastos'])->name('mesas.destroygastos');
+    Route::get('/mesas/{uuid}/resumen-final', [FichasController::class, 'resumen'])->name('mesas.resumen-final');
+    Route::put('/mesas/{uuid}/resumen-final', [FichasController::class, 'enviar'])->name('mesas.enviar');
+
     Route::get('/informes', [InformesController::class, 'index'])->name('informes.index');
     Route::put('/informes', [InformesController::class, 'index'])->name('informes.balance');
     Route::put('/informes/facturar', [InformesController::class, 'facturar'])->name('informes.facturar');
+    
+    // Informes para modo mesas
+    Route::get('/informes/ventas-productos', [InformesController::class, 'ventasProductos'])->name('informes.ventas-productos');
+    Route::get('/informes/ventas-camareros', [InformesController::class, 'ventasCamareros'])->name('informes.ventas-camareros');
+    Route::get('/informes/ocupacion-mesas', [InformesController::class, 'ocupacionMesas'])->name('informes.ocupacion-mesas');
+    Route::get('/informes/horas-pico', [InformesController::class, 'horasPico'])->name('informes.horas-pico');
+    
+    // Informes para modo fichas
+    Route::get('/informes/ventas-productos-fichas', [InformesController::class, 'ventasProductosFichas'])->name('informes.ventas-productos-fichas');
+    Route::get('/informes/ventas-socios', [InformesController::class, 'ventasSocios'])->name('informes.ventas-socios');
+    Route::get('/informes/evolucion-temporal', [InformesController::class, 'evolucionTemporal'])->name('informes.evolucion-temporal');
+
+    Route::get('/facturacion', [FacturacionController::class, 'index'])->name('facturacion.index');
 
     Route::get('/servicios', ServiciosController::class . '@index')->name('servicios.index');
     Route::get('/servicios/create', ServiciosController::class . '@create')->name('servicios.create');
@@ -126,12 +200,71 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::get('/licencias/error', [LicenciasController::class, 'error'])->name('licencias.error');
     Route::put('/licencias/error', [LicenciasController::class, 'error'])->name('licencias.error');
 
-    // Rutas para WhatsApp
-    Route::post('/whatsapp/send', [WhatsAppController::class, 'sendMessage'])->name('whatsapp.send');
-    Route::post('/whatsapp/send-media', [WhatsAppController::class, 'sendMedia'])->name('whatsapp.send-media');
-    Route::post('/whatsapp/send-template', [WhatsAppController::class, 'sendTemplate'])->name('whatsapp.send-template');
-
     Route::post('/send-sms', [SmsController::class, 'sendSms'])->name('sms.enviar');
+    
+    Route::get('/contacto', [ContactoController::class, 'index'])->name('contacto.index');
+    Route::post('/contacto', [ContactoController::class, 'send'])->name('contacto.send');
+    Route::post('/save-fcm-token', [NotificationController::class, 'saveToken'])->middleware('auth');
+    
+    // Ruta temporal de prueba para Firebase (requiere vendor/kreait en servidor)
+    /*
+    Route::get('/test-firebase', function (FirebaseService $firebase) {
+        try {
+            $user = auth()->user();
+            
+            if (!$user->fcm_token) {
+                return response()->json([
+                    'error' => 'No tienes un token FCM registrado. Asegúrate de que el navegador haya solicitado permisos de notificación.'
+                ], 400);
+            }
+            
+            $result = $firebase->sendNotification(
+                $user->fcm_token,
+                'Prueba de Firebase',
+                'Si recibes esta notificación, ¡Firebase está configurado correctamente!',
+                ['type' => 'test', 'timestamp' => now()->toIso8601String()]
+            );
+            
+            return response()->json([
+                'success' => $result,
+                'message' => $result ? 'Notificación enviada correctamente' : 'Error al enviar notificación',
+                'token' => substr($user->fcm_token, 0, 20) . '...'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error en la configuración de Firebase',
+                'message' => $e->getMessage(),
+                'trace' => config('app.debug') ? $e->getTraceAsString() : null
+            ], 500);
+        }
+    });
+    */
+    
+    // Ruta para verificar token FCM
+    Route::get('/check-fcm-token', function() {
+        $user = auth()->user();
+        return response()->json([
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'has_token' => !empty($user->fcm_token),
+            'token_preview' => $user->fcm_token ? substr($user->fcm_token, 0, 30) . '...' : null,
+            'token_length' => $user->fcm_token ? strlen($user->fcm_token) : 0
+        ]);
+    });
+    
+    // Ruta temporal para limpiar caché (eliminar después de usar)
+    Route::get('/clear-cache-temp', function() {
+        \Artisan::call('config:clear');
+        \Artisan::call('cache:clear');
+        \Artisan::call('route:clear');
+        \Artisan::call('view:clear');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Caché limpiada correctamente'
+        ]);
+    })->middleware('auth');
 });
 
 Auth::routes();

@@ -10,7 +10,7 @@
                 <div class="card-body">
                     <div class="container-fluid">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
                                 <form id="editar-reserva" action="{{ route('reservas.update', $reserva->uuid) }}" method="post">
                                     @csrf
                                     @method('PUT')
@@ -30,11 +30,11 @@
                                     </div>
                                     <div class="form-group required mb-3">
                                         <label for="start_time" class="fw-bold form-label">Fecha inicio</label><br />
-                                        <input type="datetime-local" name="start_time" value="{{ $reserva->start_time }}">
+                                        <input type="datetime-local" name="start_time" id="start_time" value="{{ $reserva->start_time }}">
                                     </div>
                                     <div class="form-group required mb-3">
                                         <label for="end_time" class="fw-bold form-label">Fecha fin</label><br />
-                                        <input type="datetime-local" name="end_time" value="{{ $reserva->end_time }}">
+                                        <input type="datetime-local" name="end_time" id="end_time" value="{{ $reserva->end_time }}">
                                     </div>
                                 </form>
                             </div>
@@ -46,6 +46,62 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+let validandoFechaFinReserva = false;
+
+function actualizarFechaFinReserva() {
+    const startTime = document.getElementById('start_time');
+    const endTime = document.getElementById('end_time');
+    
+    if (startTime.value) {
+        // Si la fecha final está vacía o es anterior a la inicial, actualizarla
+        if (!endTime.value || endTime.value < startTime.value) {
+            endTime.value = startTime.value;
+        }
+        // Establecer la fecha mínima (aunque Safari iOS no lo respete)
+        endTime.setAttribute('min', startTime.value);
+    } else {
+        endTime.removeAttribute('min');
+    }
+}
+
+// Validación manual para Safari iOS cuando cambia la fecha final
+function validarFechaFinReserva() {
+    if (validandoFechaFinReserva) return;
+    
+    const startTime = document.getElementById('start_time');
+    const endTime = document.getElementById('end_time');
+    
+    if (startTime.value && endTime.value) {
+        if (endTime.value < startTime.value) {
+            validandoFechaFinReserva = true;
+            // Forzar blur para cerrar el datepicker antes del alert
+            endTime.blur();
+            setTimeout(function() {
+                alert('{{ __('La fecha fin no puede ser anterior a la fecha inicio') }}');
+                endTime.value = startTime.value;
+                validandoFechaFinReserva = false;
+            }, 100);
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const startTime = document.getElementById('start_time');
+    const endTime = document.getElementById('end_time');
+    
+    // Ejecutar al cargar la página si ya hay fecha inicial
+    actualizarFechaFinReserva();
+    
+    // Agregar listeners
+    startTime.addEventListener('change', actualizarFechaFinReserva);
+    endTime.addEventListener('change', validarFechaFinReserva);
+    endTime.addEventListener('blur', validarFechaFinReserva);
+});
+</script>
+@endpush
 @endsection
 @section('footer')
                 <div class="card-footer">
@@ -56,7 +112,7 @@
                             <a class="btn btn-dark mx-1" href={{ route('reservas.index') }}><i class="bi bi-chevron-left"></i></a>
                             <button type="button" onclick="document.getElementById('editar-reserva').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
                             @if ($reserva->usuario->id == Auth::user()->id)
-                            <button type="submit" class="btn btn-danger mx-1 my-1" title="Eliminar reserva" onclick="return confirm('¿Está seguro de eliminar la reserva?');"><i class="bi bi-trash"></i></button>
+                            <button type="submit" class="btn btn-danger mx-1 my-1" title="Eliminar reserva" onclick="return confirm('{{ __('¿Está seguro de eliminar la reserva?') }}');"><i class="bi bi-trash"></i></button>
                             @endif
                         </div>
                     </form>

@@ -1,21 +1,24 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
-            <div class="card flex-fill">
-                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> {{ __('Tokens') }}
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
+                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> 
+                    @if($request->incluir_cerradas == 0)
+                    {{ __('FICHAS ABIERTAS') }}
+                    @endif
                     @if($request != null)
                     @if($request->incluir_cerradas == 1)
-                    CERRADAS
+                    {{ __('FICHAS CERRADAS') }}
                     @endif
                     @endif</div>
 
-                <div class="card-body">
+                <div class="card-body overflow-auto flex-fill">
                     <div class="container-fluid">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
                                 <form id="realizar-busqueda" action="{{ route('fichas.index') }}" method="post">
                                     @csrf
                                     @method('PUT')
@@ -74,8 +77,10 @@
                                             <tr>
                                                 @if($ficha->tipo == 4 && $ficha->apuntado)
                                                 <td colspan="3" class="align-middle">
-                                                    <i class="bi  bi-calendar-check-fill color-rojo" style="float: right; font-size:1.1em;"></i>
-                                                    @else
+                                                    <div style="float:right">
+                                                    <i class="bi  bi-calendar-check-fill color-rojo" style="font-size:1.1em;"></i>
+<i class="bi bi-person-standing" style="margin-right: 0.1em;"></i>{{$ficha->apuntado->invitados}} <i class="bi bi-person-fill" style=" margin-right: 0.1em;"></i>{{$ficha->apuntado->ninos}}          
+                                </div>                                          @else
                                                 <td colspan="3" class="align-middle">
                                                     @endif
                                                     <b>{{ $ficha->descripcion }}</b>
@@ -102,7 +107,7 @@
                                             @endif
 
 
-                                            <tr class="clickable-row" data-href="{{$ruta}}" data-hrefborrar="{{ route('fichas.destroy', $ficha->uuid) }}" data-textoborrar="¿Está seguro de eliminar la ficha?" data-hrefrestarcantidadmethod="GET" data-hrefrestarcantidad="{{ route('fichas.edit', ['uuid' => $ficha->uuid]) }}" data-borrable="{{$ficha->borrable}}">
+                                            <tr class="clickable-row" data-href="{{$ruta}}" data-hrefborrar="{{ route('fichas.destroy', $ficha->uuid) }}" data-textoborrar="{{ __('¿Está seguro de eliminar la ficha?') }}" data-hrefrestarcantidadmethod="GET" data-hrefrestarcantidad="{{ route('fichas.edit', ['uuid' => $ficha->uuid]) }}" data-borrable="{{$ficha->borrable}}">
                                                 <td class="align-middle text-center" style="width:85px">
                                                     @if($ficha->tipo == 4 && $ficha->hora != null)
                                                     <span class="badge bg-danger mt-2 fondo-rojo">{{\Carbon\Carbon::parse($ficha->hora)->format('H:i')}}</span>
@@ -122,33 +127,63 @@
                                                 <td class="align-middle">
 
                                                     @if ($ficha->tipo != 4 && $ficha->tipo != 2)
+                                                    @if ($ficha->usuario)
                                                     {{ $ficha->usuario->name }}
                                                     <br />
                                                     @endif
-                                                    @if ($ficha->tipo == 1)
-                                                    <span class="badge bg-white color-negro border border-dark">Individual</span>
-                                                    @elseif($ficha->tipo == 2)
-                                                    <i class="bi bi-people-fill" style="margin-right: 0.1em;"></i>{{$ficha->total_comensales}} <i class="bi bi-person-standing" style="margin-right: 0.1em;"></i>{{$ficha->total_comensales - $ficha->total_ninos}} <i class="bi bi-person-fill" style="margin-right: 0.1em;"></i>{{$ficha->total_ninos}}<br />
-                                                    <span class="badge bg-white color-negro border border-dark">Conjunta</span>
-                                                    @elseif($ficha->tipo == 3)
-                                                    <span class="badge bg-white color-negro border border-dark">Compra</span>
-                                                    @elseif($ficha->tipo == 4)
-                                                    <i class="bi bi-people-fill" style="margin-right: 0.1em;"></i>{{$ficha->total_comensales}} <i class="bi bi-person-standing" style="margin-right: 0.1em;"></i>{{$ficha->total_comensales - $ficha->total_ninos}} <i class="bi bi-person-fill" style="margin-right: 0.1em;"></i>{{$ficha->total_ninos}}<br />
-                                                    <span class="badge bg-white color-negro border border-dark">Evento</span>
                                                     @endif
+                                                    @if ($ficha->tipo == 1)
+                                                            <span class="badge-tipo individual">
+                                                                <i class="bi bi-person-fill"></i>
+                                                                Individual
+                                                            </span>
+
+                                                        @elseif($ficha->tipo == 2)
+                                                            <div>
+                                                                <i class="bi bi-people-fill"></i> {{ $ficha->total_comensales }}
+                                                                <i class="bi bi-person-standing"></i> {{ $ficha->total_comensales - $ficha->total_ninos }}
+                                                                <i class="bi bi-person-fill"></i> {{ $ficha->total_ninos }}
+                                                            </div>
+                                                            <span class="badge-tipo conjunta">
+                                                                <i class="bi bi-people-fill"></i>
+                                                                Conjunta
+                                                            </span>
+
+                                                        @elseif($ficha->tipo == 3)
+                                                            <span class="badge-tipo compra">
+                                                                <i class="bi bi-cart"></i>
+                                                                Compra
+                                                            </span>
+
+                                                        @elseif($ficha->tipo == 4)
+                                                            <div>
+                                                                <i class="bi bi-people-fill"></i> {{ $ficha->total_comensales }}
+                                                                <i class="bi bi-person-standing"></i> {{ $ficha->total_comensales - $ficha->total_ninos }}
+                                                                <i class="bi bi-person-fill"></i> {{ $ficha->total_ninos }}
+                                                            </div>
+                                                            <span class="badge-tipo evento">
+                                                                <i class="bi bi-calendar-event"></i>
+                                                                Evento
+                                                            </span>
+                                                        @endif
+
                                                     <br />
                                                     @if ($ficha->estado == 0)
-                                                    <span class="badge bg-success">Abierta</span>
+                                                    <span class="badge d-none bg-success">{{ __('Abierta') }}</span>
                                                     @elseif ($ficha->estado == 1)
-                                                    <span class="badge bg-dark border border-dark">Cerrada</span>
+                                                    <span class="badge d-none bg-dark border border-dark">{{ __('Cerrada') }}</span>
                                                     @endif
 
                                                 </td>
                                                 <td class="align-middle text-center" style="width: 50px" ;>
                                                     <div class="d-flex justify-content-center" style="flex-direction: column;">
-                                                        @if($ficha->borrable)
-                                                        <a class="btn btn-sm btn-dark mb-2" href="{{ route('fichas.edit', ['uuid' => $ficha->uuid]) }}"><i class="bi bi-pencil fs-5"></i></a>
-                                                        <a class="btn btn-sm btn-danger" href="#" onclick="triggerParentClick(event,this);"><i class="bi bi-trash fs-5"></i></a>
+                                                        @if ($ficha->estado == 0)
+                                                            @if($ficha->borrable)
+                                                            <a class="btn btn-sm btn-dark mb-2" href="{{ route('fichas.edit', ['uuid' => $ficha->uuid]) }}"><i class="bi bi-pencil fs-5"></i></a>
+                                                            <a class="btn btn-sm btn-danger" href="#" onclick="triggerParentClick(event,this);"><i class="bi bi-trash fs-5"></i></a>
+                                                            @endif
+                                                        @else
+                                                            <a class="btn btn-sm btn-success mb-2" href="{{ route('fichas.download', ['uuid' => $ficha->uuid]) }}"><i class="bi bi-file-earmark-pdf"></i></a>
                                                         @endif
                                                     </div>
                                                 </td>

@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
+<div class="container-fluid min-vh-100 d-flex align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-6">
+            <div class="card d-flex flex-column">
                 <div class="card-header fondo-rojo">{{ __('Reset Password') }}</div>
 
-                <div class="card-body">
+                <div class="card-body d-flex flex-column justify-content-center">
                     @if (session('status'))
                     <div class="alert alert-success" role="alert">
                         {{ session('status') }}
@@ -35,10 +35,10 @@
                             <div class="col-md-6 offset-md-4 d-flex flex-column align-items-center justify-content-center">
 
                                 <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-envelope-at"></i> Recuperar contraseña
+                                    <i class="bi bi-envelope-at"></i> {{ __('Recuperar contraseña') }}
                                 </button>
                                 <a class="btn btn-link color-rojo" href="{{ route('login') }}">
-                                    << Volver </a>
+                                    << {{ __('Volver') }} </a>
                             </div>
                         </div>
                     </form>

@@ -1,5 +1,17 @@
-// Fonts
-@import url('https://fonts.bunny.net/css?family=Nunito');
+/* Define las fuentes locales */
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 400;
+    src: url('/fonts/nunito/Nunito-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 700;
+    src: url('/fonts/nunito/Nunito-Bold.ttf') format('truetype');
+}
 
 // Variables
 @import 'variables';
@@ -11,88 +23,141 @@
 
 html {
     height: 100%;
-            margin: 0;
-            
+    margin: 0;
+
 }
 
 body {
-    font-size: 1.2em; /* Adjust the size as needed */
+    font-size: 1.2em;
+    /* Adjust the size as needed */
     background-color: #eef0f2;
     display: grid;
-            grid-template-rows: auto 1fr auto;
-            overflow: hidden;
-            margin:0;
-            height: 100%;
-}
-main{
-    overflow-y: scroll;
+    grid-template-rows: auto 1fr auto;
+    overflow: hidden;
+    margin: 0;
     height: 100%;
 }
-.card-footer{
-    background-color: #FFF !important;
+
+main {
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
+
+.container-fluid {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    flex: 1;
+    overflow: hidden;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.card-body {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.card-footer {
+    background-color: #FFF !important;
+    padding: 20px 0 !important;
+    /* Aumentar padding inferior para iOS PWA */
+    padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+    /* Respeta el safe area de iOS */
+}
+
 .full-height {
     height: 100%;
 }
-.form-control, .form-select {
-    font-size: 1.1rem !important; /* Adjust the size as needed */
+
+.form-control,
+.form-select {
+    font-size: 1.1rem !important;
+    /* Adjust the size as needed */
 }
-form .btn i.bi{
+
+form .btn i.bi {
     font-size: 2rem;
     vertical-align: middle;
 }
 
-form .btn{
-    font-size:inherit !important
+form .btn {
+    font-size: inherit !important
 }
-.navbar-brand{
+
+.navbar-brand {
     font-size: 1.2rem !important;
 }
+
 .logo-figure {
     width: 40px;
 }
-.fondo-rojo{
+
+.fondo-rojo {
     background-color: #00276f !important;
-    color:#FFFFFF !important;
+    color: #FFFFFF !important;
 }
-.icoDescarga{
+
+.icoDescarga {
     background-color: #fff;
     padding: 0;
     font-size: 1.2em;
     margin: 0;
     float: right;
 }
-.fondo-negro{
+
+.fondo-negro {
     background-color: #000000 !important;
-    color:#FFFFFF !important;
+    color: #FFFFFF !important;
 }
-.color-rojo{
+
+.color-rojo {
     color: #00276f !important;
 }
-.color-negro{
+
+.color-negro {
     color: #000000;
 }
-.borde-rojo{
+
+.borde-rojo {
     border-color: #00276f !important;
 }
-.form-check-input:checked{
+
+.form-check-input:checked {
     border-color: #00276f !important;
     background-color: #00276f !important;
 }
+
 .table-image {
-    td, th {
+
+    td,
+    th {
         vertical-align: middle;
     }
 }
-.card-header{
+
+.card-header {
     text-transform: uppercase;
 }
-.nav-link{
+
+.nav-link {
     text-transform: uppercase;
 }
+
 .form-group.required label:after {
-    content:"*";
-    color:red;
+    content: "*";
+    color: red;
 }
 
 .custom-error-container {
@@ -127,15 +192,19 @@ form .btn{
     margin-bottom: 5px;
 }
 
-.dropdown-item{
+.dropdown-item {
     font-size: 1.2em !important
 }
-.dropdown-item:hover,.dropdown-item:focus, .dropdown-item:active, .dropdown-item.active{
+
+.dropdown-item:hover,
+.dropdown-item:focus,
+.dropdown-item:active,
+.dropdown-item.active {
     background-color: #00276f !important;
-    color:#FFFFFF !important;
+    color: #FFFFFF !important;
 }
 
-.circle{
+.circle {
     width: 45px;
     height: 45px;
     background-color: #00276f !important;
@@ -145,21 +214,22 @@ form .btn{
     align-items: center;
     border-radius: 50%;
     font-size: 1.2em !important
-   
-    }
-
-.form-select option[selected] {
-    background-color: #00276f !important; /* Change this color to your desired background color */
-    color: #FFF !important; /* Change this color to your desired text color */
 }
 
-.fondo-calendario{
-    background-image:url('../images/fondo_calendario.png');
-    display: block; 
+.form-select option[selected] {
+    background-color: #00276f !important;
+    /* Change this color to your desired background color */
+    color: #FFF !important;
+    /* Change this color to your desired text color */
+}
+
+.fondo-calendario {
+    background-image: url('../images/fondo_calendario.png');
+    display: block;
     clear: both;
     text-align: center;
-    width:70px; 
-    height:70px;
+    width: 70px;
+    height: 70px;
     background-size: cover;
 }
 
@@ -168,20 +238,11 @@ form .btn{
     display: flex;
     flex-direction: column;
 }
-.container-fluid{
-    display: flex;
-}
-.container-fluid, .row {
-    flex: 1;
-}
-
-.card {
-    height: 100%;
-}
 
 .password-container {
     position: relative;
 }
+
 .toggle-password {
     position: absolute;
     right: 20px;
@@ -232,18 +293,23 @@ form .btn{
     display: flex;
     align-items: center;
 }
+
 .form-check-label {
     margin-right: 10px;
 }
 
-.readonly{
-    pointer-events: none; /* Desactiva la interacción del usuario */
-    background-color: #e9ecef; /* Color de fondo */
-    border-color: #ced4da; /* Color del borde */
+.readonly {
+    pointer-events: none;
+    /* Desactiva la interacción del usuario */
+    background-color: #e9ecef;
+    /* Color de fondo */
+    border-color: #ced4da;
+    /* Color del borde */
 }
 
 .circulo-izquierda::before {
-    content: ""; /* Agrega el símbolo de check */
+    content: "";
+    /* Agrega el símbolo de check */
     position: absolute;
     top: 0;
     right: 0;
@@ -251,9 +317,12 @@ form .btn{
     height: 30px;
     border-radius: 0 0 0 100px;
     background-color: blue;
-    color: white; /* Color del check */
+    color: white;
+    /* Color del check */
     display: flex;
     align-items: center;
-    justify-content: center; /* Centra el check en el círculo */
-    font-size: 15px; /* Tamaño del check */
-  }
+    justify-content: center;
+    /* Centra el check en el círculo */
+    font-size: 15px;
+    /* Tamaño del check */
+}

@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
-            <div class="card flex-fill">
-                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> FICHA - Gastos</div>
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
+                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> {{ $ajustes->modo_operacion === 'mesas' ? __("MESA") . ' ' . $ficha->numero_mesa . ' - ' . __("Gastos") : __('FICHA - Gastos') }}</div>
 
-                <div class="card-body">
+                <div class="card-body overflow-auto flex-fill">
                     @if($ficha->tipo != 3)
                     <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
                         <button class="btn btn-lg btn-light border border-dark">{{number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i></button>
@@ -28,7 +28,7 @@
                     @endif
                     <div class="container-fluid mt-3">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
                                 <div class="container mt-3">
                                     <div class="row">
                                         @if ($errors->any())
@@ -48,50 +48,141 @@
                                         </div>
                                         @endif
 
-                                        @foreach ($gastosFicha as $componente)
-                                        <table class="table table-bordered table-responsive table-hover">
+                                       <style>
+    /* ===== TABLA GASTOS (ESTILO MINIMALISTA) ===== */
 
-                                            <tbody>
-                                                <tr>
-                                                    <th colspan="3" class="align-middle">
-                                                        {{ $componente->usuario->name }}
-                                                        @if($componente->ticket != "")
-                                                        @php
-                                                        $ruta = URL::to('/') . '/images/' . $componente->ticket;
-                                                        @endphp
-                                                        <a href="{{ $ruta }}" target="_blank" class="btn btn-md btn-white icoDescarga"><i class="bi bi-file-earmark-arrow-down"></i></a>
-                                                        @endif
-                                                    </th>
+    .tabla-gastos {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+        padding:0px;
+    }
 
-                                                </tr>
+    .tabla-gastos tbody tr.header-row th {
+        background: #f7f7f7;
+        padding: 14px;
+        font-weight: 600;
+        border: 1px solid #e6e6e6;
+        border-radius: 8px;
+    }
 
-                                                @php
-                                                if($ficha->estado == 0){
-                                                $clickable = 'clickable-row';
-                                                }else{
-                                                $clickable = '';
-                                                }
-                                                @endphp
-                                                <tr class="{{$clickable}}" data-hrefborrar="{{ route('fichas.destroygastos', ['uuid' => $ficha->uuid, 'uuid2' => $componente->uuid]) }}" data-textoborrar="¿Está seguro de eliminar el gasto de la lista?" data-borrable="{{$componente->borrable}}">
-                                                    <td class="align-middle">
-                                                        {{ $componente->descripcion }}
-                                                    </td>
-                                                    <td class="align-middle text-center" style="width: 100px;">
-                                                        {{ number_format($componente->precio,2) }} <i class="bi bi-currency-euro">
-                                                    </td>
-                                                    @if($ficha->estado == 0)
-                                                    <td class="align-middle text-center" style="width: 50px;">
-                                                        <div class="d-flex justify-content-center">
+    .tabla-gastos tbody tr.data-row {
+        background: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: background 0.2s ease;
+        cursor: pointer;
+    }
 
-                                                            <a class="btn btn-sm btn-danger" href="#" onclick="triggerParentClick(event,this);"><i class="bi bi-trash"></i></a>
+    .tabla-gastos tbody tr.data-row:hover {
+        background: #f4f7ff;
+    }
 
-                                                        </div>
-                                                    </td>
-                                                    @endif
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                        @endforeach
+    .tabla-gastos td {
+        padding: 16px;
+        vertical-align: middle;
+        border-top: 1px solid #f1f1f1;
+        font-size:18px;
+    }
+
+    .tabla-gastos td:first-child {
+        border-left: 1px solid #efefef;
+        border-radius: 8px 0 0 8px;
+        font-size:20px;
+    }
+
+    .tabla-gastos td:last-child {
+        border-right: 1px solid #efefef;
+        border-radius: 0 8px 8px 0;
+    }
+
+    /* Botón descarga */
+    .btn-download {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: none;
+        transition: background 0.2s ease;
+        font-size:20px;
+    }
+
+    .btn-download:hover {
+        background: #dcdcdc;
+    }
+
+    /* Botón eliminar */
+    .btn-delete {
+        padding: 6px 9px;
+        border-radius: 6px;
+    }
+</style>
+
+
+
+@foreach ($gastosFicha as $componente)
+
+<table class="tabla-gastos table-responsive">
+
+    <tbody>
+
+        {{-- Cabecera con nombre + botón de ticket --}}
+        <tr class="header-row">
+            <th colspan="3" class="align-middle justify-content-between">
+
+                <span>{{ $componente->usuario->name }}</span>
+
+                @if($componente->ticket != "")
+                    @php
+                        $ruta = URL::to('/') . '/images/' . $componente->ticket;
+                    @endphp
+                    <a href="{{ $ruta }}" target="_blank" class="btn btn-download">
+                        <i class="bi bi-file-earmark-arrow-down"></i>
+                    </a>
+                @endif
+
+            </th>
+        </tr>
+
+
+        {{-- Fila de datos --}}
+        @php
+            $clickable = ($ficha->estado == 0) ? 'clickable-row' : '';
+        @endphp
+
+        <tr class="data-row {{ $clickable }}"
+            data-hrefborrar="{{ fichaRoute('destroygastos', ['uuid' => $ficha->uuid, 'uuid2' => $componente->uuid]) }}"
+            data-textoborrar="{{ __('¿Está seguro de eliminar el gasto de la lista?') }}"
+            data-borrable="{{ $componente->borrable }}">
+
+            {{-- Descripción --}}
+            <td class="align-middle">
+                {{ $componente->descripcion }}
+            </td>
+
+            {{-- Precio --}}
+            <td class="align-middle text-center" style="width: 120px;">
+                {{ number_format($componente->precio,2) }} <i class="bi bi-currency-euro"></i>
+            </td>
+
+            {{-- Botón eliminar --}}
+            @if($ficha->estado == 0)
+                <td class="align-middle text-center" style="width: 60px;">
+                    <button class="btn btn-md btn-borrar-min btn-danger"
+                        onclick="triggerParentClick(event,this);">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            @endif
+
+        </tr>
+
+    </tbody>
+
+</table>
+
+@endforeach
+
 
                                     </div>
                                 </div>
@@ -109,7 +200,7 @@
 
 @section('footer')
 <div class=" card-footer">
-    <form id="ficha-resumen" action="{{ route('fichas.enviar', $ficha->uuid) }}" method="post">
+    <form id="ficha-resumen" action="{{ fichaRoute('enviar', $ficha->uuid) }}" method="post">
         @csrf
         @method('PUT')
 

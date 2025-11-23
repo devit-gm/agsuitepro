@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-12">
-            <div class="card">
+<div class="container h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 h-100">
+            <div class="card d-flex flex-column h-100">
                 <div class="card-header fondo-rojo"><i class="bi bi-cup-straw"></i> Editar producto</div>
 
-                <div class="card-body">
+                <div class="card-body overflow-auto flex-fill">
                     <div class="container h-100">
                         <div class="row h-100 justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
                                 <form action="{{ route('productos.update', $producto->id) }}" method="post" enctype="multipart/form-data">
                                     @csrf
                                     @method('PUT')
@@ -22,7 +22,11 @@
                                         <img width="100" class="float-end" src="{{ URL::to('/') }}/images/{{ $producto->imagen }}" />
                                         <div class="form-group">
                                             <label for="imagen" class="fw-bold form-label">Imagen</label>
-                                            <input type="file" class="form-control" id="imagen" name="imagen" />
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="file-name-imagen" readonly placeholder="{{ __('Ningún archivo seleccionado') }}">
+                                                <label class="input-group-text" for="imagen" style="cursor: pointer;">{{ __('Seleccionar archivo') }}</label>
+                                                <input type="file" id="imagen" name="imagen" onchange="updateFileName(this, 'file-name-imagen')" style="display: none;" />
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="form-group required mb-3">
@@ -65,4 +69,10 @@
         </div>
     </div>
 </div>
+<script>
+function updateFileName(input, inputId) {
+    const fileName = input.files[0] ? input.files[0].name : '';
+    document.getElementById(inputId).value = fileName;
+}
+</script>
 @endsection

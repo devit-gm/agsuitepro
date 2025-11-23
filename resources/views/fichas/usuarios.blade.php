@@ -1,26 +1,24 @@
+<!-- filepath: /home/david/Documentos/agsuitepro/resources/views/fichas/usuarios.blade.php -->
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
-            <div class="card flex-fill">
-                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> FICHA - Asistentes</div>
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
+                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> {{ $ajustes->modo_operacion === 'mesas' ? __("MESA") . ' ' . $ficha->numero_mesa . ' - ' . __("Asistentes") : __("FICHA - Asistentes") }}</div>
 
-                <div class="card-body">
-                    <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
+                <div class="card-body overflow-auto flex-fill">
+                    <div class="d-flex justify-content-between align-items-center col-sm-12 col-md-12 col-lg-12 mb-3">
+                        <button class="btn btn-lg btn-light border border-dark"><i class="bi bi-people"></i> {{ $ficha->total_comensales }}</button>
                         <button class="btn btn-lg btn-light border border-dark">{{number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i></button>
-                    </div>
-                    <br />
-                    <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
-                        <button class="btn btn-lg btn-light border border-dark"><i class="bi bi-people"></i> {{ $ficha->total_comensales }} Asist.</button>
                     </div>
                     <div class="container-fluid mt-3">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12" style="padding: 0px;">
 
 
-                                <form id='editar-usuariosficha' action="{{ route('fichas.updateusuarios', $ficha->uuid) }}" method="post">
+                                <form id='editar-usuariosficha' action="{{ fichaRoute('updateusuarios', $ficha->uuid) }}" method="post">
                                     @csrf
                                     @method('PUT')
                                     <div class="container mt-3">
@@ -41,45 +39,154 @@
                                                 </ul>
                                             </div>
                                             @endif
-                                            <table class="table table-bordered table-responsive table-hover">
-                                                <thead>
-                                                    <tr class="">
-                                                        <th scope="col-auto">Nombre</th>
-                                                        @if($ficha->estado == 0)
-                                                        <th scope="col-auto">-</th>
-                                                        @endif
-                                                        <th scope="col-auto" style="width: 60px; text-align:center"><i class="bi bi-person-standing"></i></th>
-                                                        <th scope="col-auto" style="width: 60px; text-align:center"><i class="bi bi-person-fill"></i></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($usuariosFicha as $usuario)
+                                            <style>
+    /* ---- TABLA USUARIOS (ESTILO MINIMALISTA) ---- */
 
-                                                    <tr style="height: 80px;">
-                                                        <td class="align-middle">
-                                                            {{ $usuario->name }}
-                                                        </td>
-                                                        @if($ficha->estado == 0)
-                                                        <td class="align-middle">
-                                                            <div class="form-check form-switch">
-                                                                <input class="form-check-input @if($ficha->tipo != 4 && $usuario->id == $ficha->user_id) readonly @endif" type="checkbox" role="switch" name="usuarios[{{ $usuario->id }}]" value="[{{ $usuario->id }}]" id="usuarios[{{ $usuario->id }}]" value="{{ $usuario->id }}" @if($usuario->marcado == 1) checked @endif @if($ficha->estado == 1) disabled @endif >
-                                                            </div>
-                                                        </td>
-                                                        @endif
-                                                        <td class="align-middle col-md-4">
-                                                            <div class="form-group">
-                                                                <input class="form-control" type="number" min="0" max="15" name="invitados[{{ $usuario->id }}]" id="invitados[{{ $usuario->id }}]" value="{{ $usuario->invitados }}" @if($ficha->estado == 1) disabled @endif>
-                                                            </div>
-                                                        </td>
-                                                        <td class="align-middle col-md-4">
-                                                            <div class="form-group">
-                                                                <input class="form-control" type="number" min="0" max="15" name="ninos[{{ $usuario->id }}]" id="ninos[{{ $usuario->id }}]" value="{{ $usuario->ninos }}" @if($ficha->estado == 1) disabled @endif>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
+    .tabla-usuarios {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 6px;
+        font-size: 0.95rem;
+        padding:0px;
+    }
+
+    .tabla-usuarios thead th {
+        background: #f7f7f7;
+        padding: 12px;
+        font-weight: 600;
+        border-bottom: 2px solid #e5e5e5;
+        text-align: center;
+    }
+
+    .tabla-usuarios tbody tr {
+        background: #ffffff;
+        border-radius: 8px;
+        transition: background 0.2s ease;
+    }
+
+    .tabla-usuarios tbody tr:hover {
+        background: #f4f7ff;
+    }
+
+    .tabla-usuarios td {
+        padding: 16px;
+        vertical-align: middle;
+        border-top: 1px solid #efefef;
+    }
+
+    .tabla-usuarios td:first-child {
+        border-left: 1px solid #efefef;
+        border-radius: 8px 0 0 8px;
+        font-size:18px;
+    }
+
+    .tabla-usuarios td:last-child {
+        border-right: 1px solid #efefef;
+        border-radius: 0 8px 8px 0;
+    }
+
+    /* ---- SWITCH ---- */
+    .form-check-input {
+        cursor: pointer;
+        transform: scale(1.3);
+    }
+    .form-check-input.readonly {
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
+    .form-switch .form-check-input{
+        margin-left:0px;
+    }
+
+    /* ---- SELECT MINIMALISTA ---- */
+    .tabla-usuarios select {
+        font-size: 0.9rem;
+        padding: 4px 6px;
+        height: 34px;
+        border-radius: 6px;
+    }
+</style>
+
+
+
+<table class="tabla-usuarios table-responsive">
+    <thead>
+        <tr>
+            <th class="text-start">{{ __('Nombre') }}</th>
+
+            @if($ficha->estado == 0)
+                <th>-</th>
+            @endif
+
+            <th><i class="bi bi-person-standing"></i></th>
+            <th><i class="bi bi-person-fill"></i></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach ($usuariosFicha as $usuario)
+        <tr style="height: 80px;">
+
+            <!-- Nombre -->
+            <td class="align-middle">
+                {{ $usuario->name }}
+            </td>
+
+            <!-- Switch on/off -->
+            @if($ficha->estado == 0)
+            <td class="align-middle text-center">
+                <div class="form-check form-switch m-0 p-0">
+                    <input 
+                        class="form-check-input 
+                               @if($ficha->tipo != 4 && $usuario->id == $ficha->user_id) readonly @endif"
+                        type="checkbox"
+                        role="switch"
+                        name="usuarios[{{ $usuario->id }}]"
+                        id="usuarios[{{ $usuario->id }}]"
+                        value="{{ $usuario->id }}"
+                        @if($usuario->marcado == 1) checked @endif
+                        @if($ficha->estado == 1) disabled @endif
+                    >
+                </div>
+            </td>
+            @endif
+
+            <!-- Invitados -->
+            <td class="align-middle text-center">
+                <select class="form-control form-select"
+                        name="invitados[{{ $usuario->id }}]"
+                        id="invitados[{{ $usuario->id }}]"
+                        style="width: 60px;"
+                        @if($ficha->estado == 1) disabled @endif>
+                    @for ($i = 0; $i <= $ajustes->max_invitados_cobrar; $i++)
+                        <option value="{{ $i }}" @if($usuario->invitados == $i) selected @endif>
+                            {{ $i }}
+                        </option>
+                    @endfor
+                </select>
+            </td>
+
+            <!-- Niños -->
+            <td class="align-middle text-center">
+                <select class="form-control form-select"
+                        name="ninos[{{ $usuario->id }}]"
+                        id="ninos[{{ $usuario->id }}]"
+                        style="width: 60px;"
+                        @if($ficha->estado == 1) disabled @endif>
+                    @for ($i = 0; $i <= $ajustes->max_invitados_cobrar; $i++)
+                        <option value="{{ $i }}" @if($usuario->ninos == $i) selected @endif>
+                            {{ $i }}
+                        </option>
+                    @endfor
+                </select>
+            </td>
+
+        </tr>
+        @endforeach
+    </tbody>
+</table>
+
                                         </div>
                                     </div>
                                 </form>
@@ -99,11 +206,20 @@
 <div class="card-footer">
     <form>
         <div class="d-flex align-items-center justify-content-center">
-            <a class="btn btn-dark mx-1" href={{ route('fichas.lista', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
-            @if($ficha->estado == 0)
-            <button type="button" onclick="document.getElementById('editar-usuariosficha').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
+            <a class="btn btn-dark mx-1" href={{ fichaRoute('lista', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+
+            @if (
+                auth()->user()->role_id > 2 &&
+                $ficha->user_id != auth()->user()->id &&
+                $ficha->tipo == 4 &&
+                now()->diffInDays(\Carbon\Carbon::parse($ficha->fecha), false) < $ajustes->limite_inscripcion_dias_eventos
+            )
+            @else
+                @if($ficha->estado == 0)
+                <button type="button" onclick="document.getElementById('editar-usuariosficha').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
+                @endif
             @endif
-            <a class="btn btn-dark mx-1" href={{ route('fichas.servicios', $ficha->uuid) }}><i class="bi bi-chevron-right"></i></a>
+            <a class="btn btn-dark mx-1" href={{ fichaRoute('servicios', $ficha->uuid) }}><i class="bi bi-chevron-right"></i></a>
         </div>
     </form>
 </div>

@@ -36,9 +36,9 @@ class WhatsAppController extends Controller
         $success = $this->twilioService->sendWhatsAppMessage($to, $message);
 
         if ($success) {
-            return response()->json(['success' => true, 'message' => 'Mensaje de WhatsApp enviado con éxito']);
+            return response()->json(['success' => true, 'message' => __('Mensaje de WhatsApp enviado con éxito')]);
         } else {
-            return response()->json(['success' => false, 'message' => 'Error al enviar el mensaje de WhatsApp'], 500);
+            return response()->json(['success' => false, 'message' => __('Error al enviar el mensaje de WhatsApp')], 500);
         }
     }
 
@@ -64,9 +64,9 @@ class WhatsAppController extends Controller
         $success = $this->twilioService->sendWhatsAppMedia($to, $mediaUrl, $caption);
 
         if ($success) {
-            return response()->json(['success' => true, 'message' => 'Archivo multimedia enviado por WhatsApp con éxito']);
+            return response()->json(['success' => true, 'message' => __('Archivo multimedia enviado por WhatsApp con éxito')]);
         } else {
-            return response()->json(['success' => false, 'message' => 'Error al enviar el archivo multimedia por WhatsApp'], 500);
+            return response()->json(['success' => false, 'message' => __('Error al enviar el archivo multimedia por WhatsApp')], 500);
         }
     }
 
@@ -92,9 +92,9 @@ class WhatsAppController extends Controller
         $success = $this->twilioService->sendWhatsAppTemplate($to, $templateName, $parameters);
 
         if ($success) {
-            return response()->json(['success' => true, 'message' => 'Plantilla de WhatsApp enviada con éxito']);
+            return response()->json(['success' => true, 'message' => __('Plantilla de WhatsApp enviada con éxito')]);
         } else {
-            return response()->json(['success' => false, 'message' => 'Error al enviar la plantilla de WhatsApp'], 500);
+            return response()->json(['success' => false, 'message' => __('Error al enviar la plantilla de WhatsApp')], 500);
         }
     }
 

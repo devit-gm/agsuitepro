@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ajustes;
 use App\Models\Ficha;
 use App\Models\FichaGasto;
 use App\Models\FichaUsuario;
@@ -21,6 +22,7 @@ use Ramsey\Uuid\Type\Decimal;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class FichasController extends Controller
 {
@@ -41,87 +43,89 @@ class FichasController extends Controller
      */
     public function index(Request $request)
     {
-        Carbon::setLocale('es');
-        $site = app('site');
-        if ($request->method() == "GET") {
-            $fichasMostrar = Ficha::where('estado', 0)
-                ->orderBy('fecha')->orderBy('hora')
-                ->get();
-        } else {
-            if ($request->incluir_cerradas == 0) {
-                $fichasMostrar = Ficha::where('estado', 0)
-                    ->orderBy('fecha')->orderBy('hora')
-                    ->get();
-            } else {
-                $fichasMostrar = Ficha::where('estado', 1)->orderBy('fecha')->orderBy('hora')
-                    ->get();
-            }
-        }
-        $fichas = [];
-        foreach ($fichasMostrar as $ficha) {
-            if ($ficha->tipo != 4) {
-                //Si la ficha no es de tipo evento
-                //La mostramos solo para el usuario activo
-                //O para el administrador
-                //O para los usuarios que están en el grupo de la ficha
-                if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first()) {
-                    $fichas[] = $ficha;
-                }
-            } else {
-                //Los eventos los mostramos para todos por si los
-                //usuarios quieren apuntarse
-                $fichas[] = $ficha;
-            }
-        }
-        $meses = array("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre");
-        foreach ($fichas as $ficha) {
+        Carbon::setLocale(app()->getLocale());
 
-            $fecha = Carbon::parse($ficha->fecha);
-            $mes = substr($meses[intval($fecha->format('m')) - 1], 0, 3);
-            $ficha->usuario = User::find($ficha->user_id);
-            $ficha->apuntado = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first();
-            $ficha->precio = $this->ObtenerImporteFicha($ficha);
-            $ficha->uuid = $ficha->uuid;
-            $ficha->mes = $mes;
-            //Si el usuario de la ficha es el usuario activo
-            //O si el usuario activo es administrador
-            //O si el usuario está en el grupo de la ficha
-            //La ficha se puede borrar
-            if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first()) {
-                if ($ficha->estado == 0)
-                    $ficha->borrable = true;
-                else
-                    $ficha->borrable = false;
-            } else {
-                $ficha->borrable = false;
-            }
-            if ($ficha->tipo == 1) {
-                $usuariosFicha = User::where('site_id', $site->id)->where('id', $ficha->user_id)->get();
-            } else {
-                $usuariosFicha = FichaUsuario::where('id_ficha', $ficha->uuid)->get();
-            }
-            $total_comensales = 0;
-            $total_ninos = 0;
-            foreach ($usuariosFicha as $usuario) {
-                $total_comensales += $usuario->invitados;
-                $total_comensales += $usuario->ninos;
-                $total_ninos += $usuario->ninos;
-                $total_comensales++;
-            }
-            $ficha->total_comensales = $total_comensales;
-            $ficha->total_ninos = $total_ninos;
+        $site = app('site');
+        $ajustes = DB::connection('site')->table('ajustes')->first();
+
+        // Redirigir a mesas si el modo operación es 'mesas'
+        if ($ajustes && $ajustes->modo_operacion === 'mesas') {
+            return redirect()->route('mesas.index');
         }
+
+// Consulta principal (solo una)
+$query = Ficha::query()
+    ->with(['usuario', 'inscritos'])   // 🔥 Eager loading
+    ->orderBy('fecha')
+    ->orderBy('hora');
+
+if ($request->method() == "GET") {
+    $query->where('estado', 0);
+} else {
+    if ($request->incluir_cerradas == 0) {
+        $query->where('estado', 0);
+    } else {
+        $query->where('estado', 1)
+              ->orderBy('fecha', 'desc')
+              ->orderBy('hora', 'desc')
+              ->take(20);
+    }
+}
+
+$fichasMostrar = $query->get();
+
+// FILTRO DE FICHAS
+$fichas = [];
+
+foreach ($fichasMostrar as $ficha) {
+
+    $esAdmin = Auth::user()->role_id == 1;
+    $esPropietario = Auth::id() == $ficha->user_id;
+    $estaEnFicha = $ficha->inscritos->where('user_id', Auth::id())->isNotEmpty();
+
+    if ($ficha->tipo != 4) {
+        if ($esPropietario || $esAdmin || $estaEnFicha) {
+            $fichas[] = $ficha;
+        }
+    } else {
+        $fichas[] = $ficha; // Eventos → todos los pueden ver
+    }
+}
+
+// PROCESAR FICHAS
+foreach ($fichas as $ficha) {
+
+    $fecha = Carbon::parse($ficha->fecha);
+    $ficha->mes = substr($fecha->translatedFormat('F'), 0, 3);
+
+    $ficha->precio = $this->ObtenerImporteFicha($ficha);
+
+    // Borrable
+    $esAdmin = Auth::user()->role_id == 1;
+    $esPropietario = Auth::id() == $ficha->user_id;
+    $estaEnFicha = $ficha->inscritos->where('user_id', Auth::id())->isNotEmpty();
+
+    $ficha->borrable = ($esPropietario || $esAdmin || $estaEnFicha) && $ficha->estado == 0;
+
+    // Calcular comensales
+    $usuariosFicha = ($ficha->tipo == 1)
+        ? collect([$ficha->usuario])
+        : $ficha->inscritos;
+
+    $ficha->total_comensales = $usuariosFicha->sum(fn($u) => 1 + $u->invitados + $u->ninos);
+    $ficha->total_ninos      = $usuariosFicha->sum('ninos');
+}
+
         $errors = new \Illuminate\Support\MessageBag();
         if ($fichas == null || count($fichas) == 0) {
-            $errors->add('msg', 'No se encontraron fichas para mostrar.');
-            return view('fichas.index', compact('fichas', 'errors', 'request'));
+            $errors->add('msg', __('No se encontraron fichas para mostrar.'));
+            return view('fichas.index', compact('fichas', 'errors', 'request', 'ajustes'));
         } else {
-            return view('fichas.index', compact('fichas', 'request'));
-        }
-    }
+            return view('fichas.index', compact('fichas', 'request', 'ajustes'));
+        }    }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly createdStore a newly created resource in storage.
      */
     public function store(Request $request)
     {
@@ -212,7 +216,7 @@ class FichasController extends Controller
             'responsables' => $request->responsables
         ]);
         return redirect()->route('fichas.index')
-            ->with('success', 'Ficha actualizada con éxito.');
+            ->with('success', __('Ficha actualizada con éxito.'));
     }
 
     /**
@@ -242,7 +246,7 @@ class FichasController extends Controller
         $ficha = Ficha::find($uuid);
         $ficha->delete();
         return redirect()->route('fichas.index')
-            ->with('success', 'Ficha eliminada con éxito');
+            ->with('success', __('Ficha eliminada con éxito'));
     }
 
     /**
@@ -254,6 +258,24 @@ class FichasController extends Controller
         $userTimezone = 'Europe/Madrid';
         $currentDateTime = Carbon::now($userTimezone);
         return view('fichas.create', compact('userId', 'currentDateTime'));
+    }
+
+    public function download(string $uuid)
+    {
+        $ficha = Ficha::with(['productos.producto', 'servicios.servicio', 'camarero'])
+            ->find($uuid);
+        $ficha->precio = $this->ObtenerImporteFicha($ficha);
+        $fechaCambiada = Carbon::parse($ficha->fecha)->todateString();
+        
+        // Si es una mesa, usar la vista PDF específica para mesas
+        if ($ficha->modo === 'mesa') {
+            $pdf = PDF::loadView('fichas.pdf-mesa', compact('ficha', 'fechaCambiada'));
+            return $pdf->download('mesa_' . $ficha->numero_mesa . '_' . date('Ymd') . '.pdf');
+        }
+        
+        // Para fichas normales, usar la vista original
+        $pdf = PDF::loadView('fichas.pdf', compact('ficha', 'fechaCambiada'));
+        return $pdf->download('ficha_' . $ficha->uuid . '.pdf');
     }
 
     /**
@@ -277,7 +299,7 @@ class FichasController extends Controller
         return view('fichas.edit', compact('ficha', 'fechaCambiada', 'currentDateTime'));
     }
 
-    private function ObtenerImporteFicha($ficha)
+    private function ObtenerImporteFicha($ficha, $sumarInvitados = false)
     {
         $precio = 0.0;
         $ajustes = DB::connection('site')->table('ajustes')->first();
@@ -294,7 +316,9 @@ class FichasController extends Controller
             if ($ajustes->primer_invitado_gratis && $num_invitados > 0) {
                 $num_invitados--;
             }
-            $precio += $num_invitados * $ajustes->precio_invitado;
+            if ($sumarInvitados) {
+                $precio += $num_invitados * $ajustes->precio_invitado;
+            }
         }
         $servicios = FichaServicio::where('id_ficha', $ficha->uuid)->get();
         foreach ($servicios as $servicio) {
@@ -317,6 +341,7 @@ class FichasController extends Controller
         $ficha = Ficha::find($uuid);
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
         $familias = Familia::orderBy('posicion')->get();
+        $ajustes = DB::connection('site')->table('ajustes')->first();
         //Si no es un evento y el usuario activo no está en la ficha lo añadimos
         if ($ficha->tipo != 4) {
             $estaUsuarioActivo = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first();
@@ -332,7 +357,66 @@ class FichasController extends Controller
         }
         //Si es un evento no hacemos nada
         //Para que los usuarios puedan apuntarse o no
-        return view('fichas.familias', compact('ficha', 'familias'));
+        return view('fichas.familias', compact('ficha', 'familias', 'ajustes'));
+    }
+
+    public function buscarPorBarcode(Request $request)
+    {
+        $request->validate([
+            'ean13' => 'required|string|max:50',
+            'ficha_uuid' => 'required|string'
+        ]);
+
+        $ean13 = $request->input('ean13');
+        $fichaUuid = $request->input('ficha_uuid');
+
+        // Buscar producto por código EAN13
+        $producto = Producto::where('ean13', $ean13)->first();
+
+        if (!$producto) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Producto no encontrado con código: ') . $ean13
+            ], 404);
+        }
+
+        // Verificar que la ficha existe
+        $ficha = Ficha::find($fichaUuid);
+        if (!$ficha) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Ficha no encontrada')
+            ], 404);
+        }
+
+        // Añadir producto a la ficha
+        $fichaProducto = FichaProducto::where('id_ficha', $fichaUuid)
+            ->where('id_producto', $producto->uuid)
+            ->first();
+
+        if ($fichaProducto) {
+            // Si ya existe, incrementar cantidad
+            $fichaProducto->cantidad += 1;
+            $fichaProducto->precio = $fichaProducto->cantidad * $producto->precio;
+            $fichaProducto->save();
+        } else {
+            // Si no existe, crear nuevo registro
+            FichaProducto::create([
+                'uuid' => (string) Uuid::uuid4(),
+                'id_ficha' => $fichaUuid,
+                'id_producto' => $producto->uuid,
+                'cantidad' => 1,
+                'precio' => $producto->precio,
+                'borrable' => true
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Producto añadido: ') . $producto->nombre,
+            'producto' => $producto,
+            'redirect_url' => route('fichas.lista', ['uuid' => $fichaUuid]) . '?success=' . urlencode(__('Producto añadido: ') . $producto->nombre)
+        ]);
     }
 
     public function productos($uuid, $uuid2)
@@ -344,18 +428,31 @@ class FichasController extends Controller
         if ($ajustes->permitir_comprar_sin_stock == 1) {
             $productos = Producto::where('familia', $uuid2)->orderBy('posicion')->get();
         } else {
-            $productos = Producto::where('familia', $uuid2)
+            //en lugar de filtrar los productos y no devolverlos los devolvemos con un agotado true o false
+            $productos = Producto::where('familia', $uuid2)->orderBy('posicion')->get();
+            $productosAgotados = Producto::where('familia', $uuid2)
                 ->where(function ($query) {
-                    $query->where('stock', '>', 0)
-                        ->orWhere('combinado', 1);
+                    $query->where(function ($query) {
+                        $query->where('combinado', 0) -> where('stock', '<=', 0);
+                    })->orWhere(function ($query) {
+                        $query->where('combinado', 1)
+                            ->whereIn('uuid', function ($subquery) {
+                                    $subquery->select('id_producto')
+                                    ->from('composicion_productos')
+                                    ->groupBy('id_producto')
+                                    ->havingRaw('SUM(CASE WHEN id_componente IN (SELECT uuid FROM productos WHERE stock <= 0) THEN 1 ELSE 0 END) > 0');
+                            });
+                    });
                 })->orderBy('posicion')->get();
         }
-        return view('fichas.productos', compact('ficha', 'familia', 'productos'));
+        return view('fichas.productos', compact('ficha', 'familia', 'productos', 'productosAgotados', 'ajustes'));
     }
 
     public function usuarios($uuid)
     {
         $ficha = Ficha::find($uuid);
+        $ajustes = DB::connection('site')->table('ajustes')->first();
+     
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
         $site = app('site');
         //Si es una ficha individual sólo mostramos al usuario activo
@@ -399,7 +496,7 @@ class FichasController extends Controller
 
 
         $ficha->total_comensales = $total_comensales;
-        return view('fichas.usuarios', compact('ficha', 'usuariosFicha'));
+        return view('fichas.usuarios', compact('ficha', 'usuariosFicha','ajustes'));
     }
 
     public function resumen($uuid)
@@ -443,22 +540,23 @@ class FichasController extends Controller
             $total_gastos += $gasto->precio;
         }
         $ficha->total_gastos = $total_gastos;
-
-        // Evitar división por cero
-        if ($total_comensales - $total_ninos > 0) {
-            $ficha->precio_comensal = $ficha->precio / ($total_comensales - $total_ninos);
+        if ($total_comensales == 0) {
+            $ficha->precio_comensal = 0;
         } else {
-            $ficha->precio_comensal = 0; // Asignar cero si no hay comensales adultos
+            $ficha->precio_comensal = $ficha->precio / ($total_comensales - $total_ninos);
         }
-
-        return view('fichas.resumen', compact('ficha'));
+        
+        $ajustes = Ajustes::first();
+        
+        return view('fichas.resumen', compact('ficha', 'ajustes'));
     }
 
     public function enviar($uuid)
     {
         $ficha = Ficha::find($uuid);
-        $ficha->precio = $this->ObtenerImporteFicha($ficha);
+        $ficha->precio = $this->ObtenerImporteFicha($ficha,true);
         $gastosFicha = FichaGasto::where('id_ficha', $uuid)->get();
+        $ajustes = DB::connection('site')->table('ajustes')->first();
         //Insertamos en la tabla ficha_recibos los gastos de la ficha
         foreach ($gastosFicha as $gastoFicha) {
             FichaRecibo::create([
@@ -491,13 +589,14 @@ class FichasController extends Controller
             foreach ($usuarios as $usuario) {
                 $num_invitados = $usuario->invitados;
 
+                //si en la configuración del sitio las fichas se facturan de forma automática el estado se pone a 1
+
                 FichaRecibo::create([
                     'uuid' => (string) Uuid::uuid4(),
                     'id_ficha' => $uuid,
                     'user_id' => $usuario->user_id,
                     'tipo' => 1,
-                    'estado' => 0,
-                    //Sumamos 1 porque el propio comensal también paga
+                    'estado' => $ajustes->facturar_ficha_automaticamente ? 1 : 0,
                     'precio' => $precio_comensal * ($num_invitados + 1),
                     'fecha' => Carbon::now()
                 ]);
@@ -513,18 +612,26 @@ class FichasController extends Controller
                         $producto2 = Producto::find($productoCombinado->id_componente);
                         $producto2->stock -= $producto->cantidad;
                         $producto2->save();
+                        
+                        // Verificar stock bajo
+                        $stockService = new \App\Services\StockNotificationService();
+                        $stockService->verificarYNotificar($producto2->uuid);
                     }
                 } else {
                     $producto->producto = Producto::find($producto->id_producto);
                     $producto->producto->stock -= $producto->cantidad;
                     $producto->producto->save();
+                    
+                    // Verificar stock bajo
+                    $stockService = new \App\Services\StockNotificationService();
+                    $stockService->verificarYNotificar($producto->producto->uuid);
                 }
             }
         }
         $ficha->estado = 1;
         $ficha->save();
         return redirect()->route('fichas.index')
-            ->with('success', 'Ficha enviada con éxito');
+            ->with('success', __('Ficha enviada con éxito'));
     }
 
     public function gastos($uuid)
@@ -556,7 +663,7 @@ class FichasController extends Controller
         //controla en otro sitio.
         $errors = new \Illuminate\Support\MessageBag();
         if ($gastosFicha == null || count($gastosFicha) == 0) {
-            $errors->add('msg', 'No se han introducido gastos.');
+            $errors->add('msg', __('No se han introducido gastos.'));
             return view('fichas.gastos', compact('ficha', 'gastosFicha', 'errors'));
         } else {
             return view('fichas.gastos', compact('ficha', 'gastosFicha'));
@@ -598,7 +705,7 @@ class FichasController extends Controller
             $fichaGasto->delete();
         }
         return redirect()->route('fichas.gastos', $uuid)
-            ->with('success', 'Gasto eliminado de la ficha');
+            ->with('success', __('Gasto eliminado de la ficha'));
     }
 
     public function updategastos($uuid, Request $request)
@@ -636,7 +743,7 @@ class FichasController extends Controller
             ]);
         }
 
-        return redirect()->route('fichas.gastos', $uuid)->with('success', 'Gastos de la ficha actualizados con éxito');
+        return redirect()->route('fichas.gastos', $uuid)->with('success', __('Gastos de la ficha actualizados con éxito'));
     }
 
     public function updateusuarios($uuid, Request $request)
@@ -671,7 +778,7 @@ class FichasController extends Controller
                 $usuarioFicha->ninos = 0;
             }
         }
-        return redirect()->route('fichas.usuarios', compact('uuid'))->with('success', 'Usuarios de la ficha actualizados con éxito');
+        return redirect()->route('fichas.usuarios', compact('uuid'))->with('success', __('Usuarios de la ficha actualizados con éxito'));
     }
 
     public function updateservicios($uuid, Request $request)
@@ -699,7 +806,7 @@ class FichasController extends Controller
                 $servicioFicha->marcado = false;
             }
         }
-        return redirect()->route('fichas.servicios', compact('uuid'))->with('success', 'Servicios de la ficha actualizados con éxito');
+        return redirect()->route('fichas.servicios', compact('uuid'))->with('success', __('Servicios de la ficha actualizados con éxito'));
     }
 
     public function servicios($uuid)
@@ -716,7 +823,8 @@ class FichasController extends Controller
                 $servicioFicha->marcado = false;
             }
         }
-        return view('fichas.servicios', compact('ficha', 'serviciosFicha'));
+        $ajustes = Ajustes::first();
+        return view('fichas.servicios', compact('ficha', 'serviciosFicha', 'ajustes'));
     }
 
 
@@ -755,7 +863,7 @@ class FichasController extends Controller
         return redirect()->route('fichas.productos', [
             'uuid' => $ficha,
             'uuid2' => $familia
-        ])->with('success', $cantidad . 'x ' . $producto->nombre . ' añadido a la ficha');;
+        ])->with('success', $cantidad . 'x ' . $producto->nombre . ' ' . __('añadido a la ficha'));;
     }
 
     public function lista($uuid)
@@ -772,7 +880,8 @@ class FichasController extends Controller
             $productoFicha->producto = Producto::find($productoFicha->id_producto);
         }
 
-        return view('fichas.lista', compact('ficha', 'productosFicha'));
+        $ajustes = DB::connection('site')->table('ajustes')->first();
+        return view('fichas.lista', compact('ficha', 'productosFicha', 'ajustes'));
     }
 
     public function destroylista(string $uuid, string $uuid2)
@@ -783,7 +892,7 @@ class FichasController extends Controller
             $fichaProducto->delete();
         }
         return redirect()->route('fichas.lista', $uuid)
-            ->with('success', 'Producto eliminado de la ficha');
+            ->with('success', __('Producto eliminado de la ficha'));
     }
 
     public function updatelista(string $uuid, string $uuid2, int $cantidad)
@@ -813,45 +922,547 @@ class FichasController extends Controller
                 ]);
             }
             return redirect()->route('fichas.lista', $uuid)
-                ->with('success', 'Producto añadido a la ficha');
+                ->with('success', __('Producto añadido a la ficha'));
         } else {
             $fichaProductos = FichaProducto::where('id_ficha', $uuid)->where('id_producto', $uuid2)->take(abs($cantidad))->get();
             foreach ($fichaProductos as $fichaProducto) {
                 $fichaProducto->delete();
             }
             return redirect()->route('fichas.lista', $uuid)
-                ->with('success', 'Producto eliminado de la ficha');
+                ->with('success', __('Producto eliminado de la ficha'));
+        }
+    }
+
+    // ========== MÉTODOS PARA SISTEMA DE MESAS ==========
+    
+    /**
+     * Mostrar grid de mesas (modo restaurante)
+     */
+    public function indexMesas()
+    {
+        $user = Auth::user();
+        $ajustes = DB::connection('site')->table('ajustes')->first();
+        
+        // TODOS los camareros ven TODAS las mesas
+        $mesas = Ficha::mesas()
+            ->with(['camarero', 'productos.producto', 'servicios.servicio'])
+            ->orderBy('orden', 'asc')
+            ->orderByRaw('CAST(numero_mesa AS UNSIGNED) ASC')
+            ->get();
+        
+        // Calcular importe para cada mesa
+        $mesas->each(function($mesa) {
+            $totalProductos = $mesa->productos->sum(function($fp) {
+                return $fp->producto ? $fp->producto->precio : 0;
+            });
+            $totalServicios = $mesa->servicios->sum(function($fs) {
+                return $fs->servicio ? $fs->servicio->precio : 0;
+            });
+            $mesa->importe = $totalProductos + $totalServicios;
+        });
+        
+        // Estadísticas personales del camarero
+        $misMesas = $mesas->where('camarero_id', $user->id)->where('estado_mesa', 'ocupada');
+        $estadisticas = [
+            'libres' => $mesas->where('estado_mesa', 'libre')->count(),
+            'ocupadas' => $mesas->where('estado_mesa', 'ocupada')->count(),
+            'mis_mesas' => $misMesas->count(),
+            'mi_facturacion' => $misMesas->sum('importe')
+        ];
+        
+        return view('fichas.mesas-grid', compact('mesas', 'estadisticas', 'ajustes'));
+    }
+    
+    /**
+     * Abrir una mesa nueva
+     */
+    public function abrirMesa(Request $request, $mesaId)
+    {
+        $request->validate([
+            'numero_comensales' => 'required|integer|min:1|max:20'
+        ]);
+        
+        $mesa = Ficha::findOrFail($mesaId);
+        
+        // Verificar que esté libre
+        if ($mesa->estado_mesa != 'libre') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta mesa ya está ocupada'
+            ], 400);
+        }
+        
+        // Abrir mesa y asignar al camarero actual
+        $mesa->update([
+            'estado_mesa' => 'ocupada',
+            'camarero_id' => Auth::id(),
+            'numero_comensales' => $request->numero_comensales,
+            'hora_apertura' => now()
+        ]);
+        
+        // Registrar en historial
+        \App\Models\MesaHistorial::create([
+            'mesa_id' => $mesa->uuid,
+            'accion' => 'abrir',
+            'camarero_id' => Auth::id(),
+            'detalles' => json_encode([
+                'comensales' => $request->numero_comensales,
+                'notas' => $request->notas
+            ])
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Mesa abierta correctamente'
+        ]);
+    }
+    
+    /**
+     * Tomar mesa de otro camarero
+     */
+    public function tomarMesa($mesaId)
+    {
+        $mesa = Ficha::findOrFail($mesaId);
+        
+        // Verificar que esté ocupada (no libre ni cerrada)
+        if ($mesa->estado_mesa != 'ocupada') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta mesa no está disponible para tomar'
+            ], 400);
+        }
+        
+        $camareroAnterior = $mesa->camarero_id;
+        
+        // Transferir mesa al camarero actual
+        $mesa->update([
+            'ultimo_camarero_id' => $camareroAnterior,
+            'camarero_id' => Auth::id()
+        ]);
+        
+        // Registrar en historial
+        \App\Models\MesaHistorial::create([
+            'mesa_id' => $mesa->uuid,
+            'accion' => 'tomar',
+            'camarero_id' => Auth::id(),
+            'camarero_anterior_id' => $camareroAnterior,
+            'detalles' => json_encode([
+                'importe_actual' => $mesa->importe
+            ])
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Mesa tomada correctamente'
+        ]);
+    }
+    
+    /**
+     * Obtener resumen de una mesa para el modal de cierre
+     */
+    public function resumenMesa($mesaId)
+    {
+        $mesa = Ficha::with(['camarero', 'productos.producto', 'servicios.servicio'])
+            ->findOrFail($mesaId);
+        
+        $productos = $mesa->productos->map(function($fp) {
+            return [
+                'cantidad' => 1,
+                'nombre' => $fp->producto->nombre,
+                'precio' => $fp->producto->precio,
+                'precio_total' => number_format($fp->producto->precio, 2) . ' €'
+            ];
+        })->groupBy('nombre')->map(function($group) {
+            $first = $group->first();
+            return [
+                'cantidad' => $group->count(),
+                'nombre' => $first['nombre'],
+                'precio_total' => number_format($first['precio'] * $group->count(), 2) . ' €'
+            ];
+        })->values();
+        
+        $servicios = $mesa->servicios->map(function($fs) {
+            return [
+                'nombre' => $fs->servicio->nombre,
+                'precio' => number_format($fs->servicio->precio, 2) . ' €'
+            ];
+        });
+        
+        // Calcular importe total
+        $totalProductos = $mesa->productos->sum(function($fp) {
+            return $fp->producto ? $fp->producto->precio : 0;
+        });
+        $totalServicios = $mesa->servicios->sum(function($fs) {
+            return $fs->servicio ? $fs->servicio->precio : 0;
+        });
+        $importeTotal = $totalProductos + $totalServicios;
+        
+        return response()->json([
+            'numero_mesa' => $mesa->numero_mesa,
+            'numero_comensales' => $mesa->numero_comensales,
+            'camarero' => $mesa->camarero->name ?? 'N/A',
+            'hora_apertura' => $mesa->hora_apertura ? $mesa->hora_apertura->format('H:i') : 'N/A',
+            'importe_formateado' => number_format($importeTotal, 2) . ' €',
+            'productos' => $productos,
+            'servicios' => $servicios
+        ]);
+    }
+    
+    /**
+     * Cerrar mesa y procesar pago
+     */
+    public function cerrarMesa(Request $request, $mesaId)
+    {
+        $mesa = Ficha::findOrFail($mesaId);
+        
+        // Verificar que sea el camarero asignado o admin
+        if ($mesa->camarero_id != Auth::id() && Auth::user()->role_id != 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permiso para cerrar esta mesa'
+            ], 403);
+        }
+        
+        $request->validate([
+            'metodo_pago' => 'required|in:efectivo,tarjeta,mixto',
+            'propina' => 'nullable|numeric|min:0'
+        ]);
+        
+        // Calcular importe total de la mesa
+        $totalProductos = $mesa->productos->sum(function($fp) {
+            return $fp->producto ? $fp->producto->precio * $fp->cantidad : 0;
+        });
+        $totalServicios = $mesa->servicios->sum(function($fs) {
+            return $fs->servicio ? $fs->servicio->precio : 0;
+        });
+        $importeTotal = $totalProductos + $totalServicios;
+        $propina = $request->propina ?? 0;
+        
+        // Crear FichaRecibo con el importe total (marcado como pagado)
+        FichaRecibo::create([
+            'uuid' => (string) Uuid::uuid4(),
+            'id_ficha' => $mesa->uuid,
+            'user_id' => $mesa->camarero_id, // Asociado al camarero de la mesa
+            'tipo' => 1, // Tipo 1 = ingreso/venta
+            'estado' => 1, // Estado 1 = pagado
+            'precio' => $importeTotal + $propina,
+            'fecha' => now()
+        ]);
+        
+        // Descontar stock de productos consumidos
+        foreach ($mesa->productos as $fichaProducto) {
+            $producto = Producto::find($fichaProducto->id_producto);
+            if ($producto) {
+                if ($producto->combinado == 1) {
+                    // Producto combinado: descontar componentes
+                    $productosCombinados = DB::connection('site')
+                        ->table('composicion_productos')
+                        ->where('id_producto', $producto->uuid)
+                        ->get();
+                    
+                    foreach ($productosCombinados as $productoCombinado) {
+                        $componente = Producto::find($productoCombinado->id_componente);
+                        if ($componente) {
+                            $componente->stock -= $fichaProducto->cantidad;
+                            $componente->save();
+                            
+                            // Verificar stock bajo
+                            $stockService = new \App\Services\StockNotificationService();
+                            $stockService->verificarYNotificar($componente->uuid);
+                        }
+                    }
+                } else {
+                    // Producto simple: descontar stock directamente
+                    $producto->stock -= $fichaProducto->cantidad;
+                    $producto->save();
+                    
+                    // Verificar stock bajo
+                    $stockService = new \App\Services\StockNotificationService();
+                    $stockService->verificarYNotificar($producto->uuid);
+                }
+            }
+        }
+        
+        // Cerrar mesa
+        $mesa->update([
+            'estado_mesa' => 'cerrada',
+            'hora_cierre' => now(),
+            'ultimo_camarero_id' => Auth::id(),
+            'estado' => 1, // Marcar como pagada
+            'precio' => $importeTotal + $propina // Guardar precio final
+        ]);
+        
+        // Registrar en historial
+        \App\Models\MesaHistorial::create([
+            'mesa_id' => $mesa->uuid,
+            'accion' => 'cerrar',
+            'camarero_id' => Auth::id(),
+            'detalles' => json_encode([
+                'metodo_pago' => $request->metodo_pago,
+                'propina' => $propina,
+                'importe_total' => $importeTotal + $propina
+            ])
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Mesa cerrada correctamente'
+        ]);
+    }
+    
+    /**
+     * Liberar mesa cerrada para volver a usarla
+     */
+    public function liberarMesa($mesaId)
+    {
+        $mesa = Ficha::findOrFail($mesaId);
+        
+        // Solo admin o el mismo camarero puede liberar
+        if ($mesa->camarero_id != Auth::id() && Auth::user()->role_id != 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permiso'
+            ], 403);
+        }
+        
+        // Resetear mesa a estado libre
+        $mesa->update([
+            'estado_mesa' => 'libre',
+            'camarero_id' => null,
+            'ultimo_camarero_id' => $mesa->camarero_id,
+            'numero_comensales' => 0,
+            'hora_apertura' => null,
+            'hora_cierre' => null,
+            'estado' => 0
+        ]);
+        
+        // Limpiar consumos de la mesa
+        FichaProducto::where('id_ficha', $mesa->uuid)->delete();
+        FichaServicio::where('id_ficha', $mesa->uuid)->delete();
+        
+        \App\Models\MesaHistorial::create([
+            'mesa_id' => $mesa->uuid,
+            'accion' => 'liberar',
+            'camarero_id' => Auth::id()
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Mesa liberada'
+        ]);
+    }
+
+    /**
+     * Generar múltiples mesas automáticamente (solo usuarios tipo < 4)
+     */
+    public function generarMesas(Request $request)
+    {
+        // Verificar que el usuario tenga permisos (tipo < 4, es decir, no camareros)
+        if (Auth::user()->role_id >= 4) {
+            return redirect()->back()->with('error', __('No tienes permisos para crear mesas'));
+        }
+
+        $request->validate([
+            'cantidad' => 'required|integer|min:1|max:100',
+            'prefijo' => 'required|string|max:20'
+        ]);
+
+        $cantidad = $request->cantidad;
+        $prefijo = $request->prefijo;
+        
+        $mesasCreadas = 0;
+
+        try {
+            DB::beginTransaction();
+
+            for ($i = 1; $i <= $cantidad; $i++) {
+                $uuid = (string) Uuid::uuid4();
+                $descripcion = $prefijo . $i;
+
+                Ficha::create([
+                    'uuid' => $uuid,
+                    'descripcion' => $descripcion,
+                    'user_id' => Auth::id(),
+                    'precio' => 0,
+                    'invitados_grupo' => 0,
+                    'estado' => 0,
+                    'tipo' => 5, // Tipo 5 = Mesa
+                    'fecha' => Carbon::now()->format('Y-m-d'),
+                    'hora' => null,
+                    'menu' => null,
+                    'responsables' => null,
+                    'modo' => 'mesa',
+                    'numero_mesa' => $i,
+                    'estado_mesa' => 'libre',
+                    'camarero_id' => null,
+                    'numero_comensales' => 0,
+                    'hora_apertura' => null,
+                    'hora_cierre' => null
+                ]);
+
+                $mesasCreadas++;
+            }
+
+            DB::commit();
+
+            return redirect()->back()->with('success', __('Se han creado :cantidad mesas correctamente', ['cantidad' => $mesasCreadas]));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', __('Error al crear las mesas: :error', ['error' => $e->getMessage()]));
         }
     }
 
     /**
-     * Comparte el resumen de la ficha por WhatsApp
-     * 
-     * @param string $uuid
-     * @param Request $request
-     * @return \Illuminate\Http\Response
+     * Crear una mesa individual
      */
-    public function compartirResumen(string $uuid, Request $request)
+    public function crearMesaIndividual(Request $request)
     {
-        $request->validate([
-            'telefono' => 'required|string',
-        ]);
-
-        $ficha = Ficha::find($uuid);
-        if (!$ficha) {
-            return back()->withErrors(['error' => 'Ficha no encontrada'])->withInput();
+        // Verificar permisos
+        if (Auth::user()->role_id >= 4) {
+            return redirect()->back()->with('error', __('No tienes permisos para crear mesas'));
         }
 
-        // Inicializar el controlador de WhatsApp
-        $whatsAppController = new WhatsAppController(app('App\Services\TwilioService'));
+        $request->validate([
+            'descripcion' => 'required|string|max:100',
+            'numero_mesa' => 'required|integer|min:1|max:999'
+        ]);
 
-        // Enviar el resumen por WhatsApp
-        $success = $whatsAppController->shareResumenFicha($ficha, $request->telefono);
+        try {
+            $uuid = (string) Uuid::uuid4();
 
-        if ($success) {
-            return back()->with('success', 'Resumen compartido con éxito por WhatsApp');
-        } else {
-            return back()->withErrors(['error' => 'Error al compartir el resumen por WhatsApp'])->withInput();
+            Ficha::create([
+                'uuid' => $uuid,
+                'descripcion' => $request->descripcion,
+                'user_id' => Auth::id(),
+                'precio' => 0,
+                'invitados_grupo' => 0,
+                'estado' => 0,
+                'tipo' => 5,
+                'fecha' => Carbon::now()->format('Y-m-d'),
+                'hora' => null,
+                'menu' => null,
+                'responsables' => null,
+                'modo' => 'mesa',
+                'numero_mesa' => $request->numero_mesa,
+                'estado_mesa' => 'libre',
+                'camarero_id' => null,
+                'numero_comensales' => 0,
+                'hora_apertura' => null,
+                'hora_cierre' => null
+            ]);
+
+            return redirect()->back()->with('success', __('Mesa creada correctamente'));
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', __('Error al crear la mesa: :error', ['error' => $e->getMessage()]));
+        }
+    }
+
+    /**
+     * Actualizar una mesa existente
+     */
+    public function actualizarMesa(Request $request, $mesaUuid)
+    {
+        // Verificar permisos
+        if (Auth::user()->role_id >= 4) {
+            return redirect()->back()->with('error', __('No tienes permisos para editar mesas'));
+        }
+
+        $request->validate([
+            'descripcion' => 'required|string|max:100',
+            'numero_mesa' => 'required|integer|min:1|max:999'
+        ]);
+
+        try {
+            $mesa = Ficha::findOrFail($mesaUuid);
+
+            // Verificar que es una mesa
+            if ($mesa->tipo != 5 || $mesa->modo != 'mesa') {
+                return redirect()->back()->with('error', __('Esta ficha no es una mesa'));
+            }
+
+            $mesa->update([
+                'descripcion' => $request->descripcion,
+                'numero_mesa' => $request->numero_mesa
+            ]);
+
+            return redirect()->back()->with('success', __('Mesa actualizada correctamente'));
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', __('Error al actualizar la mesa: :error', ['error' => $e->getMessage()]));
+        }
+    }
+
+    /**
+     * Eliminar una mesa (solo si está libre)
+     */
+    public function eliminarMesa($mesaUuid)
+    {
+        // Verificar permisos
+        if (Auth::user()->role_id >= 4) {
+            return redirect()->back()->with('error', __('No tienes permisos para eliminar mesas'));
+        }
+
+        try {
+            $mesa = Ficha::findOrFail($mesaUuid);
+
+            // Verificar que es una mesa
+            if ($mesa->tipo != 5 || $mesa->modo != 'mesa') {
+                return redirect()->back()->with('error', __('Esta ficha no es una mesa'));
+            }
+
+            // Verificar que está libre
+            if ($mesa->estado_mesa != 'libre') {
+                return redirect()->back()->with('error', __('Solo se pueden eliminar mesas en estado libre'));
+            }
+
+            // Verificar que no tiene productos/servicios asociados
+            if ($mesa->productos()->exists() || $mesa->servicios()->exists()) {
+                return redirect()->back()->with('error', __('No se puede eliminar una mesa con consumos registrados'));
+            }
+
+            $mesa->delete();
+
+            return redirect()->back()->with('success', __('Mesa eliminada correctamente'));
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', __('Error al eliminar la mesa: :error', ['error' => $e->getMessage()]));
+        }
+    }
+
+    /**
+     * Reordenar mesas mediante drag & drop
+     */
+    public function reordenarMesas(Request $request)
+    {
+        // Verificar permisos
+        if (Auth::user()->role_id >= 4) {
+            return response()->json(['success' => false, 'message' => __('No tienes permisos para reordenar mesas')], 403);
+        }
+
+        $request->validate([
+            'orden' => 'required|array',
+            'orden.*.uuid' => 'required|string',
+            'orden.*.orden' => 'required|integer|min:1'
+        ]);
+
+        try {
+            DB::beginTransaction();
+            
+            foreach ($request->orden as $item) {
+                Ficha::where('uuid', $item['uuid'])
+                    ->where('tipo', 5)
+                    ->where('modo', 'mesa')
+                    ->update(['orden' => $item['orden']]);
+            }
+            
+            DB::commit();
+            return response()->json(['success' => true, 'message' => __('Orden actualizado correctamente')]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 }

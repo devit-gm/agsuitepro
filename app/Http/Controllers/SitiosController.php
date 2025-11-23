@@ -56,33 +56,148 @@ class SitiosController extends Controller
         return view('sitios.create');
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'dominio' => 'required|string|max:255|unique:sitios,dominio',
+            'logo' => 'required|string|max:255',
+            'logo_nav' => 'nullable|string|max:255',
+            'favicon' => 'nullable|string|max:255',
+            'estilos' => 'nullable|string|max:255',
+            'db_host' => 'required|string|max:255',
+            'db_name' => 'required|string|max:255',
+            'db_user' => 'required|string|max:255',
+            'db_password' => 'required|string|max:255',
+            'mail_mailer' => 'nullable|string|max:255',
+            'mail_host' => 'nullable|string|max:255',
+            'mail_port' => 'nullable|integer',
+            'mail_username' => 'nullable|string|max:255',
+            'mail_password' => 'nullable|string|max:255',
+            'mail_encryption' => 'nullable|string|max:255',
+            'mail_from_address' => 'nullable|email|max:255',
+            'mail_from_name' => 'nullable|string|max:255',
+        ]);
+
+        $sitio = new Site();
+        $sitio->nombre = $request->nombre;
+        $sitio->dominio = $request->dominio;
+        $sitio->ruta_logo = $request->logo;
+        $sitio->ruta_logo_nav = $request->logo_nav;
+        $sitio->favicon = $request->favicon;
+        $sitio->ruta_estilos = $request->estilos;
+        $sitio->db_host = $request->db_host;
+        $sitio->db_name = $request->db_name;
+        $sitio->db_user = $request->db_user;
+        $sitio->db_password = $request->db_password;
+        $sitio->central = $request->has('central') ? 1 : 0;
+        
+        // Configuración de correo
+        $sitio->mail_mailer = $request->mail_mailer;
+        $sitio->mail_host = $request->mail_host;
+        $sitio->mail_port = $request->mail_port;
+        $sitio->mail_username = $request->mail_username;
+        $sitio->mail_password = $request->mail_password;
+        $sitio->mail_encryption = $request->mail_encryption;
+        $sitio->mail_from_address = $request->mail_from_address;
+        $sitio->mail_from_name = $request->mail_from_name;
+        
+        // Configuración de idioma
+        $sitio->locale = $request->locale ?? 'es';
+
+        $sitio->save();
+
+        return redirect()->route('sitios.index')->with('success', __('Sociedad creada correctamente'));
+    }
+
     public function edit($id)
     {
-        $site = Site::find($id);
-        return view('sitios.edit', compact('site'));
+        $sitio = Site::findOrFail($id);
+        return view('sitios.edit', compact('sitio'));
     }
 
     public function update(Request $request, $id)
     {
-        $site = Site::find($id);
-        $site->nombre = $request->nombre;
-        $site->dominio = $request->dominio;
-        $site->ruta_logo = $request->ruta_logo;
-        $site->ruta_logo_nav = $request->ruta_logo_nav;
-        $site->ruta_estilos = $request->ruta_estilos;
-        $site->db_host = $request->db_host;
-        $site->db_name = $request->db_name;
-        $site->db_user = $request->db_user;
-        $site->db_password = $request->db_password;
-        $site->central = $request->central;
-        $site->save();
-        return redirect()->route('sitios.index')->with('success', 'Sitio actualizado con éxito');
+        $sitio = Site::findOrFail($id);
+        
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'dominio' => 'required|string|max:255|unique:sitios,dominio,' . $id,
+            'logo' => 'nullable|string|max:255',
+            'logo_nav' => 'nullable|string|max:255',
+            'favicon' => 'nullable|string|max:255',
+            'estilos' => 'nullable|string|max:255',
+            'db_host' => 'required|string|max:255',
+            'db_name' => 'required|string|max:255',
+            'db_user' => 'required|string|max:255',
+            'db_password' => 'required|string|max:255',
+            'mail_mailer' => 'nullable|string|max:255',
+            'mail_host' => 'nullable|string|max:255',
+            'mail_port' => 'nullable|integer',
+            'mail_username' => 'nullable|string|max:255',
+            'mail_password' => 'nullable|string|max:255',
+            'mail_encryption' => 'nullable|string|max:255',
+            'mail_from_address' => 'nullable|email|max:255',
+            'mail_from_name' => 'nullable|string|max:255',
+        ]);
+
+        $sitio->nombre = $request->nombre;
+        $sitio->dominio = $request->dominio;
+        $sitio->central = $request->has('central') ? 1 : 0;
+        
+        // Actualizar rutas de archivos si se proporcionan
+        if ($request->filled('logo')) {
+            $sitio->ruta_logo = $request->logo;
+        }
+        if ($request->filled('logo_nav')) {
+            $sitio->ruta_logo_nav = $request->logo_nav;
+        }
+        if ($request->filled('favicon')) {
+            $sitio->favicon = $request->favicon;
+        }
+        if ($request->filled('estilos')) {
+            $sitio->ruta_estilos = $request->estilos;
+        }
+        
+        // Configuración de base de datos
+        $sitio->db_host = $request->db_host;
+        $sitio->db_name = $request->db_name;
+        $sitio->db_user = $request->db_user;
+        $sitio->db_password = $request->db_password;
+        
+        // Configuración de correo
+        $sitio->mail_mailer = $request->mail_mailer;
+        $sitio->mail_host = $request->mail_host;
+        $sitio->mail_port = $request->mail_port;
+        $sitio->mail_username = $request->mail_username;
+        $sitio->mail_password = $request->mail_password;
+        $sitio->mail_encryption = $request->mail_encryption;
+        $sitio->mail_from_address = $request->mail_from_address;
+        $sitio->mail_from_name = $request->mail_from_name;
+        
+        // Configuración de idioma
+        $sitio->locale = $request->locale ?? $sitio->locale ?? 'es';
+
+        $sitio->save();
+
+        return redirect()->route('sitios.edit', $id)->with('success', __('Sociedad actualizada correctamente'));
     }
 
     public function destroy($id)
     {
-        $site = Site::find($id);
-        $site->delete();
-        return redirect()->route('sitios.index')->with('success', 'Sitio eliminado con éxito');
+        $sitio = Site::findOrFail($id);
+
+        if ($sitio->borrable != 1) {
+            return redirect()->route('sitios.index')->with('error', __('No se puede eliminar esta sociedad'));
+        }
+
+        // Eliminar logo si existe
+        if ($sitio->ruta_logo && file_exists(public_path($sitio->ruta_logo))) {
+            unlink(public_path($sitio->ruta_logo));
+        }
+
+        $sitio->delete();
+
+        return redirect()->route('sitios.index')->with('success', __('Sociedad eliminada correctamente'));
     }
 }

@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
-            <div class="card flex-fill">
-                <div class="card-header fondo-rojo"><i class="bi bi-tools"></i> Nuevo servicio</div>
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
+                <div class="card-header fondo-rojo"><i class="bi bi-tools"></i> {{ __('Nuevo servicio') }}</div>
 
-                <div class="card-body">
+                <div class="card-body overflow-auto flex-fill">
                     <div class="container-fluid">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
                                 <form id="nuevo-servicio" action="{{ route('servicios.store') }}" method="post">
                                     @csrf
                                     @if ($errors->any())
@@ -23,15 +23,15 @@
                                     </div>
                                     @endif
                                     <div class="form-group required mb-3">
-                                        <label for="nombre" class="fw-bold form-label">Nombre</label>
+                                        <label for="nombre" class="fw-bold form-label">{{ __('Nombre') }}</label>
                                         <input type="text" class="form-control" id="nombre" name="nombre" required>
                                     </div>
                                     <div class="form-group required mb-3">
-                                        <label for="posicion" class="fw-bold form-label">Posición</label>
+                                        <label for="posicion" class="fw-bold form-label">{{ __('Posición') }}</label>
                                         <input type="number" class="form-control" id="posicion" name="posicion" required>
                                     </div>
                                     <div class="form-group required mb-3">
-                                        <label for="precio" class="fw-bold form-label">Precio</label>
+                                        <label for="precio" class="fw-bold form-label">{{ __('Precio') }}</label>
                                         <input type="number" step='0.01' value='0.00' placeholder='0.00' class="form-control" id="precio" name="precio" required>
                                     </div>
                                 </form>

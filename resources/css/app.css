@@ -1,5 +1,17 @@
+/* Define las fuentes locales */
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 400;
+    src: url('/fonts/nunito/Nunito-Regular.ttf') format('truetype');
+}
 
-@import url('https://fonts.bunny.net/css?family=Nunito');
+@font-face {
+    font-family: 'Nunito';
+    font-style: normal;
+    font-weight: 700;
+    src: url('/fonts/nunito/Nunito-Bold.ttf') format('truetype');
+}
 
 
 @import 'variables';
@@ -11,33 +23,43 @@
 .logo-figure {
     width: 42px;
 }
-.fondo-rojo{
+
+.fondo-rojo {
     background-color: #C23334;
-    color:#FFFFFF;
+    color: #FFFFFF;
 }
-.color-rojo{
+
+.color-rojo {
     color: #C23334;
 }
-.color-negro{
+
+.color-negro {
     color: #000000;
 }
-.borde-rojo{
+
+.borde-rojo {
     border-color: #C23334;
 }
+
 .table-image {
-    td, th {
+
+    td,
+    th {
         vertical-align: middle;
     }
 }
-.card-header{
+
+.card-header {
     text-transform: uppercase;
 }
-.nav-link{
+
+.nav-link {
     text-transform: uppercase;
 }
+
 .form-group.required label:after {
-    content:"*";
-    color:red;
+    content: "*";
+    color: red;
 }
 
 .custom-error-container {
@@ -59,16 +81,17 @@
     color: #721c24;
 }
 
-.clickable-row{
+.clickable-row {
     transition: transform 0.3s ease;
 }
 
-table{
+table {
     border-collapse: collapse;
 }
 
 .circulo-izquierda::before {
-    content: ""; /* Agrega el símbolo de check */
+    content: "";
+    /* Agrega el símbolo de check */
     position: absolute;
     top: 0;
     right: 0;
@@ -76,11 +99,12 @@ table{
     height: 30px;
     border-radius: 0 0 0 100px;
     background-color: blue;
-    color: white; /* Color del check */
+    color: white;
+    /* Color del check */
     display: flex;
     align-items: center;
-    justify-content: center; /* Centra el check en el círculo */
-    font-size: 15px; /* Tamaño del check */
-  }
-
-
+    justify-content: center;
+    /* Centra el check en el círculo */
+    font-size: 15px;
+    /* Tamaño del check */
+}

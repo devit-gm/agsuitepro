@@ -34,7 +34,7 @@ class UsuariosController extends Controller
             $site = Site::where('dominio', $domain)->first();
             if ($request->route()->getName() != 'usuarios.edit' && $request->route()->getName() != 'usuarios.update') {
                 if ($usuario->role_id > 2) {
-                    abort(403, 'No tiene acceso a este recurso.');
+                    abort(403, "No tiene acceso a este recurso.");
                 }
             }
 
@@ -89,7 +89,8 @@ class UsuariosController extends Controller
             'email' => $request->email,
             'role_id' => $request->role_id,
             'phone_number' => $request->phone_number,
-            'site_id' => $site->id
+            'site_id' => $site->id,
+            'locale' => $request->locale ?? 'es'
         ]);
 
         //generamos una nueva licencia
@@ -110,13 +111,13 @@ class UsuariosController extends Controller
         Mail::send('emails.license', $data, function ($message) use ($request) {
             $message->to($request->email, $request->name)
                 ->subject('Nueva licencia para ' . siteName());
-            $message->from(env('MAIL_USERNAME'), siteName());
+            // No especificar from() para usar la configuración global de mail.from
         });
 
 
 
         return redirect()->route('usuarios.index')
-            ->with('success', 'Usuario creado con éxito.');
+            ->with('success', __('Usuario creado con éxito.'));
     }
 
     private function generateLicenseKey($length = 16)
@@ -171,7 +172,8 @@ class UsuariosController extends Controller
             'email' => $request->email,
             'role_id' => $request->role_id,
             'phone_number' => $request->phone_number,
-            'password' => $password
+            'password' => $password,
+            'locale' => $request->locale ?? $usuario->locale ?? 'es'
         ]);
         // $to = "+"  . $request->phone_number;
         // $message = "SMS de prueba desde Laravel";
@@ -179,10 +181,10 @@ class UsuariosController extends Controller
         // $sent = $this->twilio->sendSms($to, $message);
         if ($usuario->role_id == 4) {
             return redirect()->route('usuarios.edit', $usuario->id)
-                ->with('success', 'Usuario actualizado con éxito.');
+                ->with('success', __('Usuario actualizado con éxito.'));
         } else {
             return redirect()->route('usuarios.index')
-                ->with('success', 'Usuario actualizado con éxito.');
+                ->with('success', __('Usuario actualizado con éxito.'));
         }
     }
 
@@ -197,7 +199,7 @@ class UsuariosController extends Controller
         }
         $usuario->delete();
         return redirect()->route('usuarios.index')
-            ->with('success', 'Usuario eliminado con éxito');
+            ->with('success', __('Usuario eliminado con éxito'));
     }
 
     /**

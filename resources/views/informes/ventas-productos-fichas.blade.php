@@ -1,0 +1,145 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
+                <div class="card-header fondo-rojo">
+                    <i class="bi bi-box-seam-fill"></i> {{ __('Ventas por Producto') }}
+                </div>
+
+                <div class="card-body overflow-auto flex-fill">
+                    <div class="container-fluid">
+                        <!-- Filtros de fecha -->
+                        <form method="GET" action="{{ route('informes.ventas-productos-fichas') }}" class="mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="fecha_inicial" class="form-label fw-bold">{{ __('Fecha inicial') }}</label>
+                                    <input type="date" class="form-control" id="fecha_inicial" name="fecha_inicial" value="{{ $fechaInicial }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="fecha_final" class="form-label fw-bold">{{ __('Fecha final') }}</label>
+                                    <input type="date" class="form-control" id="fecha_final" name="fecha_final" value="{{ $fechaFinal }}" required>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bi bi-search"></i> {{ __('Buscar') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Resumen -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ __('Total Facturado') }}</h6>
+                                        <h3 class="mb-0">{{ number_format($totalGeneral, 2) }}€</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ __('Productos Vendidos') }}</h6>
+                                        <h3 class="mb-0">{{ $ventasProductos->count() }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ __('Unidades Totales') }}</h6>
+                                        <h3 class="mb-0">{{ number_format($cantidadTotal, 0) }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de productos -->
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>{{ __('Ranking') }}</th>
+                                        <th>{{ __('Producto') }}</th>
+                                        <th>{{ __('Familia') }}</th>
+                                        <th class="text-end">{{ __('Precio Unit.') }}</th>
+                                        <th class="text-center">{{ __('Cantidad') }}</th>
+                                        <th class="text-end">{{ __('Total Vendido') }}</th>
+                                        <th>{{ __('% del Total') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($ventasProductos as $index => $producto)
+                                    <tr>
+                                        <td>
+                                            @if($index === 0)
+                                                <span class="badge fs-6" style="background: linear-gradient(135deg, #FFD700, #FFA500);">
+                                                    <i class="bi bi-trophy-fill"></i> #1
+                                                </span>
+                                            @elseif($index === 1)
+                                                <span class="badge fs-6" style="background: linear-gradient(135deg, #C0C0C0, #A8A8A8);">
+                                                    <i class="bi bi-trophy-fill"></i> #2
+                                                </span>
+                                            @elseif($index === 2)
+                                                <span class="badge fs-6" style="background: linear-gradient(135deg, #CD7F32, #8B4513);">
+                                                    <i class="bi bi-trophy-fill"></i> #3
+                                                </span>
+                                            @else
+                                                <span class="badge bg-secondary fs-6">#{{ $index + 1 }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="fw-bold">{{ $producto->producto }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ $producto->familia }}</span>
+                                        </td>
+                                        <td class="text-end">{{ number_format($producto->precio, 2) }}€</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info fs-6">{{ number_format($producto->cantidad_vendida, 0) }}</span>
+                                        </td>
+                                        <td class="text-end fw-bold text-success">{{ number_format($producto->total_vendido, 2) }}€</td>
+                                        <td>
+                                            @php
+                                                $porcentaje = $totalGeneral > 0 ? ($producto->total_vendido / $totalGeneral) * 100 : 0;
+                                                $colorClass = $index === 0 ? 'bg-warning' : ($index === 1 ? 'bg-secondary' : 'bg-success');
+                                            @endphp
+                                            <div class="progress" style="height: 25px;">
+                                                <div class="progress-bar {{ $colorClass }}" role="progressbar" 
+                                                     style="width: {{ $porcentaje }}%" 
+                                                     aria-valuenow="{{ $porcentaje }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    {{ number_format($porcentaje, 1) }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">
+                                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                            {{ __('No hay datos para el período seleccionado') }}
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="d-flex justify-content-center">
+                        <a href="{{ url()->previous() }}" class="btn btn-secondary">
+                            <i class="bi bi-chevron-left"></i> 
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

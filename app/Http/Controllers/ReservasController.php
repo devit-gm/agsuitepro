@@ -10,52 +10,57 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon; // Add this line to import the Carbon class
 use Ramsey\Uuid\Uuid;
-use Illuminate\Support\Facades\Log; // Add this line to import the Log facade
+use App\Services\FirebaseService;
 
 class ReservasController extends Controller
 {
     public function index()
     {
-        Carbon::setLocale('es');
+        Carbon::setLocale(app()->getLocale());
         $ahora = Carbon::now();
-        $reservas = Reserva::where('start_time', '>', $ahora)->orWhere('end_time', '>', $ahora)
-            ->orWhere(function ($query) use ($ahora) {
-                $query->where('start_time', '<', $ahora)
-                    ->where('end_time', '>', $ahora);
-            })->orderBy('start_time')->get();
-        // ...
-        $meses = array("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre");
+
+        // Obtiene solo las reservas futuras o activas
+        $reservas = Reserva::with('usuario') // evita N+1 en User::find()
+            ->where(function ($q) use ($ahora) {
+                $q->where('start_time', '>', $ahora)
+                  ->orWhere('end_time', '>', $ahora)
+                  ->orWhere(function ($q2) use ($ahora) {
+                      $q2->where('start_time', '<', $ahora)
+                         ->where('end_time', '>', $ahora);
+                  });
+            })
+            ->orderBy('start_time')
+            ->get();
+
+        // Si no hay reservas, devolvemos directamente la vista
+        if ($reservas->isEmpty()) {
+            return view('reservas.index', [
+                'reservas' => $reservas,
+                'errors' => tap(new \Illuminate\Support\MessageBag(), function ($e) {
+                    $e->add('msg', __('No se encontraron reservas para mostrar.'));
+                })
+            ]);
+        }
+
         foreach ($reservas as $reserva) {
-            $date = Carbon::parse($reserva->start_time);
-            $reserva->start_time = $date->format('d/m/Y H:i');
+            // Convertimos solo una vez
+            $start = Carbon::parse($reserva->start_time);
+            $end = Carbon::parse($reserva->end_time);
 
-            $date = Carbon::parse($reserva->end_time);
-            $reserva->end_time = $date->format('d/m/Y H:i');
+            $reserva->start_time = $start->format('d/m/Y H:i');
+            $reserva->end_time = $end->format('d/m/Y H:i');
 
-            $reserva->usuario = User::find($reserva->user_id);
-            // Asegúrate de que `start_time` esté en el formato correcto.
-            $fecha = Carbon::createFromFormat('d/m/Y H:i', $reserva->start_time);
+            // Mes abreviado traducido
+            $reserva->mes = mb_substr($start->translatedFormat('F'), 0, 3);
+            $reserva->dia = $start->format('j');
+            $reserva->hora = $start->format('H:i');
 
-            // Suponiendo que $meses es una matriz con los nombres de los meses en español.
-            $meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-
-            $mes = substr($meses[intval($fecha->format('m')) - 1], 0, 3);
-            $reserva->mes = $mes;
-            $reserva->dia = $fecha->format('j'); // Día sin el 0 inicial
-            $reserva->hora = $fecha->format('H:i'); // Hora y minutos
-            if ($reserva->user_id == Auth::id() || Auth::user()->role_id == 1) {
-                $reserva->borrable = true;
-            } else {
-                $reserva->borrable = false;
-            }
+            // Borrable
+            $reserva->borrable = ($reserva->user_id == Auth::id() || Auth::user()->role_id == 1);
         }
-        $errors = new \Illuminate\Support\MessageBag();
-        if ($reservas == null || count($reservas) == 0) {
-            $errors->add('msg', 'No se encontraron reservas para mostrar.');
-            return view('reservas.index', compact('reservas', 'errors'));
-        } else {
-            return view('reservas.index', compact('reservas'));
-        }
+
+        return view('reservas.index', compact('reservas'));
+
     }
 
     public function create()
@@ -64,7 +69,7 @@ class ReservasController extends Controller
         return view('reservas.create', compact('userId'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, FirebaseService $firebase)
     {
         $request->validate([
             'name' => 'required|max:255',
@@ -95,7 +100,7 @@ class ReservasController extends Controller
         })->exists();
 
         if ($overlappingReservations) {
-            return back()->withErrors(['error' => 'Ya hay una reserva en esas fechas'])->withInput();
+            return back()->withErrors(['error' => __('Ya hay una reserva en esas fechas')])->withInput();
         }
 
         $reserva = Reserva::create([
@@ -106,16 +111,56 @@ class ReservasController extends Controller
             'end_time' => $request->end_time
         ]);
 
-        // Enviar notificación por WhatsApp al cliente
-        try {
-            $whatsAppController = new WhatsAppController(app('App\Services\TwilioService'));
-            $whatsAppController->sendReservaNotification($reserva);
-        } catch (\Exception $e) {
-            Log::error('Error al enviar notificación de WhatsApp: ' . $e->getMessage());
-            // No interrumpimos el flujo si falla el envío de WhatsApp
+        // Enviar notificación a todos los usuarios del sitio activo con token FCM
+        $siteId = app('site')->id;
+        $usuarios = User::where('site_id', $siteId)
+            ->whereNotNull('fcm_token')
+            ->get();
+
+        // Añadir superadmin (role_id = 1) si tiene token FCM y no está ya en la lista
+        $superadmin = User::where('role_id', 1)
+            ->whereNotNull('fcm_token')
+            ->first();
+        
+        if ($superadmin && !$usuarios->contains(function($user) use ($superadmin) {
+            return $user->id === $superadmin->id;
+        })) {
+            $usuarios->push($superadmin);
         }
 
-        return redirect()->route('reservas.index')->with('success', 'Reserva creada con éxito.');
+        $fecha = Carbon::parse($request->start_time)->locale(app()->getLocale());
+        $fechaFormateada = $fecha->isoFormat('D [de] MMMM [a las] HH:mm');
+        
+        // Usar array para evitar enviar a la misma persona dos veces
+        $tokensEnviados = [];
+        
+        foreach ($usuarios as $usuario) {
+            // Evitar duplicados por token
+            if (in_array($usuario->fcm_token, $tokensEnviados)) {
+                continue;
+            }
+            
+            try {
+                $firebase->sendNotification(
+                    $usuario->fcm_token,
+                    'Reservas',
+                    '🛎️ Se ha realizado una nueva reserva',
+                    [
+                        'type' => 'reserva',
+                        'reserva_id' => $reserva->id,
+                        'url' => route('reservas.index')
+                    ]
+                );
+                
+                // Marcar token como enviado
+                $tokensEnviados[] = $usuario->fcm_token;
+            } catch (\Exception $e) {
+                // Log error pero no interrumpir el flujo
+                \Log::warning('Error al enviar notificación FCM: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->route('reservas.index')->with('success', __('Reserva creada con éxito.'));
     }
 
     public function destroy(string $id)
@@ -123,7 +168,7 @@ class ReservasController extends Controller
         $reserva = Reserva::find($id);
         $reserva->delete();
         return redirect()->route('reservas.index')
-            ->with('success', 'Reserva eliminada con éxito');
+            ->with('success', __('Reserva eliminada con éxito'));
     }
 
     public function edit($id)
@@ -165,26 +210,16 @@ class ReservasController extends Controller
         })->where('uuid', '<>', $request->uuid)->exists();
 
         if ($overlappingReservations) {
-            return back()->withErrors(['error' => 'Ya hay una reserva en esas fechas'])->withInput();
+            return back()->withErrors(['error' => __('Ya hay una reserva en esas fechas')])->withInput();
         }
         $reserva = Reserva::where('uuid', $uuid)->first();
         $reserva->update([
-            'uuid' => (string) Uuid::uuid4(),
             'name' => $request->name,
             'user_id' => $request->user_id,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time
         ]);
 
-        // Enviar notificación por WhatsApp al cliente sobre la actualización
-        try {
-            $whatsAppController = new WhatsAppController(app('App\Services\TwilioService'));
-            $whatsAppController->sendReservaNotification($reserva);
-        } catch (\Exception $e) {
-            Log::error('Error al enviar notificación de WhatsApp: ' . $e->getMessage());
-            // No interrumpimos el flujo si falla el envío de WhatsApp
-        }
-
-        return redirect()->route('reservas.index')->with('success', 'Reserva actualizada con éxito.');
+        return redirect()->route('reservas.index')->with('success', __('Reserva actualizada con éxito.'));
     }
 }

@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
-            <div class="card flex-fill">
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
                 <div class="card-header fondo-rojo"><i class="bi bi-key"></i> EDITAR LICENCIA</div>
 
-                <div class="card-body">
+                <div class="card-body overflow-auto flex-fill">
                     <div class="container-fluid">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
                                 <form id="editar-licencia" action="{{ route('licencias.update', $licencia->id) }}" method="post">
                                     @csrf
                                     @method('PUT')
@@ -70,7 +70,7 @@
                             @if(Auth::user()->role_id == 1 ) <a class="btn btn-dark mx-1" href={{ route('licencias.index') }}><i class="bi bi-chevron-left"></i></a>
                             @endif
                             <button onclick="document.getElementById('editar-licencia').submit();" type="button" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
-                            @if ($licencia->borrable == 1 && Auth::user()->role_id == 1) @csrf @method('DELETE') <button type="submit" class="btn btn-danger mx-1 my-1" title="Eliminar licencia" onclick="return confirm('¿Está seguro de eliminar la licencia?');"><i class="bi bi-trash"></i></button>
+                            @if ($licencia->borrable == 1 && Auth::user()->role_id == 1) @csrf @method('DELETE') <button type="submit" class="btn btn-danger mx-1 my-1" title="Eliminar licencia" onclick="return confirm('{{ __('¿Está seguro de eliminar la licencia?') }}');"><i class="bi bi-trash"></i></button>
                             @endif
                         </div>
                     </form>

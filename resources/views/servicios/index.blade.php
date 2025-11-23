@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
-            <div class="card flex-fill">
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
                 <div class="card-header fondo-rojo"><i class="bi bi-tools"></i> {{ __('Services') }}</div>
 
-                <div class="card-body">
+                <div class="card-body overflow-auto flex-fill">
                     <div class="container-fluid">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
                                 @if ($errors->any())
                                 <div class="custom-error-container" id="custom-error-container">
                                     <ul class="custom-error-list">
@@ -32,13 +32,13 @@
                                     <thead>
                                         <tr class="">
                                             <th scope="col-auto text-center" style="width: 90px; text-align:center">#</th>
-                                            <th scope="col-auto">Nombre</th>
-                                            <th scope="col-auto">Precio</th>
+                                            <th scope="col-auto">{{ __('Nombre') }}</th>
+                                            <th scope="col-auto">{{ __('Precio') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach ($servicios as $servicio)
-                                        <tr class="clickable-row" data-href="{{ route('servicios.edit', $servicio->uuid) }}" data-hrefborrar="{{ route('servicios.destroy', $servicio->uuid) }}" data-textoborrar="¿Está seguro de eliminar el servicio?" data-borrable="{{$servicio->borrable}}">
+                                        <tr class="clickable-row" data-href="{{ route('servicios.edit', $servicio->uuid) }}" data-hrefborrar="{{ route('servicios.destroy', $servicio->uuid) }}" data-textoborrar="{{ __('¿Está seguro de eliminar el servicio?') }}" data-borrable="{{$servicio->borrable}}">
                                             <td class="align-middle">
                                                 <div class="fondo-calendario">
                                                     <p style="padding-top:22px">

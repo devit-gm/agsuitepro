@@ -19,6 +19,515 @@
     <!-- Scripts -->
     <link rel="stylesheet" href="{{ siteStyles() }}">
     <script src="{{ asset('js/app.js') }}" defer></script>
+    
+    @stack('styles')
+    
+    <style>
+        /* Estilos para el grid de mesas */
+        .mesas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .mesa-card {
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .mesa-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .mesa-card.libre {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .mesa-card.ocupada {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .mesa-card.cerrada {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .mesa-numero {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .mesa-descripcion {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .mesa-info {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .mesa-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .mesa-precio {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* Estilos para los botones de acción */
+        .btn-mesa-action {
+            margin: 5px;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: bold;
+        }
+
+        /* Estilos para el modal de resumen */
+        .resumen-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .resumen-item:last-child {
+            border-bottom: none;
+        }
+
+        .resumen-total {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #333;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .mesas-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .mesa-numero {
+                font-size: 2rem;
+            }
+
+            .mesa-precio {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Estilos adicionales para mejorar la UI */
+        .main-content {
+            min-height: calc(100vh - 240px);
+            padding-bottom: 20px;
+        }
+        
+        body {
+            padding-bottom: 40px;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-figure {
+            max-height: 40px;
+            width: auto;
+        }
+
+        /* Estilos para el menú de usuario */
+        .navbar-nav .nav-link {
+            border-radius: 8px;
+            margin: 0 5px;
+            padding: 8px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Mostrar flechas en dropdowns de menú (GESTIÓN, INFORMES) */
+        .navbar-nav .dropdown-toggle::after {
+            margin-left: 0.5em;
+            vertical-align: 0.15em;
+        }
+
+        /* Ocultar flecha solo en el menú de usuario */
+        .navbar-nav .dropdown:last-child .dropdown-toggle::after {
+            display: none;
+        }
+
+        /* Estilo circular solo para el menú de usuario */
+        .navbar-nav .dropdown:last-child #navbarDropdown {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            padding: 0;
+        }
+
+        /* Estilos para cards mejorados */
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            border-radius: 15px 15px 0 0 !important;
+            font-weight: bold;
+            padding: 15px 20px;
+        }
+
+        .card-footer {
+            padding: 0.5rem 1rem;
+        }
+
+        /* Estilos para botones */
+        .btn {
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Estilos para badges */
+        .badge {
+            border-radius: 8px;
+            padding: 5px 10px;
+            font-weight: 600;
+        }
+
+        /* Estilos para tablas */
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+            transform: scale(1.01);
+        }
+
+        /* Estilos para formularios */
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Estilos para alertas */
+        .alert {
+            border-radius: 10px;
+            border: none;
+            padding: 15px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mejoras para el navbar brand */
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.05);
+        }
+
+        /* Estilos para dropdowns */
+        .dropdown-menu {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 10px;
+        }
+
+        .dropdown-item {
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin: 2px 0;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover,
+        .dropdown-item.active {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .dropdown-divider {
+            margin: 10px 0;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        /* Estilos para modales */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            border-radius: 15px 15px 0 0;
+            border-bottom: 2px solid #e0e0e0;
+            padding: 20px;
+        }
+
+        .modal-footer {
+            border-top: 2px solid #e0e0e0;
+            padding: 20px;
+        }
+
+        /* Progress bars */
+        .progress {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            transition: width 0.6s ease;
+        }
+
+        /* Estilos para el footer */
+        footer {
+            margin-top: 0;
+            margin-bottom: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 15px 15px 0 0;
+            min-height: auto;
+            height: auto;
+            position: relative;
+        }
+        
+        footer .card-footer {
+            min-height: 80px;
+            height: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 0;
+        }
+
+        /* Estilos específicos para vista de mesas */
+        .mesa-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .mesa-camarero {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        .mesa-tiempo {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Ajustes responsive para navbar */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1rem;
+            }
+
+            .logo-figure {
+                max-height: 30px;
+            }
+
+            .navbar-nav .nav-link {
+                margin: 5px 0;
+            }
+        }
+
+
+
+        /* Estilos adicionales para navbar brand mejorado */
+        .brand-enhanced {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .brand-enhanced:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+        .brand-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-name {
+            color: white;
+            font-weight: 600;
+            font-size: 1.25rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Mejorar el navbar en modo oscuro/rojo */
+        .navbar.fondo-rojo {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar.fondo-rojo .navbar-brand {
+            color: white !important;
+        }
+
+        .navbar.fondo-rojo .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+        }
+
+        .navbar.fondo-rojo .nav-link:hover,
+        .navbar.fondo-rojo .nav-link.active {
+            color: white !important;
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .navbar.fondo-rojo .dropdown-menu {
+            background-color: white;
+        }
+
+        .navbar.fondo-rojo .dropdown-item {
+            color: #333;
+        }
+
+        .navbar.fondo-rojo .dropdown-item:hover,
+        .navbar.fondo-rojo .dropdown-item.active {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Estilos para el icono del usuario en navbar - solo último elemento */
+        .navbar.fondo-rojo .navbar-nav.ms-auto .nav-item:last-child #navbarDropdown {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 0;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            margin:5px;
+        }
+
+        .navbar.fondo-rojo .navbar-nav.ms-auto .nav-item:last-child #navbarDropdown:hover {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: white;
+        }
+
+        /* Toggler mejorado */
+        .navbar-toggler {
+            border-color: rgba(255, 255, 255, 0.3);
+            padding: 0.5rem 0.75rem;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.9)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+    </style>
 </head>
 
 <body>
@@ -30,54 +539,104 @@
     @else
     <nav class="navbar navbar-expand-md navbar-dark shadow-sm fondo-rojo">
         <div class="container col-md-10 col-sm-12 col-lg-8">
-            <a class="navbar-brand" href="{{ url('/') }}">
-                <img src="{{ siteLogoNav() }}" class="img-fluid logo-figure" alt="{{ siteName() }}"> {{ siteName() }}
+            @php
+                $ajustesLogo = \App\Models\Ajustes::first();
+                $logoUrl = ($ajustesLogo && $ajustesLogo->modo_operacion === 'mesas') ? url('/mesas') : url('/');
+            @endphp
+            <a class="navbar-brand brand-enhanced" href="{{ $logoUrl }}">
+                <div class="brand-wrapper">
+                    <img src="{{ siteLogoNav() }}" class="img-fluid logo-figure" alt="{{ siteName() }}">
+                    <span class="brand-name">{{ siteName() }}</span>
+                </div>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            @php
+                $ajustesNav = \App\Models\Ajustes::first();
+                $modoOperacionNav = $ajustesNav->modo_operacion ?? 'fichas';
+                $esUsuarioMesas = (Auth::user()->role_id == 4 && $modoOperacionNav === 'mesas');
+            @endphp
+            
+            @if($esUsuarioMesas)
+                <!-- Usuario tipo 4 en modo mesas: botón directo a mesas -->
+                <a href="{{ url('/mesas') }}" class="btn btn-outline-light ms-auto d-md-none">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                </a>
+            @else
+                <!-- Menú normal con toggler -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            @endif
 
+            @if(!$esUsuarioMesas)
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <!-- Left Side Of Navbar -->
                 <ul class="navbar-nav me-auto ">
                     @if (app('site')->central == 0)
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('fichas.*') || Request::is('/') ? 'active' : '' }}" href="{{ url('') }}">{{ __('Tokens') }}</a>
-                    </li>
-                    @if (Auth::user()->role_id < 4) <li class="nav-item dropdown">
+                    @php
+                        $modoOperacionMenu = \App\Models\Ajustes::first()->modo_operacion ?? 'fichas';
+                    @endphp
+                    
+                    @if($modoOperacionMenu === 'mesas')
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('mesas.*') || Request::is('/') || Request::is('mesas') ? 'active' : '' }}" href="{{ url('/mesas') }}">
+                                {{ __('Mesas') }}
+                            </a>
+                        </li>
+                    @else
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('fichas.*') || Request::is('/') ? 'active' : '' }}" href="{{ url('') }}">{{ __('Tokens') }}</a>
+                        </li>
+                    @endif
+                    
+                    @if (Auth::user()->role_id < 4)
+                    <li class="nav-item dropdown">
                         <a id="navbarDropdown" class="nav-link dropdown-toggle {{ (request()->routeIs('usuarios.*') || request()->routeIs('familias.*') || request()->routeIs('productos.*') || request()->routeIs('servicios.*')) ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                             GESTIÓN
                         </a>
                         <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            @if (Auth::user()->role_id < 4) <a class="dropdown-item {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ url('/usuarios') }}">USUARIOS</a>
-                                @endif
-                                <a class="dropdown-item {{ request()->routeIs('familias.*') ? 'active' : '' }}" href="{{ url('/familias') }}">FAMILIAS</a>
-
-                                <a class="dropdown-item {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ url('/productos') }}">PRODUCTOS</a>
-
-                                <a class="dropdown-item {{ request()->routeIs('servicios.*') ? 'active' : '' }}" href="{{ url('/servicios') }}">SERVICIOS</a>
+                            <a class="dropdown-item {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ url('/usuarios') }}">USUARIOS</a>
+                            <a class="dropdown-item {{ request()->routeIs('familias.*') ? 'active' : '' }}" href="{{ url('/familias') }}">FAMILIAS</a>
+                            <a class="dropdown-item {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ url('/productos') }}">PRODUCTOS</a>
+                            <a class="dropdown-item {{ request()->routeIs('servicios.*') ? 'active' : '' }}" href="{{ url('/servicios') }}">SERVICIOS</a>
                         </div>
-                        </li>
-                        @endif
+                    </li>
 
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('reservas.*') ? 'active' : '' }}" href="{{ url('/reservas') }}">{{ __('Bookings') }}</a>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a id="navbarDropdown" class="nav-link dropdown-toggle {{ request()->routeIs('informes.*') || request()->routeIs('facturacion.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                            {{ __('INFORMES') }}
+                        </a>
 
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('reservas.*') ? 'active' : '' }}" href="{{ url('/reservas') }}">{{ __('Bookings') }}</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a id="navbarDropdown" class="nav-link dropdown-toggle {{ request()->routeIs('informes.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                INFORMES
-                            </a>
-
-                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-
-                                <a class="dropdown-item {{ request()->routeIs('informes.*') ? 'active' : '' }}" href="{{ url('/informes') }}">BALANCE POR SOCIO</a>
-                            </div>
-                        </li>
-                        @if (Auth::user()->role_id < 4) <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('ajustes.*') ? 'active' : '' }}" href="{{ url('/ajustes') }}">{{ __('Settings') }}</a>
-                            </li>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item {{ request()->routeIs('facturacion.*') ? 'active' : '' }}" href="{{ url('/facturacion') }}">{{ __('FACTURACIÓN') }}</a>
+                            
+                            @php
+                                $ajustes = \App\Models\Ajustes::first();
+                                $modoOperacion = $ajustes->modo_operacion ?? 'fichas';
+                            @endphp
+                            
+                            @if($modoOperacion !== 'mesas')
+                                <a class="dropdown-item {{ request()->routeIs('informes.index') || request()->routeIs('informes.balance') ? 'active' : '' }}" href="{{ url('/informes') }}">{{ __('BALANCE POR SOCIO') }}</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item {{ request()->routeIs('informes.ventas-productos-fichas') ? 'active' : '' }}" href="{{ route('informes.ventas-productos-fichas') }}">{{ strtoupper(__('Ventas por Producto')) }}</a>
+                                <a class="dropdown-item {{ request()->routeIs('informes.ventas-socios') ? 'active' : '' }}" href="{{ route('informes.ventas-socios') }}">{{ strtoupper(__('Ventas por Socio')) }}</a>
+                                <a class="dropdown-item {{ request()->routeIs('informes.evolucion-temporal') ? 'active' : '' }}" href="{{ route('informes.evolucion-temporal') }}">{{ strtoupper(__('Evolución Temporal')) }}</a>
+                            @else
+                                <a class="dropdown-item {{ request()->routeIs('informes.ventas-productos') ? 'active' : '' }}" href="{{ route('informes.ventas-productos') }}">{{ strtoupper(__('Ventas por Producto')) }}</a>
+                                <a class="dropdown-item {{ request()->routeIs('informes.ventas-camareros') ? 'active' : '' }}" href="{{ route('informes.ventas-camareros') }}">{{ strtoupper(__('Ventas por Camarero')) }}</a>
+                                <a class="dropdown-item {{ request()->routeIs('informes.ocupacion-mesas') ? 'active' : '' }}" href="{{ route('informes.ocupacion-mesas') }}">{{ strtoupper(__('Ocupacion de Mesas')) }}</a>
+                                <a class="dropdown-item {{ request()->routeIs('informes.horas-pico') ? 'active' : '' }}" href="{{ route('informes.horas-pico') }}">{{ strtoupper(__('Horas Pico')) }}</a>
                             @endif
+                        </div>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('ajustes.*') ? 'active' : '' }}" href="{{ url('/ajustes') }}">{{ __('Settings') }}</a>
+                    </li>
+                    @endif
 
                             @else
                             <li class="nav-item">
@@ -91,7 +650,7 @@
                 </ul>
 
                 <!-- Right Side Of Navbar -->
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto" style="margin-right: 20px;">
                     <!-- Authentication Links -->
                     <li class="nav-item dropdown">
                         <a id="navbarDropdown" class="nav-link dropdown-toggle {{ request()->routeIs('usuarios.edit') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
@@ -102,6 +661,10 @@
 
                             <a class="dropdown-item {{ request()->routeIs('usuarios.edit') ? 'active' : '' }}" href="{{ route('usuarios.edit', Auth::id()) }}">
                                 MI CUENTA
+                            </a>
+
+                            <a class="dropdown-item {{ request()->routeIs('contacto.*') ? 'active' : '' }}" href="{{ route('contacto.index') }}">
+                                CONTACTO
                             </a>
 
                             <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault();
@@ -116,6 +679,7 @@
                     </li>
                 </ul>
             </div>
+            @endif
         </div>
     </nav>
 
@@ -131,12 +695,100 @@
         </form>
     </main>
 
-    <footer class="card flex-fill">
+    <footer class="card">
         @yield('footer')
     </footer>
     @endguest
-
-
+        <!-- Service Worker Registration (solo en HTTPS) --> 
+        @if(request()-> secure()) 
+<script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/firebase-messaging-sw.js').then(registration => {
+                        console.log('SW Firebase registrado:', registration.scope);
+                        requestNotificationPermission();
+                    }).catch(error => console.log('Error SW:', error));
+                });
+            } async function requestNotificationPermission() {
+            if (!('Notification' in window)) return;
+            if (Notification.permission === 'granted') {
+                await getFCMToken();
+                return;
+            }
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                await getFCMToken();
+            }
+        }
+        async function getFCMToken() {
+                const registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
+                const {
+                    getMessaging,
+                    getToken,
+                    onMessage
+                } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js');
+                const {
+                    initializeApp
+                } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+                const app = initializeApp({
+                    apiKey: "AIzaSyAKDn17J0jzjYrQFCGF7WRN6Lt4AW4n7PA",
+                    authDomain: "go-mezzix.firebaseapp.com",
+                    projectId: "go-mezzix",
+                    storageBucket: "go-mezzix.firebasestorage.app",
+                    messagingSenderId: "234995051320",
+                    appId: "1:234995051320:web:f32c705f863362b936afcd"
+                });
+                const messaging = getMessaging(app);
+                const token = await getToken(messaging, {
+                    vapidKey: 'BBOSRefR0aGaqbaUf5i7VuTTAyfD7Rh9-v-6NPXBg-S48EhOkDojSO0RiE-UJ8D0KlhrwER44pwhZ8zBz0Chdfk',
+                    serviceWorkerRegistration: registration
+                });
+                if (token) {
+                    console.log("TOKEN:", token);
+                    await saveTokenToServer(token);
+                } // Recibir notificaciones en primer plano 
+                onMessage(messaging, async (payload) => {
+                        console.log("Mensaje en foreground:", payload);
+                        const title = payload.data?.title ?? payload.notification?.title;
+                        const body = payload.data?.body ?? payload.notification?.body;
+                        const data = payload.data; // Si es iOS PWA → el SW debe mostrar la notificación 
+                        const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+                        const isPWA = window.navigator.standalone === true;
+                        if (isIOS && isPWA) {
+                            const reg = await navigator.serviceWorker.ready;
+                            reg.showNotification(title, {
+                                body: body,
+                                icon: '/images/icons/icon-192x192.png',
+                                badge: '/images/icons/icon-72x72.png',
+                                data: data
+                            });
+                            return;
+                        } 
+                        // // Resto navegadores → Notification API // 
+                        if (Notification.permission === 'granted') {
+                            // new Notification(title, { 
+                            // body: body, 
+                            // icon: '/images/icons/icon-192x192.png', 
+                            // badge: '/images/icons/icon-72x72.png', 
+                            // data: data 
+                            // }); 
+                             } 
+                        });
+                }
+                async function saveTokenToServer(token) {
+                        await fetch('/api/save-fcm-token', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                token
+                            })
+                        });
+                    } 
+          </script> 
+                @endif
     <script>
         function triggerParentClick(event, tdElement) {
             event.stopPropagation();
@@ -153,6 +805,8 @@
         }
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    
+    @stack('scripts')
 </body>
 
 </html>

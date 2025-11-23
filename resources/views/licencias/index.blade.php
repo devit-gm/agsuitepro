@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
-            <div class="card flex-fill">
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
                 <div class="card-header fondo-rojo"><i class="bi bi-key"></i> LICENCIAS</div>
-                <div class="card-body">
+                <div class="card-body overflow-auto flex-fill">
                     <div class="container-fluid">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
                                 <form id="realizar-busqueda" action="{{ route('licencias.index') }}" method="post">
                                     @csrf
                                     @method('PUT')
@@ -63,10 +63,18 @@
                                         </thead>
                                         <tbody>
                                             @foreach ($licenses as $license)
-                                            <tr class="clickable-row" data-href="{{ route('licencias.edit', $license->id) }}" data-hrefborrar="{{ route('licencias.destroy', $license->id) }}" data-textoborrar="¿Está seguro de eliminar la licencia?" data-borrable="{{$license->borrable}}">
-                                                <td class="align-middle"><img width="80" alt="{{ $site->nombre }}" class="img-fluid rounded img-responsive" src="{{ URL::to('/') }}/{{ $license->site->ruta_logo }}" /></td>
+                                            <tr class="clickable-row" data-href="{{ route('licencias.edit', $license->id) }}" data-hrefborrar="{{ route('licencias.destroy', $license->id) }}" data-textoborrar="{{ __('¿Está seguro de eliminar la licencia?') }}" data-borrable="{{$license->borrable}}">
+                                                <td class="align-middle"><img width="80" height="80" alt="{{ $site->nombre }}" class="img-fluid rounded img-responsive" src="{{ URL::to('/') }}/{{ $license->site->ruta_logo }}" /></td>
                                                 <td class="align-middle">{{ $license->user->name }}</td>
-                                                <td class="align-middle text-center">{!! $license->estado !!}</td>
+                                                <td class="align-middle text-center">
+                                                    @if(strpos($license->estado, 'success') !== false)
+                                                        <i class="bi bi-check-circle-fill text-success" style="font-size: 1.5rem;" title="{{ __('Activa') }}"></i>
+                                                    @elseif(strpos($license->estado, 'danger') !== false)
+                                                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 1.5rem;" title="{{ __('Caducada') }}"></i>
+                                                    @else
+                                                        <i class="bi bi-clock-fill text-secondary" style="font-size: 1.5rem;" title="{{ __('Inactiva') }}"></i>
+                                                    @endif
+                                                </td>
                                             </tr>
                                             @endforeach
                                         </tbody>

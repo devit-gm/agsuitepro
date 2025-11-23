@@ -1,22 +1,22 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
-            <div class="card flex-fill">
-                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> FICHA - Servicios</div>
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+            <div class="card flex-fill d-flex flex-column">
+                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> {{ $ajustes->modo_operacion === 'mesas' ? __("MESA") . ' ' . $ficha->numero_mesa . ' - ' . __("Servicios") : __("FICHA - Servicios") }}</div>
 
-                <div class="card-body">
+                <div class="card-body overflow-auto flex-fill">
                     <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
                         <button class="btn btn-lg btn-light border border-dark">{{number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i></button>
                     </div>
                     <div class="container-fluid mt-3">
                         <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-8 col-lg-10">
+                            <div class="col-12 col-md-12 col-lg-12">
 
 
-                                <form id='editar-serviciosficha' action="{{ route('fichas.updateservicios', $ficha->uuid) }}" method="post">
+                                <form id='editar-serviciosficha' action="{{ fichaRoute('updateservicios', $ficha->uuid) }}" method="post">
                                     @csrf
                                     @method('PUT')
                                     <div class="container mt-3">
@@ -37,46 +37,114 @@
                                                 </ul>
                                             </div>
                                             @endif
-                                            <table class="table table-bordered table-responsive table-hover">
-                                                <thead>
-                                                    <tr class="">
-                                                        <th scope="col-auto">Servicio</th>
-                                                        <th scope="col-auto">Precio</th>
-                                                        @if($ficha->estado == 0)
-                                                        <th scope="col-auto">Añadir</th>
-                                                        @endif
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($serviciosFicha as $servicio)
-                                                    @if($servicio->marcado == 0 && $ficha->estado == 1)
-                                                    @php
-                                                    $ocultar = "d-none";
-                                                    @endphp
-                                                    @else
-                                                    @php
-                                                    $ocultar = "";
-                                                    @endphp
-                                                    @endif
-                                                    <tr class="{{$ocultar}}" style="height: 80px;">
-                                                        <td class="align-middle">
-                                                            {{ $servicio->nombre }}
-                                                        </td>
+                                            <style>
+    /* ---- TABLA SERVICIOS (ESTILO MINIMALISTA) ---- */
 
-                                                        <td class="align-middle">
-                                                            {{ number_format($servicio->precio,2) }} <i class="bi bi-currency-euro">
-                                                        </td>
-                                                        @if($ficha->estado == 0)
-                                                        <td class="align-middle col-md-4">
-                                                            <div class="form-check form-switch">
-                                                                <input class="form-check-input" type="checkbox" role="switch" name="servicios[]" value="{{ $servicio->uuid }}" id="servicios[]" @if($servicio->marcado == 1) checked @endif @if($ficha->estado == 1) disabled @endif>
-                                                            </div>
-                                                        </td>
-                                                        @endif
-                                                    </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
+    .tabla-servicios {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 6px;
+        font-size: 0.95rem;
+        padding:0px;
+    }
+
+    .tabla-servicios thead th {
+        background: #f7f7f7;
+        padding: 12px;
+        font-weight: 600;
+        border-bottom: 2px solid #e5e5e5;
+        text-align: center;
+    }
+
+    .tabla-servicios tbody tr {
+        background: #ffffff;
+        border-radius: 8px;
+        transition: background 0.2s ease;
+        height: 80px;
+    }
+
+    .tabla-servicios tbody tr:hover {
+        background: #f4f7ff;
+    }
+
+    .tabla-servicios td {
+        padding: 16px;
+        vertical-align: middle;
+        border-top: 1px solid #efefef;
+        font-size:18px;
+    }
+
+    .tabla-servicios td:first-child {
+        border-left: 1px solid #efefef;
+        border-radius: 8px 0 0 8px;
+    }
+
+    .tabla-servicios td:last-child {
+        border-right: 1px solid #efefef;
+        border-radius: 0 8px 8px 0;
+    }
+
+    /* ---- SWITCH ---- */
+    .tabla-servicios .form-check-input {
+        cursor: pointer;
+        transform: scale(1.3);
+    }
+</style>
+
+
+<table class="tabla-servicios table-responsive">
+    <thead>
+        <tr>
+            <th class="text-start">{{ __('Servicio') }}</th>
+            <th>{{ __('Precio') }}</th>
+
+            @if($ficha->estado == 0)
+                <th>{{ __('Añadir') }}</th>
+            @endif
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach ($serviciosFicha as $servicio)
+
+        @php
+            $ocultar = ($servicio->marcado == 0 && $ficha->estado == 1) ? "d-none" : "";
+        @endphp
+
+        <tr class="{{ $ocultar }}">
+
+            <!-- Nombre -->
+            <td class="align-middle">
+                {{ $servicio->nombre }}
+            </td>
+
+            <!-- Precio -->
+            <td class="align-middle text-center">
+                {{ number_format($servicio->precio,2) }} <i class="bi bi-currency-euro"></i>
+            </td>
+
+            <!-- Switch -->
+            @if($ficha->estado == 0)
+            <td class="align-middle text-center">
+                <div class="form-check form-switch d-flex justify-content-center">
+                    <input 
+                        class="form-check-input"
+                        type="checkbox"
+                        role="switch"
+                        name="servicios[]"
+                        value="{{ $servicio->uuid }}"
+                        @if($servicio->marcado == 1) checked @endif
+                        @if($ficha->estado == 1) disabled @endif
+                    >
+                </div>
+            </td>
+            @endif
+
+        </tr>
+        @endforeach
+    </tbody>
+</table>
+
                                         </div>
                                     </div>
                                 </form>
@@ -96,11 +164,23 @@
 <div class="card-footer">
     <form>
         <div class="d-flex align-items-center justify-content-center">
-            <a class="btn btn-dark mx-1" href={{ route('fichas.usuarios', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+            @if(!isset($ajustes->modo_operacion) || $ajustes->modo_operacion == 'fichas' || (isset($ajustes->mostrar_usuarios) && $ajustes->mostrar_usuarios == 1))
+            <a class="btn btn-dark mx-1" href={{ fichaRoute('usuarios', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+            @else
+            <a class="btn btn-dark mx-1" href={{ fichaRoute('lista', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+            @endif
             @if($ficha->estado == 0)
             <button type="button" onclick="document.getElementById('editar-serviciosficha').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
             @endif
-            <a class="btn btn-dark mx-1" href={{ route('fichas.gastos', $ficha->uuid) }}><i class="bi bi-chevron-right"></i></a>
+            @php
+                $siguienteRuta = route('fichas.resumen', $ficha->uuid);
+                if (!isset($ajustes->modo_operacion) || $ajustes->modo_operacion == 'fichas') {
+                    if (!isset($ajustes->mostrar_gastos) || $ajustes->mostrar_gastos == 1) {
+                        $siguienteRuta = route('fichas.gastos', $ficha->uuid);
+                    }
+                }
+            @endphp
+            <a class="btn btn-dark mx-1" href="{{ $siguienteRuta }}"><i class="bi bi-chevron-right"></i></a>
         </div>
     </form>
 </div>

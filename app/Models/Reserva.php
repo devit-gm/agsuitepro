@@ -21,4 +21,11 @@ class Reserva extends Model
         'start_time',
         'end_time'
     ];
+
+    public function usuario()
+{
+    return $this->belongsTo(User::class, 'user_id');
+}
+
+    
 }

@@ -22,9 +22,9 @@ class SmsController extends Controller
         $sent = $this->twilio->sendSms($to, $message);
 
         if ($sent) {
-            return response()->json(['success' => 'SMS enviado exitosamente.']);
+            return response()->json(['success' => __('SMS enviado exitosamente.')]);
         } else {
-            return response()->json(['error' => 'Error al enviar SMS.'], 500);
+            return response()->json(['error' => __('Error al enviar SMS.')], 500);
         }
     }
 }

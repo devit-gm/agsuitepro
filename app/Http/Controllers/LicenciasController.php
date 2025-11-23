@@ -52,7 +52,7 @@ class LicenciasController extends Controller
             }
             $errors = new \Illuminate\Support\MessageBag();
             if ($licenses->isEmpty()) {
-                $errors->add('msg', 'No se encontraron licencias');
+                $errors->add('msg', __('No se encontraron licencias'));
             } else {
                 foreach ($licenses as $license) {
                     $license->site = Site::find($license->site_id);
@@ -105,14 +105,14 @@ class LicenciasController extends Controller
 
         $license = License::find($id);
         $license->update($request->all());
-        return redirect()->route('licencias.index')->with('success', 'Licencia actualizada con éxito');
+        return redirect()->route('licencias.index')->with('success', __('Licencia actualizada con éxito'));
     }
 
     public function destroy($id)
     {
         $license = License::find($id);
         $license->delete();
-        return redirect()->route('licencias.index')->with('success', 'Licencia eliminada con éxito');
+        return redirect()->route('licencias.index')->with('success', __('Licencia eliminada con éxito'));
     }
 
     public function error(Request $request)
@@ -133,7 +133,7 @@ class LicenciasController extends Controller
                 return $this->checkDomain($request);
             } else {
                 $errors = new \Illuminate\Support\MessageBag();
-                $errors->add('msg', 'La licencia introducida no es válida');
+                $errors->add('msg', __('La licencia introducida no es válida'));
                 return view('licencias.error', compact('errors'));
             }
         }

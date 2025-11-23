@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Optimización de Imágenes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .image-test {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px dashed #ddd;
+        }
+
+        .image-test img {
+            max-width: 200px;
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🚀 Test de Optimización de Imágenes</h1>
+
+    <div class="test-section">
+        <h2>1. Verificar Headers de Caché</h2>
+        <div class="info">
+            <strong>Instrucciones:</strong>
+            <ol>
+                <li>Abre las DevTools del navegador (F12)</li>
+                <li>Ve a la pestaña "Network" (Red)</li>
+                <li>Recarga esta página</li>
+                <li>Haz clic en cualquier imagen</li>
+                <li>Busca en "Response Headers" los siguientes valores:</li>
+            </ol>
+            <ul>
+                <li><code>Cache-Control: public, max-age=31536000, immutable</code></li>
+                <li><code>Expires:</code> (debería mostrar una fecha de 1 año en el futuro)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test de Lazy Loading</h2>
+        <div class="info">
+            <strong>Instrucciones:</strong>
+            <ol>
+                <li>Abre las DevTools (F12) → Network</li>
+                <li>Mantén el scroll arriba (no bajes)</li>
+                <li>Las imágenes de abajo NO deben aparecer en Network</li>
+                <li>Haz scroll hacia abajo</li>
+                <li>Las imágenes deben cargarse SOLO cuando sean visibles</li>
+            </ol>
+        </div>
+
+        <div class="image-test">
+            <p><strong>Imagen 1 (visible al cargar - debe cargarse inmediatamente):</strong></p>
+            <img src="/images/logo.png" alt="Logo" loading="eager">
+        </div>
+
+        <div
+            style="height: 1500px; background: linear-gradient(to bottom, #f0f0f0, #e0e0e0); display: flex; align-items: center; justify-content: center;">
+            <p style="font-size: 24px; color: #666;">
+                ⬇️ Haz scroll para ver el lazy loading en acción ⬇️
+            </p>
+        </div>
+
+        <div class="image-test">
+            <p><strong>Imagen 2 (lazy loading - debe cargarse solo al hacer scroll):</strong></p>
+            <img src="/images/logo-nav.png" alt="Logo Nav" loading="lazy" decoding="async">
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test de Cache Busting</h2>
+        <div class="info">
+            <strong>Instrucciones:</strong>
+            <ol>
+                <li>Mira el código fuente de cualquier imagen en la aplicación</li>
+                <li>Debe tener un parámetro <code>?v=timestamp</code> en la URL</li>
+                <li>Ejemplo: <code>/images/producto.jpg?v=1700745123</code></li>
+            </ol>
+        </div>
+        <div id="cache-busting-test"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test de Compresión GZIP</h2>
+        <div class="info">
+            <strong>Instrucciones:</strong>
+            <ol>
+                <li>Abre DevTools → Network</li>
+                <li>Recarga la página</li>
+                <li>Haz clic en cualquier recurso CSS o JS</li>
+                <li>En "Response Headers" busca: <code>Content-Encoding: gzip</code></li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Resultados Esperados</h2>
+        <div class="success">
+            <strong>✅ Si todo funciona correctamente:</strong>
+            <ul>
+                <li>Las imágenes tienen <code>Cache-Control</code> con max-age de 1 año</li>
+                <li>Las imágenes fuera de vista NO se cargan hasta hacer scroll</li>
+                <li>Las URLs de imágenes incluyen parámetro <code>?v=timestamp</code></li>
+                <li>Los archivos CSS/JS tienen <code>Content-Encoding: gzip</code></li>
+                <li>Segunda carga de página es MUY rápida (recursos en caché)</li>
+            </ul>
+        </div>
+
+        <div class="error">
+            <strong>❌ Posibles problemas:</strong>
+            <ul>
+                <li><strong>No hay Cache-Control:</strong> Verifica que mod_expires esté activo en Apache</li>
+                <li><strong>No hay GZIP:</strong> Verifica que mod_deflate esté activo</li>
+                <li><strong>Lazy loading no funciona:</strong> Revisa la consola del navegador en busca de errores</li>
+                <li><strong>No hay ?v= en URLs:</strong> Verifica que los helpers estén cargados correctamente</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Métricas de Rendimiento</h2>
+        <div id="performance-metrics"></div>
+    </div>
+
+    <script>
+        // Test de cache busting
+        const testCacheBusting = () => {
+            const container = document.getElementById('cache-busting-test');
+            const testImages = [
+                '/images/logo.png',
+                '/images/logo-nav.png'
+            ];
+
+            let html = '<p><strong>URLs generadas:</strong></p><ul>';
+            testImages.forEach(img => {
+                const timestamp = Date.now();
+                const cachedUrl = img + '?v=' + timestamp;
+                html += `<li><code>${cachedUrl}</code></li>`;
+            });
+            html += '</ul>';
+            container.innerHTML = html;
+        };
+
+        // Test de performance
+        const testPerformance = () => {
+            if ('performance' in window) {
+                const container = document.getElementById('performance-metrics');
+                const navigation = performance.getEntriesByType('navigation')[0];
+                const resources = performance.getEntriesByType('resource');
+
+                const imageResources = resources.filter(r => r.name.includes('/images/'));
+                const totalImages = imageResources.length;
+                const cachedImages = imageResources.filter(r => r.transferSize === 0).length;
+
+                let html = '<div class="info">';
+                html += `<p><strong>Total de imágenes cargadas:</strong> ${totalImages}</p>`;
+                html += `<p><strong>Imágenes desde caché:</strong> ${cachedImages}</p>`;
+                html += `<p><strong>Tiempo de carga DOM:</strong> ${Math.round(navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart)}ms</p>`;
+                html += `<p><strong>Tiempo total de carga:</strong> ${Math.round(navigation.loadEventEnd - navigation.loadEventStart)}ms</p>`;
+                html += '</div>';
+
+                if (cachedImages > 0) {
+                    html += '<div class="success">✅ Hay imágenes cargándose desde caché!</div>';
+                } else {
+                    html += '<div class="info">ℹ️ Primera carga - recarga la página para ver imágenes en caché</div>';
+                }
+
+                container.innerHTML = html;
+            }
+        };
+
+        // Ejecutar tests al cargar
+        window.addEventListener('load', () => {
+            testCacheBusting();
+            setTimeout(testPerformance, 1000); // Esperar un segundo para que terminen todas las cargas
+        });
+
+        // Observer para lazy loading
+        if ('IntersectionObserver' in window) {
+            const lazyImages = document.querySelectorAll('img[loading="lazy"]');
+            const imageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        console.log('✅ Lazy loading activado para:', img.src);
+                    }
+                });
+            });
+
+            lazyImages.forEach(img => imageObserver.observe(img));
+        }
+    </script>
+</body>
+
+</html>

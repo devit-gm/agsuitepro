@@ -58,7 +58,7 @@ class ServiciosController extends Controller
             'precio' => $request->precio
         ]);
         return redirect()->route('servicios.index')
-            ->with('success', 'Servicio creado con éxito.');
+            ->with('success', __('Servicio creado con éxito.'));
     }
 
     /**
@@ -88,7 +88,7 @@ class ServiciosController extends Controller
             'precio' => $request->precio
         ]);
         return redirect()->back()
-            ->with('success', 'Servicio actualizado con éxito.');
+            ->with('success', __('Servicio actualizado con éxito.'));
     }
 
     /**
@@ -99,7 +99,7 @@ class ServiciosController extends Controller
         $servicio = Servicio::find($id);
         $servicio->delete();
         return redirect()->route('servicio.index')
-            ->with('success', 'Servicio eliminado con éxito');
+            ->with('success', __('Servicio eliminado con éxito'));
     }
 
     /**
