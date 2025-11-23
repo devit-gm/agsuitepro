@@ -1,4 +1,4 @@
-# AGSuitePro
+# MEZZIX
 
 > Sistema de gestión integral para eventos y restaurantes con Laravel 10
 
@@ -8,7 +8,7 @@
 
 ## 📋 Descripción
 
-**AGSuitePro** es una aplicación web full-stack desarrollada en Laravel que proporciona dos modos de operación distintos:
+**MEZZIX** es una aplicación web full-stack desarrollada en Laravel que proporciona dos modos de operación distintos:
 
 - **Modo Fichas**: Sistema de gestión de eventos con control de invitados, gastos y compras
 - **Modo Mesas**: Sistema POS para restaurantes con gestión de mesas, camareros y comandas en tiempo real
@@ -821,3 +821,4 @@ Para preguntas y soporte:
 - ✨ Lectura de códigos de barras
 - ✨ Panel de estadísticas para camareros
 - 🎨 Optimización de imágenes con lazy loading y cache
+
