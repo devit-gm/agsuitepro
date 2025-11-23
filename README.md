@@ -78,6 +78,33 @@
   - Acceso directo al grid desde el logo del navbar
   - Sin acceso a configuración ni gestión administrativa
 
+### 💰 Sistema de Facturación e IVA
+
+- **Gestión de Facturas**
+  - Generación automática de facturas al cerrar mesas
+  - Numeración secuencial automática por año
+  - Datos del cliente (nombre, NIF/CIF, dirección)
+  - Desglose completo de productos y servicios
+
+- **Cálculo de IVA**
+  - Sistema adaptado a precios PVP (con IVA incluido)
+  - Cálculo automático de base imponible: `PVP / (1 + IVA/100)`
+  - Soporte para múltiples tipos de IVA: 0%, 4%, 10%, 21%
+  - Desglose detallado por tipo de IVA en facturas
+  - Visualización de IVA en resúmenes de mesas
+
+- **Facturación de Mesas**
+  - Modal de facturación con datos del cliente opcionales
+  - Generación de PDF con diseño profesional
+  - Visualización de facturas emitidas con filtros por fecha
+  - Búsqueda y consulta de facturas históricas
+  - Estadísticas: total facturas, base imponible, total IVA, importe total
+
+- **Gestión de Sitios Multi-tenant**
+  - Datos fiscales por sitio: CIF, dirección, teléfono
+  - Información del emisor en facturas
+  - Logo personalizado por restaurante/negocio
+
 ### 📊 Informes y Reportes
 
 #### Modo Fichas
@@ -88,10 +115,11 @@
 - Facturación automática con envío por email
 
 #### Modo Mesas
-- Ventas por productos
+- Ventas por productos con desglose de IVA
 - Ventas por camareros
 - Ocupación de mesas
 - Histórico de mesas cerradas
+- Facturas emitidas con totales
 
 ### 🔐 Sistema de Permisos
 
@@ -335,11 +363,13 @@ FIREBASE_CREDENTIALS=storage/firebase-credentials.json
 
 - En el grid, hacer clic en la mesa ocupada
 - Hacer clic en **Cerrar Mesa**
-- Revisar consumos en el modal
+- Revisar consumos en el modal con desglose de IVA
 - Seleccionar método de pago (efectivo, tarjeta, etc.)
 - Opcionalmente añadir propina
+- **Opcionalmente facturar**: marcar checkbox e introducir datos del cliente
 - Hacer clic en **Cobrar**
 - La mesa cambia a gris (Cerrada)
+- Si se facturó, se genera PDF con desglose de IVA
 
 **4. Liberar Mesa**
 
@@ -376,21 +406,26 @@ agsuitepro/
 │   ├── Http/
 │   │   ├── Controllers/  # Controladores principales
 │   │   │   ├── FichasController.php      # Fichas + Mesas
+│   │   │   ├── FacturaMesaController.php # Facturación de mesas
 │   │   │   ├── ProductosController.php   # Productos
 │   │   │   ├── FamiliasController.php    # Familias
 │   │   │   ├── UsuariosController.php    # Usuarios
 │   │   │   ├── InformesController.php    # Reportes
 │   │   │   ├── AjustesController.php     # Configuración
+│   │   │   ├── SitiosController.php      # Gestión multi-tenant
 │   │   │   ├── WhatsAppController.php    # WhatsApp API
 │   │   │   └── SmsController.php         # SMS Twilio
 │   │   ├── Middleware/   # Middlewares (DetectSite, VerificarRol)
 │   │   └── Kernel.php    # Registro de middlewares
 │   ├── Models/           # Modelos Eloquent
 │   │   ├── Ficha.php     # Fichas/Mesas con scopes
-│   │   ├── Producto.php
+│   │   ├── FacturaMesa.php # Facturas con cálculo de IVA
+│   │   ├── Producto.php  # Con métodos baseImponible() e importeIva()
+│   │   ├── Servicio.php  # Con métodos baseImponible() e importeIva()
 │   │   ├── Familia.php
 │   │   ├── User.php
 │   │   ├── Ajustes.php
+│   │   ├── Site.php      # Gestión multi-tenant
 │   │   └── ...
 │   ├── Providers/        # Service Providers
 │   ├── Services/         # Servicios (TwilioService, etc.)
@@ -430,11 +465,16 @@ agsuitepro/
 │   │   │   ├── productos.blade.php
 │   │   │   ├── usuarios.blade.php # Invitados
 │   │   │   ├── gastos.blade.php
-│   │   │   ├── resumen.blade.php
+│   │   │   ├── resumen.blade.php # Con desglose de IVA
 │   │   │   ├── mesas-grid.blade.php # Grid de mesas
+│   │   │   ├── pdf-mesa.blade.php # Plantilla PDF factura
 │   │   │   └── modales/
 │   │   │       ├── abrir-mesa.blade.php
-│   │   │       └── cerrar-mesa.blade.php
+│   │   │       ├── cerrar-mesa.blade.php # Con facturación
+│   │   │       └── facturar-mesa.blade.php
+│   │   ├── facturas/
+│   │   │   ├── index.blade.php # Listado de facturas
+│   │   │   └── show.blade.php  # Detalle de factura
 │   │   ├── productos/
 │   │   ├── familias/
 │   │   ├── usuarios/
@@ -528,6 +568,19 @@ Núcleo del sistema. Almacena fichas de eventos O mesas de restaurante.
 - `numero_comensales`: Cantidad de personas
 - `hora_apertura`, `hora_cierre`: Timestamps de apertura/cierre
 
+#### `facturas_mesa`
+Facturas generadas al cerrar mesas.
+
+**Campos clave**:
+- `numero_factura`: Numeración secuencial (ej: 2025/00001)
+- `ficha_id`: Relación con la mesa
+- `fecha`: Fecha de emisión
+- `cliente_nombre`, `cliente_nif`: Datos del cliente
+- `subtotal`: Base imponible total
+- `total_iva`: Suma de todas las cuotas de IVA
+- `total`: Importe total a pagar
+- `detalles`: JSON con líneas de detalle, desglose de IVA y datos de mesa
+
 #### `fichas_productos`
 Relación muchos-a-muchos entre fichas y productos con cantidad y precio.
 
@@ -555,6 +608,19 @@ Recibos de compra a proveedores.
 #### `ajustes`
 Configuración global del sitio (modo_operacion, precios, SMTP, etc.).
 
+#### `sitios`
+Gestión multi-tenant con datos fiscales.
+
+**Campos clave**:
+- `nombre`: Nombre del negocio
+- `dominio`: Dominio del sitio
+- `cif`: CIF/NIF fiscal
+- `direccion`: Dirección completa
+- `telefono`: Teléfono de contacto
+- `db_host`, `db_name`, `db_user`, `db_password`: Conexión a base de datos del sitio
+- `mail_*`: Configuración SMTP específica del sitio
+- `ruta_logo`, `ruta_logo_nav`: Rutas a logos personalizados
+
 #### `permissions`, `roles`, `role_has_permissions`, `model_has_roles`
 Sistema de permisos de Spatie.
 
@@ -562,9 +628,11 @@ Sistema de permisos de Spatie.
 
 - `create_fichas_table`: Estructura base de fichas/mesas
 - `add_mesas_fields_to_fichas`: Campos para modo mesas (estado_mesa, camarero_id, etc.)
-- `create_productos_table`, `create_familias_table`
+- `create_productos_table`, `create_familias_table`: Catálogo con IVA
 - `create_fichas_productos_table`: Pivot para consumos
 - `create_ajustes_table`: Configuración
+- `create_facturas_mesa_table`: Sistema de facturación
+- `add_fiscal_fields_to_sitios_table`: CIF, dirección y teléfono para sitios
 
 ## 🧪 Testing
 
@@ -730,4 +798,26 @@ Para preguntas y soporte:
 
 **Desarrollado con ❤️ en España** 
 
-**Versión**: 2025 Noviembre con Mesas y Control de Stock
+**Versión**: 2025 Noviembre con Sistema de Facturación e IVA
+
+### 📝 Changelog
+
+#### v2025.11 - Sistema de Facturación e IVA
+- ✨ Sistema completo de facturación para mesas
+- ✨ Cálculo automático de IVA desde precios PVP
+- ✨ Desglose de IVA por tipo (0%, 4%, 10%, 21%)
+- ✨ Generación de PDFs con diseño profesional
+- ✨ Gestión de facturas emitidas con filtros
+- ✨ Datos fiscales por sitio (CIF, dirección, teléfono)
+- 🐛 Corrección de cálculos de IVA en informes
+- 🐛 Protección de consultas en layout para sitio central
+- 🎨 Interfaz responsive optimizada para móviles
+- 🎨 Diseño mejorado de modales y formularios
+
+#### v2025.11 - Modo Mesas y Control de Stock
+- ✨ Grid visual de mesas con estados en tiempo real
+- ✨ Gestión completa de mesas (abrir, cerrar, liberar)
+- ✨ Control de stock automático
+- ✨ Lectura de códigos de barras
+- ✨ Panel de estadísticas para camareros
+- 🎨 Optimización de imágenes con lazy loading y cache
