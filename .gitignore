@@ -1,1 +1,11 @@
 node_modules
+
+# Firebase credentials (contiene secrets de Google Cloud)
+storage/firebase-credentials.json
+
+# Otros archivos sensibles
+.env
+.env.backup
+.env.production
+*.key
+*.pem
