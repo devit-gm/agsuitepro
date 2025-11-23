@@ -220,12 +220,7 @@
         }
 
         /* Estilos para botones */
-        .btn {
-            border-radius: 10px;
-            padding: 10px 20px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
+        
 
         .btn:hover {
             transform: translateY(-2px);

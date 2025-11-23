@@ -9,51 +9,63 @@
                     <i class="bi bi-card-list"></i> {{ __('BALANCE POR SOCIO') }}
                 </div>
 
-                <div class="card-body" style="flex: 0 0 auto;">
-                    <div class="container-fluid">
-                        <div class="row justify-content-center align-items-center">
-                            <div class="col-12 col-md-12 col-lg-12">
-                                <form id="realizar-busqueda" action="{{ route('informes.index') }}" method="post">
-                                    @csrf
-                                    @method('PUT')
-                                    @if (session('success'))
-                                    <div class="custom-success-container" id="custom-success-container">
-                                        <ul class="custom-success-list">
-                                            <li class="custom-success-item">{{ session('success') }}</li>
-                                        </ul>
-                                    </div>
-                                    @endif
-                                    @if ($errors->any())
-                                    <div class="custom-error-container" id="custom-error-container">
-                                        <ul class="custom-error-list">
-                                            @foreach ($errors->all() as $error)
-                                            <li class="custom-error-item">{{ $error }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                    @endif
-                                    <div class="form-group required mb-3">
-                                        <label for="fecha_inicial" class="fw-bold form-label">{{ __('Fecha inicial') }}</label><br />
-                                        <input class="w-100" type="date" name="fecha_inicial" id="fecha_inicial" value="{{ $request->fecha_inicial }}" placeholder="{{ __('dd/mm/aaaa') }}" onchange="actualizarFechaFinal()">
-                                    </div>
-                                    <div class="form-group required mb-3">
-                                        <label for="fecha_final" class="fw-bold form-label">{{ __('Fecha final') }}</label><br />
-                                        <input type="date" class="w-100" name="fecha_final" id="fecha_final" value="{{ $request->fecha_final }}" placeholder="{{ __('dd/mm/aaaa') }}">
-                                    </div>
-                                    @if (!$ajustes->facturar_ficha_automaticamente)
-                                    <div class="form-group mb-3 required">
-                                        <label for="incluir_facturados" class="fw-bold form-label">{{ __('Incluir facturados') }}:</label>
-                                        <select name="incluir_facturados" id="incluir_facturados" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
-                                            <option value="0" @if ($request->incluir_facturados == 0) selected @endif >{{ __('No') }}</option>
-                                            <option value="1" @if ($request->incluir_facturados == 1) selected @endif>{{ __('Sí') }}</option>
-                                        </select>
-                                    </div>
-                                    @endif
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                <div class="card-body py-2" style="flex: 0 0 auto;">
+    <form id="realizar-busqueda" action="{{ route('informes.index') }}" method="post">
+        @csrf
+        @method('PUT')
+
+        {{-- Mensajes --}}
+        @if (session('success'))
+            <div class="custom-success-container mb-2">
+                <ul class="custom-success-list">
+                    <li class="custom-success-item">{{ session('success') }}</li>
+                </ul>
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="custom-error-container mb-2">
+                <ul class="custom-error-list">
+                    @foreach ($errors->all() as $error)
+                        <li class="custom-error-item">{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        {{-- FILTROS EN FILA --}}
+        <div class="row g-2 align-items-end">
+
+            <div class="col-6 col-sm-6">
+                <label for="fecha_inicial" class="fw-bold form-label mb-1">{{ __('Fecha inicial') }}</label>
+                <input type="date" class="form-control" 
+                       name="fecha_inicial" id="fecha_inicial"
+                       value="{{ $request->fecha_inicial }}" 
+                       onchange="actualizarFechaFinal()">
+            </div>
+
+            <div class="col-6 col-sm-6">
+                <label for="fecha_final" class="fw-bold form-label mb-1">{{ __('Fecha final') }}</label>
+                <input type="date" class="form-control"
+                       name="fecha_final" id="fecha_final"
+                       value="{{ $request->fecha_final }}">
+            </div>
+
+            @if (!$ajustes->facturar_ficha_automaticamente)
+                <div class="col-12 col-sm-4">
+                    <label for="incluir_facturados" class="fw-bold form-label mb-1">{{ __('Incluir facturados') }}</label>
+                    <select name="incluir_facturados" id="incluir_facturados" 
+                            class="form-select form-select-sm" required>
+                        <option value="0" @selected($request->incluir_facturados == 0)>No</option>
+                        <option value="1" @selected($request->incluir_facturados == 1)>Sí</option>
+                    </select>
                 </div>
+            @endif
+
+        </div>
+    </form>
+</div>
+
 
                 <!-- Sección de resultados con scroll independiente -->
                 <div class="card-body overflow-auto flex-fill" style="border-top: 1px solid #dee2e6;">

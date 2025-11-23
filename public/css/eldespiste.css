@@ -22096,6 +22096,15 @@ main {
 
 .card-footer {
   background-color: #FFF !important;
+  padding-top: 0px !important;
+}
+
+footer .card-footer .btn {
+  padding: 0px 10px !important;
+}
+
+footer .card-footer .btn i {
+  font-size: 1.5rem;
 }
 
 .full-height {
@@ -22108,8 +22117,8 @@ main {
   /* Adjust the size as needed */
 }
 
-form .btn i.bi {
-  font-size: 2rem;
+footer .btn i.bi {
+  font-size: 1.8rem;
   vertical-align: middle;
 }
 
