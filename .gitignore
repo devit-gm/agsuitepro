@@ -9,3 +9,4 @@ storage/firebase-credentials.json
 .env.production
 *.key
 *.pem
+.env
