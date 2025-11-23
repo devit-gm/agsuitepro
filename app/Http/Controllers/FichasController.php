@@ -1225,6 +1225,33 @@ foreach ($fichas as $ficha) {
             ], 403);
         }
         
+        // Guardar productos y servicios antes de eliminar (para historial de ventas)
+        $productos = FichaProducto::where('id_ficha', $mesa->uuid)
+            ->with('producto')
+            ->get()
+            ->map(function($fp) {
+                return [
+                    'producto_id' => $fp->id_producto,
+                    'nombre' => $fp->producto ? $fp->producto->nombre : 'Producto eliminado',
+                    'cantidad' => $fp->cantidad,
+                    'precio' => $fp->precio,
+                    'total' => $fp->cantidad * $fp->precio
+                ];
+            });
+            
+        $servicios = FichaServicio::where('id_ficha', $mesa->uuid)
+            ->with('servicio')
+            ->get()
+            ->map(function($fs) {
+                return [
+                    'servicio_id' => $fs->id_servicio,
+                    'nombre' => $fs->servicio ? $fs->servicio->nombre : 'Servicio eliminado',
+                    'cantidad' => $fs->cantidad,
+                    'precio' => $fs->precio,
+                    'total' => $fs->cantidad * $fs->precio
+                ];
+            });
+        
         // Resetear mesa a estado libre
         $mesa->update([
             'estado_mesa' => 'libre',
@@ -1240,10 +1267,18 @@ foreach ($fichas as $ficha) {
         FichaProducto::where('id_ficha', $mesa->uuid)->delete();
         FichaServicio::where('id_ficha', $mesa->uuid)->delete();
         
+        // Guardar en historial con los productos y servicios
         \App\Models\MesaHistorial::create([
             'mesa_id' => $mesa->uuid,
             'accion' => 'liberar',
-            'camarero_id' => Auth::id()
+            'camarero_id' => Auth::id(),
+            'detalles' => [
+                'productos' => $productos,
+                'servicios' => $servicios,
+                'total_productos' => $productos->sum('total'),
+                'total_servicios' => $servicios->sum('total'),
+                'total_general' => $mesa->precio
+            ]
         ]);
         
         return response()->json([

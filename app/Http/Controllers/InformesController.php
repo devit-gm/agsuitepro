@@ -145,27 +145,96 @@ class InformesController extends Controller
         $fechaInicial = $request->input('fecha_inicial', now()->startOfMonth()->format('Y-m-d'));
         $fechaFinal = $request->input('fecha_final', now()->format('Y-m-d'));
 
-        // Obtener ventas por producto
-        $ventasProductos = DB::connection('site')
+        // 1. Obtener ventas ACTUALES (mesas aún abiertas o cerradas pero no liberadas)
+        $ventasActuales = DB::connection('site')
             ->table('fichas_productos')
             ->join('productos', 'fichas_productos.id_producto', '=', 'productos.uuid')
             ->join('fichas', 'fichas_productos.id_ficha', '=', 'fichas.uuid')
             ->join('familias', 'productos.familia', '=', 'familias.uuid')
             ->whereDate('fichas.fecha', '>=', $fechaInicial)
             ->whereDate('fichas.fecha', '<=', $fechaFinal)
-            ->where('fichas.tipo', 5) // Solo mesas
-            ->where('fichas.estado', 1) // Solo cerradas
+            ->where('fichas.modo', 'mesa')
+            ->whereIn('fichas.estado_mesa', ['cerrada', 'ocupada']) // Mesas que aún tienen productos
             ->select(
                 'productos.uuid',
                 'productos.nombre as producto',
                 'productos.precio',
                 'familias.nombre as familia',
                 DB::raw('SUM(fichas_productos.cantidad) as cantidad_vendida'),
-                DB::raw('SUM(fichas_productos.precio) as total_vendido')
+                DB::raw('SUM(fichas_productos.cantidad * fichas_productos.precio) as total_vendido')
             )
             ->groupBy('productos.uuid', 'productos.nombre', 'productos.precio', 'familias.nombre')
-            ->orderByDesc('cantidad_vendida')
             ->get();
+
+        // 2. Obtener ventas HISTÓRICAS (de mesas ya liberadas)
+        $historial = DB::connection('site')
+            ->table('mesa_historial')
+            ->whereDate('fecha_accion', '>=', $fechaInicial)
+            ->whereDate('fecha_accion', '<=', $fechaFinal)
+            ->where('accion', 'liberar')
+            ->whereNotNull('detalles')
+            ->get();
+
+        // Procesar historial para extraer productos
+        $ventasHistoricas = collect();
+        foreach ($historial as $registro) {
+            $detalles = json_decode($registro->detalles, true);
+            if (isset($detalles['productos']) && is_array($detalles['productos'])) {
+                foreach ($detalles['productos'] as $prod) {
+                    // Buscar si ya existe este producto en la colección
+                    $productoExistente = $ventasHistoricas->firstWhere('producto_id', $prod['producto_id']);
+                    
+                    if ($productoExistente) {
+                        // Sumar cantidades y totales
+                        $productoExistente->cantidad_vendida += $prod['cantidad'];
+                        $productoExistente->total_vendido += $prod['total'];
+                    } else {
+                        // Agregar nuevo producto
+                        $ventasHistoricas->push((object)[
+                            'uuid' => $prod['producto_id'],
+                            'producto' => $prod['nombre'],
+                            'precio' => $prod['precio'],
+                            'familia' => null, // No tenemos familia en historial
+                            'cantidad_vendida' => $prod['cantidad'],
+                            'total_vendido' => $prod['total']
+                        ]);
+                    }
+                }
+            }
+        }
+
+        // 3. Combinar ventas actuales con históricas
+        $ventasProductos = collect();
+        
+        // Agregar ventas actuales
+        foreach ($ventasActuales as $venta) {
+            $ventasProductos->push($venta);
+        }
+        
+        // Agregar o sumar ventas históricas
+        foreach ($ventasHistoricas as $ventaHist) {
+            $productoExistente = $ventasProductos->firstWhere('uuid', $ventaHist->uuid);
+            
+            if ($productoExistente) {
+                // Ya existe, sumar
+                $productoExistente->cantidad_vendida += $ventaHist->cantidad_vendida;
+                $productoExistente->total_vendido += $ventaHist->total_vendido;
+            } else {
+                // No existe, agregar
+                // Buscar datos completos del producto para tener familia
+                $producto = DB::connection('site')->table('productos')
+                    ->join('familias', 'productos.familia', '=', 'familias.uuid')
+                    ->where('productos.uuid', $ventaHist->uuid)
+                    ->select('familias.nombre as familia')
+                    ->first();
+                    
+                $ventaHist->familia = $producto ? $producto->familia : 'Sin familia';
+                $ventasProductos->push($ventaHist);
+            }
+        }
+
+        // Ordenar por total vendido
+        $ventasProductos = $ventasProductos->sortByDesc('total_vendido')->values();
 
         $totalGeneral = $ventasProductos->sum('total_vendido');
         $cantidadTotal = $ventasProductos->sum('cantidad_vendida');
