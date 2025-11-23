@@ -109,7 +109,49 @@ class FacturacionController extends Controller
                 $totalesCamareros[$camarero] = array_sum($meses);
             }
             
-            return view('facturacion.index-mesas', compact('datasets', 'año', 'añosDisponibles', 'totalesCamareros', 'modoOperacion'));
+            // Calcular desglose de IVA desde mesa_historial
+            $desgloseIva = [];
+            $totalBaseImponible = 0;
+            $totalCuotaIva = 0;
+            
+            // Obtener datos históricos de mesas liberadas con desglose IVA
+            $historialMesas = DB::connection('site')
+                ->table('mesa_historial')
+                ->whereYear('fecha_accion', $año)
+                ->where('accion', 'liberar')
+                ->whereNotNull('detalles')
+                ->get();
+            
+            foreach ($historialMesas as $registro) {
+                $detalles = json_decode($registro->detalles, true);
+                
+                if (isset($detalles['iva_desglose']) && is_array($detalles['iva_desglose'])) {
+                    foreach ($detalles['iva_desglose'] as $tipoIva => $datos) {
+                        $porcentaje = floatval($tipoIva);
+                        
+                        if (!isset($desgloseIva[$porcentaje])) {
+                            $desgloseIva[$porcentaje] = [
+                                'base' => 0,
+                                'cuota' => 0
+                            ];
+                        }
+                        
+                        $desgloseIva[$porcentaje]['base'] += floatval($datos['base'] ?? 0);
+                        $desgloseIva[$porcentaje]['cuota'] += floatval($datos['cuota'] ?? 0);
+                    }
+                }
+            }
+            
+            // Calcular totales de IVA
+            foreach ($desgloseIva as $datos) {
+                $totalBaseImponible += $datos['base'];
+                $totalCuotaIva += $datos['cuota'];
+            }
+            
+            // Ordenar por porcentaje de IVA
+            ksort($desgloseIva);
+            
+            return view('facturacion.index-mesas', compact('datasets', 'año', 'añosDisponibles', 'totalesCamareros', 'modoOperacion', 'desgloseIva', 'totalBaseImponible', 'totalCuotaIva'));
         }
         
         // Modo fichas: comportamiento original

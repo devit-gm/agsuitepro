@@ -1128,14 +1128,52 @@ foreach ($fichas as $ficha) {
             'propina' => 'nullable|numeric|min:0'
         ]);
         
-        // Calcular importe total de la mesa
-        $totalProductos = $mesa->productos->sum(function($fp) {
-            return $fp->producto ? $fp->producto->precio * $fp->cantidad : 0;
-        });
-        $totalServicios = $mesa->servicios->sum(function($fs) {
-            return $fs->servicio ? $fs->servicio->precio : 0;
-        });
-        $importeTotal = $totalProductos + $totalServicios;
+        // Calcular importe total de la mesa con IVA
+        $subtotal = 0;
+        $totalIva = 0;
+        $ivaDesglose = [];
+        
+        // Calcular productos con IVA (el precio ya incluye IVA)
+        foreach ($mesa->productos as $fp) {
+            if ($fp->producto) {
+                $iva = $fp->producto->iva ?? 0;
+                $pvp = $fp->producto->precio * $fp->cantidad; // PVP con IVA incluido
+                $baseImponible = $pvp / (1 + $iva / 100);
+                $importeIva = $pvp - $baseImponible;
+                
+                $subtotal += $baseImponible;
+                $totalIva += $importeIva;
+                
+                $ivaKey = number_format($iva, 2);
+                if (!isset($ivaDesglose[$ivaKey])) {
+                    $ivaDesglose[$ivaKey] = ['base' => 0, 'cuota' => 0];
+                }
+                $ivaDesglose[$ivaKey]['base'] += $baseImponible;
+                $ivaDesglose[$ivaKey]['cuota'] += $importeIva;
+            }
+        }
+        
+        // Calcular servicios con IVA (el precio ya incluye IVA)
+        foreach ($mesa->servicios as $fs) {
+            if ($fs->servicio) {
+                $iva = $fs->servicio->iva ?? 0;
+                $pvp = $fs->servicio->precio * $fs->cantidad; // PVP con IVA incluido
+                $baseImponible = $pvp / (1 + $iva / 100);
+                $importeIva = $pvp - $baseImponible;
+                
+                $subtotal += $baseImponible;
+                $totalIva += $importeIva;
+                
+                $ivaKey = number_format($iva, 2);
+                if (!isset($ivaDesglose[$ivaKey])) {
+                    $ivaDesglose[$ivaKey] = ['base' => 0, 'cuota' => 0];
+                }
+                $ivaDesglose[$ivaKey]['base'] += $baseImponible;
+                $ivaDesglose[$ivaKey]['cuota'] += $importeIva;
+            }
+        }
+        
+        $importeTotal = $subtotal + $totalIva;
         $propina = $request->propina ?? 0;
         
         // Crear FichaRecibo con el importe total (marcado como pagado)
@@ -1192,21 +1230,31 @@ foreach ($fichas as $ficha) {
             'precio' => $importeTotal + $propina // Guardar precio final
         ]);
         
-        // Registrar en historial
+        // Registrar en historial con desglose de IVA
         \App\Models\MesaHistorial::create([
             'mesa_id' => $mesa->uuid,
             'accion' => 'cerrar',
             'camarero_id' => Auth::id(),
-            'detalles' => json_encode([
+            'detalles' => [
                 'metodo_pago' => $request->metodo_pago,
                 'propina' => $propina,
-                'importe_total' => $importeTotal + $propina
-            ])
+                'subtotal' => round($subtotal, 2),
+                'iva_desglose' => $ivaDesglose,
+                'total_iva' => round($totalIva, 2),
+                'importe_total' => round($importeTotal + $propina, 2)
+            ]
         ]);
         
         return response()->json([
             'success' => true,
-            'message' => 'Mesa cerrada correctamente'
+            'message' => 'Mesa cerrada correctamente',
+            'desglose' => [
+                'subtotal' => round($subtotal, 2),
+                'iva_desglose' => $ivaDesglose,
+                'total_iva' => round($totalIva, 2),
+                'propina' => $propina,
+                'total' => round($importeTotal + $propina, 2)
+            ]
         ]);
     }
     
@@ -1230,12 +1278,19 @@ foreach ($fichas as $ficha) {
             ->with('producto')
             ->get()
             ->map(function($fp) {
+                $iva = $fp->producto ? ($fp->producto->iva ?? 0) : 0;
+                $baseImponible = $fp->cantidad * $fp->precio;
+                $importeIva = $baseImponible * ($iva / 100);
+                
                 return [
                     'producto_id' => $fp->id_producto,
                     'nombre' => $fp->producto ? $fp->producto->nombre : 'Producto eliminado',
                     'cantidad' => $fp->cantidad,
                     'precio' => $fp->precio,
-                    'total' => $fp->cantidad * $fp->precio
+                    'iva' => $iva,
+                    'base_imponible' => $baseImponible,
+                    'importe_iva' => $importeIva,
+                    'total' => $baseImponible + $importeIva
                 ];
             });
             
@@ -1243,14 +1298,40 @@ foreach ($fichas as $ficha) {
             ->with('servicio')
             ->get()
             ->map(function($fs) {
+                $iva = $fs->servicio ? ($fs->servicio->iva ?? 0) : 0;
+                $baseImponible = $fs->cantidad * $fs->precio;
+                $importeIva = $baseImponible * ($iva / 100);
+                
                 return [
                     'servicio_id' => $fs->id_servicio,
                     'nombre' => $fs->servicio ? $fs->servicio->nombre : 'Servicio eliminado',
                     'cantidad' => $fs->cantidad,
                     'precio' => $fs->precio,
-                    'total' => $fs->cantidad * $fs->precio
+                    'iva' => $iva,
+                    'base_imponible' => $baseImponible,
+                    'importe_iva' => $importeIva,
+                    'total' => $baseImponible + $importeIva
                 ];
             });
+        
+        // Calcular totales generales
+        $subtotal = $productos->sum('base_imponible') + $servicios->sum('base_imponible');
+        $totalIva = $productos->sum('importe_iva') + $servicios->sum('importe_iva');
+        $totalGeneral = $subtotal + $totalIva;
+        
+        // Calcular desglose de IVA por tipo
+        $ivaDesglose = [];
+        foreach ($productos->concat($servicios) as $item) {
+            $ivaKey = number_format($item['iva'], 2);
+            if (!isset($ivaDesglose[$ivaKey])) {
+                $ivaDesglose[$ivaKey] = [
+                    'base' => 0,
+                    'cuota' => 0
+                ];
+            }
+            $ivaDesglose[$ivaKey]['base'] += $item['base_imponible'];
+            $ivaDesglose[$ivaKey]['cuota'] += $item['importe_iva'];
+        }
         
         // Resetear mesa a estado libre
         $mesa->update([
@@ -1275,9 +1356,10 @@ foreach ($fichas as $ficha) {
             'detalles' => [
                 'productos' => $productos,
                 'servicios' => $servicios,
-                'total_productos' => $productos->sum('total'),
-                'total_servicios' => $servicios->sum('total'),
-                'total_general' => $mesa->precio
+                'subtotal' => round($subtotal, 2),
+                'iva_desglose' => $ivaDesglose,
+                'total_iva' => round($totalIva, 2),
+                'total_general' => round($totalGeneral, 2)
             ]
         ]);
         

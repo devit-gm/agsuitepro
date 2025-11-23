@@ -535,8 +535,12 @@
     <nav class="navbar navbar-expand-md navbar-dark shadow-sm fondo-rojo">
         <div class="container col-md-10 col-sm-12 col-lg-8">
             @php
-                $ajustesLogo = \App\Models\Ajustes::first();
-                $logoUrl = ($ajustesLogo && $ajustesLogo->modo_operacion === 'mesas') ? url('/mesas') : url('/');
+                try {
+                    $ajustesLogo = \App\Models\Ajustes::first();
+                    $logoUrl = ($ajustesLogo && $ajustesLogo->modo_operacion === 'mesas') ? url('/mesas') : url('/');
+                } catch (\Exception $e) {
+                    $logoUrl = url('/');
+                }
             @endphp
             <a class="navbar-brand brand-enhanced" href="{{ $logoUrl }}">
                 <div class="brand-wrapper">
@@ -545,8 +549,12 @@
                 </div>
             </a>
             @php
-                $ajustesNav = \App\Models\Ajustes::first();
-                $modoOperacionNav = $ajustesNav->modo_operacion ?? 'fichas';
+                try {
+                    $ajustesNav = \App\Models\Ajustes::first();
+                    $modoOperacionNav = $ajustesNav->modo_operacion ?? 'fichas';
+                } catch (\Exception $e) {
+                    $modoOperacionNav = 'fichas';
+                }
                 $esUsuarioMesas = (Auth::user()->role_id == 4 && $modoOperacionNav === 'mesas');
             @endphp
             
@@ -568,7 +576,11 @@
                 <ul class="navbar-nav me-auto ">
                     @if (app('site')->central == 0)
                     @php
-                        $modoOperacionMenu = \App\Models\Ajustes::first()->modo_operacion ?? 'fichas';
+                        try {
+                            $modoOperacionMenu = \App\Models\Ajustes::first()->modo_operacion ?? 'fichas';
+                        } catch (\Exception $e) {
+                            $modoOperacionMenu = 'fichas';
+                        }
                     @endphp
                     
                     @if($modoOperacionMenu === 'mesas')
@@ -585,7 +597,7 @@
                     
                     @if (Auth::user()->role_id < 4)
                     <li class="nav-item dropdown">
-                        <a id="navbarDropdown" class="nav-link dropdown-toggle {{ (request()->routeIs('usuarios.*') || request()->routeIs('familias.*') || request()->routeIs('productos.*') || request()->routeIs('servicios.*')) ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                        <a id="navbarDropdown" class="nav-link dropdown-toggle {{ (request()->routeIs('usuarios.*') || request()->routeIs('familias.*') || request()->routeIs('productos.*') || request()->routeIs('servicios.*') || request()->routeIs('facturas.*')) ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                             GESTIÓN
                         </a>
                         <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
@@ -593,6 +605,18 @@
                             <a class="dropdown-item {{ request()->routeIs('familias.*') ? 'active' : '' }}" href="{{ url('/familias') }}">FAMILIAS</a>
                             <a class="dropdown-item {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ url('/productos') }}">PRODUCTOS</a>
                             <a class="dropdown-item {{ request()->routeIs('servicios.*') ? 'active' : '' }}" href="{{ url('/servicios') }}">SERVICIOS</a>
+                            @php
+                                try {
+                                    $ajustesMenu = \App\Models\Ajustes::first();
+                                    $modoOperacionMenu = $ajustesMenu->modo_operacion ?? 'fichas';
+                                } catch (\Exception $e) {
+                                    $modoOperacionMenu = 'fichas';
+                                }
+                            @endphp
+                            @if($modoOperacionMenu === 'mesas')
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item {{ request()->routeIs('facturas.*') ? 'active' : '' }}" href="{{ url('/facturas') }}">{{ __('FACTURAS') }}</a>
+                            @endif
                         </div>
                     </li>
 
@@ -609,8 +633,12 @@
                             <a class="dropdown-item {{ request()->routeIs('facturacion.*') ? 'active' : '' }}" href="{{ url('/facturacion') }}">{{ __('FACTURACIÓN') }}</a>
                             
                             @php
-                                $ajustes = \App\Models\Ajustes::first();
-                                $modoOperacion = $ajustes->modo_operacion ?? 'fichas';
+                                try {
+                                    $ajustes = \App\Models\Ajustes::first();
+                                    $modoOperacion = $ajustes->modo_operacion ?? 'fichas';
+                                } catch (\Exception $e) {
+                                    $modoOperacion = 'fichas';
+                                }
                             @endphp
                             
                             @if($modoOperacion !== 'mesas')

@@ -60,6 +60,9 @@ class SitiosController extends Controller
     {
         $request->validate([
             'nombre' => 'required|string|max:255',
+            'cif' => 'nullable|string|max:20',
+            'direccion' => 'nullable|string|max:500',
+            'telefono' => 'nullable|string|max:20',
             'dominio' => 'required|string|max:255|unique:sitios,dominio',
             'logo' => 'required|string|max:255',
             'logo_nav' => 'nullable|string|max:255',
@@ -81,6 +84,9 @@ class SitiosController extends Controller
 
         $sitio = new Site();
         $sitio->nombre = $request->nombre;
+        $sitio->cif = $request->cif;
+        $sitio->direccion = $request->direccion;
+        $sitio->telefono = $request->telefono;
         $sitio->dominio = $request->dominio;
         $sitio->ruta_logo = $request->logo;
         $sitio->ruta_logo_nav = $request->logo_nav;
@@ -122,6 +128,9 @@ class SitiosController extends Controller
         
         $request->validate([
             'nombre' => 'required|string|max:255',
+            'cif' => 'nullable|string|max:20',
+            'direccion' => 'nullable|string|max:500',
+            'telefono' => 'nullable|string|max:20',
             'dominio' => 'required|string|max:255|unique:sitios,dominio,' . $id,
             'logo' => 'nullable|string|max:255',
             'logo_nav' => 'nullable|string|max:255',
@@ -142,6 +151,9 @@ class SitiosController extends Controller
         ]);
 
         $sitio->nombre = $request->nombre;
+        $sitio->cif = $request->cif;
+        $sitio->direccion = $request->direccion;
+        $sitio->telefono = $request->telefono;
         $sitio->dominio = $request->dominio;
         $sitio->central = $request->has('central') ? 1 : 0;
         

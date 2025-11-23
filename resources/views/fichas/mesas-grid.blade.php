@@ -118,11 +118,22 @@
                                     <button class="btn btn-secondary" onclick="liberarMesa('{{ $mesa->uuid }}', '{{ $mesa->numero_mesa }}')">
                                         <i class="bi bi-box-arrow-up"></i>
                                     </button>
-                                    <!-- Descargar PDF de la mesa cerrada solo si tiene importe -->
+                                    <!-- Botón para generar/ver factura -->
                                     @if(($mesa->importe ?? 0) > 0)
-                                    <a href="{{ route('fichas.download', $mesa->uuid) }}" class="btn btn-secondary ms-2" title="{{ __('Descargar PDF') }}">
-                                        <i class="bi bi-file-earmark-pdf"></i>
-                                    </a>
+                                        @php
+                                            $facturaExistente = \App\Models\FacturaMesa::where('mesa_id', $mesa->uuid)->first();
+                                        @endphp
+                                        @if($facturaExistente)
+                                            <!-- Si ya existe factura, descargar PDF directamente -->
+                                            <a href="{{ route('facturas.pdf', $facturaExistente->id) }}" class="btn btn-secondary ms-2" title="{{ __('Descargar PDF') }}">
+                                                <i class="bi bi-file-earmark-pdf"></i>
+                                            </a>
+                                        @else
+                                            <!-- Si no existe factura, ir a crearla -->
+                                            <a href="{{ route('facturas.crear', $mesa->uuid) }}" class="btn btn-secondary ms-2" title="{{ __('Generar Factura') }}">
+                                                <i class="bi bi-file-earmark-plus"></i>
+                                            </a>
+                                        @endif
                                     @endif
                                 @endif
                             </div>

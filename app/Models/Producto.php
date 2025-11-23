@@ -22,8 +22,44 @@ class Producto extends Model
         'familia',
         'combinado',
         'precio',
-        'ean13'
+        'ean13',
+        'iva'
     ];
+
+    /*
+     |--------------------------------------------------------------------------
+     | MÉTODOS DE CÁLCULO
+     |--------------------------------------------------------------------------
+     */
+
+    /**
+     * Calcular precio con IVA incluido (el precio ya viene con IVA)
+     */
+    public function precioConIva()
+    {
+        return $this->precio; // El precio ya incluye IVA
+    }
+
+    /**
+     * Calcular solo el importe del IVA
+     */
+    public function importeIva($cantidad = 1)
+    {
+        $iva = $this->iva ?? 0;
+        $pvp = $this->precio * $cantidad;
+        $baseImponible = $pvp / (1 + $iva / 100);
+        return $pvp - $baseImponible;
+    }
+
+    /**
+     * Obtener base imponible (precio sin IVA)
+     */
+    public function baseImponible($cantidad = 1)
+    {
+        $iva = $this->iva ?? 0;
+        $pvp = $this->precio * $cantidad;
+        return $pvp / (1 + $iva / 100);
+    }
 
     /*
      |--------------------------------------------------------------------------

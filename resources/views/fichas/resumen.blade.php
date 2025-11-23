@@ -33,6 +33,92 @@
                 <i class="bi bi-currency-euro"></i>
             </td>
         </tr>
+
+        @if(isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas')
+        {{-- Calcular desglose de IVA para modo mesas --}}
+        @php
+            $ivaDesglose = [];
+            $totalBaseImponible = 0;
+            $totalIva = 0;
+            
+            // Calcular IVA de productos
+            foreach ($ficha->productos as $fp) {
+                if ($fp->producto) {
+                    $iva = $fp->producto->iva ?? 0;
+                    $pvp = $fp->precio;
+                    $baseImponible = $pvp / (1 + $iva / 100);
+                    $cuotaIva = $pvp - $baseImponible;
+                    
+                    $ivaKey = number_format($iva, 2);
+                    if (!isset($ivaDesglose[$ivaKey])) {
+                        $ivaDesglose[$ivaKey] = ['porcentaje' => $iva, 'base' => 0, 'cuota' => 0];
+                    }
+                    $ivaDesglose[$ivaKey]['base'] += $baseImponible;
+                    $ivaDesglose[$ivaKey]['cuota'] += $cuotaIva;
+                    
+                    $totalBaseImponible += $baseImponible;
+                    $totalIva += $cuotaIva;
+                }
+            }
+            
+            // Calcular IVA de servicios
+            foreach ($ficha->servicios as $fs) {
+                if ($fs->servicio) {
+                    $iva = $fs->servicio->iva ?? 0;
+                    $pvp = $fs->precio;
+                    $baseImponible = $pvp / (1 + $iva / 100);
+                    $cuotaIva = $pvp - $baseImponible;
+                    
+                    $ivaKey = number_format($iva, 2);
+                    if (!isset($ivaDesglose[$ivaKey])) {
+                        $ivaDesglose[$ivaKey] = ['porcentaje' => $iva, 'base' => 0, 'cuota' => 0];
+                    }
+                    $ivaDesglose[$ivaKey]['base'] += $baseImponible;
+                    $ivaDesglose[$ivaKey]['cuota'] += $cuotaIva;
+                    
+                    $totalBaseImponible += $baseImponible;
+                    $totalIva += $cuotaIva;
+                }
+            }
+            
+            ksort($ivaDesglose);
+        @endphp
+
+        @if(count($ivaDesglose) > 0)
+        <tr class="bg-light">
+            <td colspan="2" class="pt-3">
+                <strong class="text-secondary">{{ __('Desglose de IVA') }}</strong>
+            </td>
+        </tr>
+        @foreach($ivaDesglose as $datos)
+        <tr>
+            <th scope="row" class="fw-normal text-secondary ps-4">
+                {{ __('IVA') }} {{ number_format($datos['porcentaje'], 0) }}% 
+                <span class="text-muted small">({{ number_format($datos['base'], 2) }} € {{ __('base') }})</span>
+            </th>
+            <td class="text-end">
+                {{ number_format($datos['cuota'], 2) }} 
+                <i class="bi bi-currency-euro"></i>
+            </td>
+        </tr>
+        @endforeach
+        <tr class="bg-light">
+            <th scope="row" class="fw-semibold text-secondary">{{ __('Base Imponible') }}</th>
+            <td class="text-end">
+                {{ number_format($totalBaseImponible, 2) }} 
+                <i class="bi bi-currency-euro"></i>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row" class="fw-semibold text-secondary">{{ __('Total IVA') }}</th>
+            <td class="text-end">
+                {{ number_format($totalIva, 2) }} 
+                <i class="bi bi-currency-euro"></i>
+            </td>
+        </tr>
+        @endif
+        @endif
+
         @endif
 
         @if(!isset($ajustes->modo_operacion) || $ajustes->modo_operacion == 'fichas' || (isset($ajustes->mostrar_gastos) && $ajustes->mostrar_gastos == 1))

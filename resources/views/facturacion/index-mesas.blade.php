@@ -47,6 +47,45 @@
                         </div>
                         @endif
                     </div>
+                    
+                    <!-- Desglose de IVA -->
+                    @if(isset($desgloseIva) && !empty($desgloseIva))
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5 class="mb-3">{{ __('Desglose de IVA') }}</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-warning">
+                                        <tr>
+                                            <th>{{ __('Tipo IVA') }}</th>
+                                            <th class="text-end">{{ __('Base Imponible') }}</th>
+                                            <th class="text-end">{{ __('Cuota IVA') }}</th>
+                                            <th class="text-end">{{ __('Total') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($desgloseIva as $tipo => $datos)
+                                        <tr>
+                                            <td><strong>IVA {{ number_format($tipo, 0) }}%</strong></td>
+                                            <td class="text-end">{{ number_format($datos['base'], 2, ',', '.') }} €</td>
+                                            <td class="text-end text-warning">{{ number_format($datos['cuota'], 2, ',', '.') }} €</td>
+                                            <td class="text-end">{{ number_format($datos['base'] + $datos['cuota'], 2, ',', '.') }} €</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <td><strong>{{ __('TOTALES') }}</strong></td>
+                                            <td class="text-end"><strong>{{ number_format($totalBaseImponible ?? 0, 2, ',', '.') }} €</strong></td>
+                                            <td class="text-end text-warning"><strong>{{ number_format($totalCuotaIva ?? 0, 2, ',', '.') }} €</strong></td>
+                                            <td class="text-end"><strong>{{ number_format(($totalBaseImponible ?? 0) + ($totalCuotaIva ?? 0), 2, ',', '.') }} €</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>

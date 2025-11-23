@@ -11,6 +11,7 @@ use App\Http\Controllers\ReservasController;
 use App\Http\Controllers\FichasController;
 use App\Http\Controllers\InformesController;
 use App\Http\Controllers\FacturacionController;
+use App\Http\Controllers\FacturaMesaController;
 use App\Http\Controllers\LicenciasController;
 use App\Http\Controllers\SitiosController;
 use App\Http\Controllers\SmsController;
@@ -165,6 +166,13 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     Route::get('/informes/evolucion-temporal', [InformesController::class, 'evolucionTemporal'])->name('informes.evolucion-temporal');
 
     Route::get('/facturacion', [FacturacionController::class, 'index'])->name('facturacion.index');
+    
+    // Facturas de mesas
+    Route::get('/facturas', [FacturaMesaController::class, 'index'])->name('facturas.index');
+    Route::get('/facturas/crear/{mesaId}', [FacturaMesaController::class, 'crear'])->name('facturas.crear');
+    Route::post('/facturas/{mesaId}', [FacturaMesaController::class, 'store'])->name('facturas.store');
+    Route::get('/facturas/{id}/show', [FacturaMesaController::class, 'show'])->name('facturas.show');
+    Route::get('/facturas/{id}/pdf', [FacturaMesaController::class, 'pdf'])->name('facturas.pdf');
 
     Route::get('/servicios', ServiciosController::class . '@index')->name('servicios.index');
     Route::get('/servicios/create', ServiciosController::class . '@create')->name('servicios.create');

@@ -19,7 +19,10 @@ class Site extends Model
         'mail_encryption',
         'mail_from_address',
         'mail_from_name',
-        'locale'
+        'locale',
+        'direccion',
+        'cif',
+        'telefono'
     ];
 
     protected $hidden = [

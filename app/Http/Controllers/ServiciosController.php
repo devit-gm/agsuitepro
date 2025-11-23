@@ -123,8 +123,8 @@ class ServiciosController extends Controller
         //si el usuario activo es administrador
         if (Auth::user()->role_id == 1) {
             $servicio->borrable = true;
-            foreach ($servicio->fichas as $servicio) {
-                $ficha = Ficha::find($servicio->id_ficha);
+            foreach ($servicio->fichas as $fichaServicio) {
+                $ficha = Ficha::find($fichaServicio->id_ficha);
                 if ($ficha->estado == 0) {
                     $servicio->borrable = false;
                     break;

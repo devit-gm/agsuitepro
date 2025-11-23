@@ -95,7 +95,7 @@
         <tr>
             <th>{{ __('Producto') }}</th>
             <th class="text-center">{{ __('Total') }}</th>
-            @if($ficha->estado == 0)
+            @if($ficha->estado == 0 || (isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas'))
             <th class="text-center"></th>
             @endif
         </tr>
@@ -125,7 +125,7 @@
                 <i class="bi bi-currency-euro"></i>
             </td>
 
-            @if($ficha->estado == 0)
+            @if($ficha->estado == 0 || (isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas'))
             <td class="text-center">
                 <button type="button" class="btn btn-md btn-borrar-min btn-danger" onclick="triggerParentClick(event,this);">
                     <i class="bi bi-trash"></i>
@@ -153,7 +153,7 @@
     <form>
         <div class="d-flex align-items-center justify-content-center">
             @php
-            if($ficha->estado == 0){
+            if($ficha->estado == 0 || (isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas')){
             $ruta = fichaRoute('familias', ['uuid'=>$ficha->uuid]);
             }else{
             $ruta = fichaRoute('index');

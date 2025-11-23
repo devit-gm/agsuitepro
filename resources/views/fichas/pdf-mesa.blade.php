@@ -228,7 +228,8 @@
         <thead>
             <tr>
                 <th style="width: 10%;">Cant.</th>
-                <th style="width: 55%;">Producto</th>
+                <th style="width: 45%;">Producto</th>
+                <th style="width: 10%;" class="text-center">IVA</th>
                 <th style="width: 15%;" class="text-right">P. Unit.</th>
                 <th style="width: 20%;" class="text-right">Subtotal</th>
             </tr>
@@ -237,20 +238,33 @@
             @php
                 $productosAgrupados = $ficha->productos->groupBy('id_producto');
                 $totalProductos = 0;
+                $ivaDesglose = [];
             @endphp
             @foreach($productosAgrupados as $idProducto => $items)
                 @php
                     $producto = $items->first()->producto;
                     $cantidad = $items->count();
                     $precioUnitario = $producto ? $producto->precio : 0;
-                    $subtotal = $precioUnitario * $cantidad;
-                    $totalProductos += $subtotal;
+                    $iva = $producto ? $producto->iva : 0;
+                    $pvp = $precioUnitario * $cantidad; // PVP con IVA incluido
+                    $baseImponible = $pvp / (1 + $iva / 100);
+                    $cuotaIva = $pvp - $baseImponible;
+                    $totalProductos += $pvp;
+                    
+                    // Acumular IVA por porcentaje
+                    $ivaKey = number_format($iva, 2);
+                    if (!isset($ivaDesglose[$ivaKey])) {
+                        $ivaDesglose[$ivaKey] = ['porcentaje' => $iva, 'base' => 0, 'cuota' => 0];
+                    }
+                    $ivaDesglose[$ivaKey]['base'] += $baseImponible;
+                    $ivaDesglose[$ivaKey]['cuota'] += $cuotaIva;
                 @endphp
                 <tr>
                     <td class="text-center">{{ $cantidad }}</td>
                     <td>{{ $producto ? $producto->nombre : 'Producto no disponible' }}</td>
+                    <td class="text-center">{{ number_format($iva, 0) }}%</td>
                     <td class="text-right">{{ number_format($precioUnitario, 2, ',', '.') }} €</td>
-                    <td class="text-right"><strong>{{ number_format($subtotal, 2, ',', '.') }} €</strong></td>
+                    <td class="text-right"><strong>{{ number_format($pvp, 2, ',', '.') }} €</strong></td>
                 </tr>
             @endforeach
         </tbody>
@@ -263,23 +277,78 @@
     <table class="table">
         <thead>
             <tr>
-                <th style="width: 70%;">Servicio</th>
+                <th style="width: 60%;">Servicio</th>
+                <th style="width: 10%;" class="text-center">IVA</th>
                 <th style="width: 30%;" class="text-right">Importe</th>
             </tr>
         </thead>
         <tbody>
             @php
                 $totalServicios = 0;
+                if (!isset($ivaDesglose)) {
+                    $ivaDesglose = [];
+                }
             @endphp
             @foreach($ficha->servicios as $fichaServicio)
                 @php
-                    $totalServicios += $fichaServicio->servicio ? $fichaServicio->servicio->precio : 0;
+                    $servicio = $fichaServicio->servicio;
+                    $pvp = $servicio ? $servicio->precio : 0; // PVP con IVA incluido
+                    $iva = $servicio ? $servicio->iva : 0;
+                    $baseImponible = $pvp / (1 + $iva / 100);
+                    $cuotaIva = $pvp - $baseImponible;
+                    $totalServicios += $pvp;
+                    
+                    // Acumular IVA por porcentaje
+                    $ivaKey = number_format($iva, 2);
+                    if (!isset($ivaDesglose[$ivaKey])) {
+                        $ivaDesglose[$ivaKey] = ['porcentaje' => $iva, 'base' => 0, 'cuota' => 0];
+                    }
+                    $ivaDesglose[$ivaKey]['base'] += $baseImponible;
+                    $ivaDesglose[$ivaKey]['cuota'] += $cuotaIva;
                 @endphp
                 <tr>
-                    <td>{{ $fichaServicio->servicio ? $fichaServicio->servicio->nombre : 'Servicio no disponible' }}</td>
-                    <td class="text-right"><strong>{{ number_format($fichaServicio->servicio ? $fichaServicio->servicio->precio : 0, 2, ',', '.') }} €</strong></td>
+                    <td>{{ $servicio ? $servicio->nombre : 'Servicio no disponible' }}</td>
+                    <td class="text-center">{{ number_format($iva, 0) }}%</td>
+                    <td class="text-right"><strong>{{ number_format($pvp, 2, ',', '.') }} €</strong></td>
                 </tr>
             @endforeach
+        </tbody>
+    </table>
+    @endif
+
+    <!-- Desglose de IVA -->
+    @if(isset($ivaDesglose) && count($ivaDesglose) > 0)
+    <div class="section-title">Desglose de IVA</div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="width: 40%;">Tipo IVA</th>
+                <th style="width: 30%;" class="text-right">Base Imponible</th>
+                <th style="width: 30%;" class="text-right">Cuota IVA</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+                ksort($ivaDesglose);
+                $totalBaseImponible = 0;
+                $totalCuotaIva = 0;
+            @endphp
+            @foreach($ivaDesglose as $datos)
+                @php
+                    $totalBaseImponible += $datos['base'];
+                    $totalCuotaIva += $datos['cuota'];
+                @endphp
+                <tr>
+                    <td>IVA {{ number_format($datos['porcentaje'], 0) }}%</td>
+                    <td class="text-right">{{ number_format($datos['base'], 2, ',', '.') }} €</td>
+                    <td class="text-right">{{ number_format($datos['cuota'], 2, ',', '.') }} €</td>
+                </tr>
+            @endforeach
+            <tr style="background-color: #f8f9fa; font-weight: bold;">
+                <td>TOTALES</td>
+                <td class="text-right">{{ number_format($totalBaseImponible, 2, ',', '.') }} €</td>
+                <td class="text-right">{{ number_format($totalCuotaIva, 2, ',', '.') }} €</td>
+            </tr>
         </tbody>
     </table>
     @endif
@@ -287,32 +356,23 @@
     <!-- Totales -->
     <div class="totals-box">
         @php
-            $subtotal = ($totalProductos ?? 0) + ($totalServicios ?? 0);
-            $propina = 0; // Puedes agregar lógica para propinas si es necesario
-            $total = $subtotal + $propina;
+            $baseImponible = ($totalProductos ?? 0) + ($totalServicios ?? 0);
+            $totalIva = isset($totalCuotaIva) ? $totalCuotaIva : 0;
+            $total = $baseImponible + $totalIva;
         @endphp
         
         <div class="total-row">
-            <div class="total-label">Subtotal Consumos:</div>
-            <div class="total-value">{{ number_format($totalProductos ?? 0, 2, ',', '.') }} €</div>
+            <div class="total-label">Base Imponible:</div>
+            <div class="total-value">{{ number_format($baseImponible, 2, ',', '.') }} €</div>
         </div>
         
-        @if(isset($totalServicios) && $totalServicios > 0)
         <div class="total-row">
-            <div class="total-label">Servicios:</div>
-            <div class="total-value">{{ number_format($totalServicios, 2, ',', '.') }} €</div>
+            <div class="total-label">Total IVA:</div>
+            <div class="total-value">{{ number_format($totalIva, 2, ',', '.') }} €</div>
         </div>
-        @endif
-        
-        @if($propina > 0)
-        <div class="total-row">
-            <div class="total-label">Propina:</div>
-            <div class="total-value">{{ number_format($propina, 2, ',', '.') }} €</div>
-        </div>
-        @endif
         
         <div class="total-row grand-total">
-            <div class="total-label">TOTAL:</div>
+            <div class="total-label">TOTAL A PAGAR:</div>
             <div class="total-value">{{ number_format($total, 2, ',', '.') }} €</div>
         </div>
     </div>

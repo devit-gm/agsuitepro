@@ -34,6 +34,16 @@
                                         <label for="precio" class="fw-bold form-label">{{ __('Precio') }}</label>
                                         <input type="number" step='0.01' value='0.00' placeholder='0.00' class="form-control" id="precio" name="precio" required>
                                     </div>
+                                    <div class="form-group mb-3">
+                                        <label for="iva" class="fw-bold form-label">{{ __('IVA (%)') }}</label>
+                                        <select name="iva" id="iva" class="form-select form-select-sm">
+                                            <option value="0">{{ __('0% - Exento') }}</option>
+                                            <option value="4">{{ __('4% - Superreducido') }}</option>
+                                            <option value="10">{{ __('10% - Reducido') }}</option>
+                                            <option value="21" selected>{{ __('21% - General') }}</option>
+                                        </select>
+                                        <small class="text-muted">{{ __('Por defecto 21% (IVA general en España)') }}</small>
+                                    </div>
                                 </form>
                             </div>
                         </div>

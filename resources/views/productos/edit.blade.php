@@ -83,6 +83,16 @@
                                         <input type="number" placeholder='0.00' class="form-control" id="precio" name="precio" value="{{ $producto->precio }}" required>
                                         @endif
                                     </div>
+                                    <div class="form-group mb-3">
+                                        <label for="iva" class="fw-bold form-label">{{ __('IVA (%)') }}</label>
+                                        <select name="iva" id="iva" class="form-select form-select-sm">
+                                            <option value="0" {{ ($producto->iva ?? 21) == 0 ? 'selected' : '' }}>{{ __('0% - Exento') }}</option>
+                                            <option value="4" {{ ($producto->iva ?? 21) == 4 ? 'selected' : '' }}>{{ __('4% - Superreducido') }}</option>
+                                            <option value="10" {{ ($producto->iva ?? 21) == 10 ? 'selected' : '' }}>{{ __('10% - Reducido') }}</option>
+                                            <option value="21" {{ ($producto->iva ?? 21) == 21 ? 'selected' : '' }}>{{ __('21% - General') }}</option>
+                                        </select>
+                                        <small class="text-muted">{{ __('Por defecto 21% (IVA general en España)') }}</small>
+                                    </div>
 
                                 </form>
                             </div>

@@ -36,6 +36,18 @@
                                         <label for="nombre" class="fw-bold form-label">{{ __('Nombre') }}</label>
                                         <input type="text" class="form-control" id="nombre" name="nombre" value="{{ $sitio->nombre }}" required>
                                     </div>
+                                    <div class="form-group mb-3">
+                                        <label for="cif" class="fw-bold form-label">{{ __('CIF/NIF') }}</label>
+                                        <input type="text" class="form-control" id="cif" name="cif" value="{{ $sitio->cif ?? '' }}" placeholder="B12345678">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label for="direccion" class="fw-bold form-label">{{ __('Dirección') }}</label>
+                                        <textarea class="form-control" id="direccion" name="direccion" rows="2" placeholder="Calle, número, ciudad, código postal">{{ $sitio->direccion ?? '' }}</textarea>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label for="telefono" class="fw-bold form-label">{{ __('Teléfono') }}</label>
+                                        <input type="text" class="form-control" id="telefono" name="telefono" value="{{ $sitio->telefono ?? '' }}" placeholder="+34 123 456 789">
+                                    </div>
                                     <div class="form-group required mb-3">
                                         <label for="dominio" class="fw-bold form-label">{{ __('Dominio') }}</label>
                                         <input type="text" class="form-control" id="dominio" name="dominio" value="{{ $sitio->dominio }}" placeholder="ejemplo.com" required>

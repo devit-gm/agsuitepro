@@ -145,7 +145,7 @@ class InformesController extends Controller
         $fechaInicial = $request->input('fecha_inicial', now()->startOfMonth()->format('Y-m-d'));
         $fechaFinal = $request->input('fecha_final', now()->format('Y-m-d'));
 
-        // 1. Obtener ventas ACTUALES (mesas aún abiertas o cerradas pero no liberadas)
+        // 1. Obtener ventas ACTUALES (mesas aún abiertas o cerradas pero no liberadas) con IVA
         $ventasActuales = DB::connection('site')
             ->table('fichas_productos')
             ->join('productos', 'fichas_productos.id_producto', '=', 'productos.uuid')
@@ -159,11 +159,14 @@ class InformesController extends Controller
                 'productos.uuid',
                 'productos.nombre as producto',
                 'productos.precio',
+                'productos.iva',
                 'familias.nombre as familia',
                 DB::raw('SUM(fichas_productos.cantidad) as cantidad_vendida'),
+                DB::raw('SUM(fichas_productos.cantidad * fichas_productos.precio / (1 + productos.iva / 100)) as base_imponible'),
+                DB::raw('SUM(fichas_productos.cantidad * fichas_productos.precio - (fichas_productos.cantidad * fichas_productos.precio / (1 + productos.iva / 100))) as importe_iva'),
                 DB::raw('SUM(fichas_productos.cantidad * fichas_productos.precio) as total_vendido')
             )
-            ->groupBy('productos.uuid', 'productos.nombre', 'productos.precio', 'familias.nombre')
+            ->groupBy('productos.uuid', 'productos.nombre', 'productos.precio', 'productos.iva', 'familias.nombre')
             ->get();
 
         // 2. Obtener ventas HISTÓRICAS (de mesas ya liberadas)
@@ -175,7 +178,7 @@ class InformesController extends Controller
             ->whereNotNull('detalles')
             ->get();
 
-        // Procesar historial para extraer productos
+        // Procesar historial para extraer productos con IVA
         $ventasHistoricas = collect();
         foreach ($historial as $registro) {
             $detalles = json_decode($registro->detalles, true);
@@ -184,19 +187,38 @@ class InformesController extends Controller
                     // Buscar si ya existe este producto en la colección
                     $productoExistente = $ventasHistoricas->firstWhere('producto_id', $prod['producto_id']);
                     
+                    $iva = $prod['iva'] ?? 0;
+                    // Si viene de historial reciente con base_imponible, usarlo; si no, calcular desde PVP
+                    if (isset($prod['base_imponible'])) {
+                        $baseImponible = $prod['base_imponible'];
+                        $importeIva = $prod['importe_iva'] ?? 0;
+                        $total = $prod['total'] ?? ($baseImponible + $importeIva);
+                    } else {
+                        // Calcular desde PVP (precio con IVA incluido)
+                        $pvp = $prod['cantidad'] * $prod['precio'];
+                        $baseImponible = $pvp / (1 + $iva / 100);
+                        $importeIva = $pvp - $baseImponible;
+                        $total = $pvp;
+                    }
+                    
                     if ($productoExistente) {
                         // Sumar cantidades y totales
                         $productoExistente->cantidad_vendida += $prod['cantidad'];
-                        $productoExistente->total_vendido += $prod['total'];
+                        $productoExistente->base_imponible += $baseImponible;
+                        $productoExistente->importe_iva += $importeIva;
+                        $productoExistente->total_vendido += $total;
                     } else {
                         // Agregar nuevo producto
                         $ventasHistoricas->push((object)[
                             'uuid' => $prod['producto_id'],
                             'producto' => $prod['nombre'],
                             'precio' => $prod['precio'],
+                            'iva' => $iva,
                             'familia' => null, // No tenemos familia en historial
                             'cantidad_vendida' => $prod['cantidad'],
-                            'total_vendido' => $prod['total']
+                            'base_imponible' => $baseImponible,
+                            'importe_iva' => $importeIva,
+                            'total_vendido' => $total
                         ]);
                     }
                 }
@@ -218,28 +240,33 @@ class InformesController extends Controller
             if ($productoExistente) {
                 // Ya existe, sumar
                 $productoExistente->cantidad_vendida += $ventaHist->cantidad_vendida;
+                $productoExistente->base_imponible += $ventaHist->base_imponible;
+                $productoExistente->importe_iva += $ventaHist->importe_iva;
                 $productoExistente->total_vendido += $ventaHist->total_vendido;
             } else {
                 // No existe, agregar
-                // Buscar datos completos del producto para tener familia
+                // Buscar datos completos del producto para tener familia e IVA actual
                 $producto = DB::connection('site')->table('productos')
                     ->join('familias', 'productos.familia', '=', 'familias.uuid')
                     ->where('productos.uuid', $ventaHist->uuid)
-                    ->select('familias.nombre as familia')
+                    ->select('familias.nombre as familia', 'productos.iva')
                     ->first();
                     
                 $ventaHist->familia = $producto ? $producto->familia : 'Sin familia';
+                $ventaHist->iva = $producto ? $producto->iva : $ventaHist->iva;
                 $ventasProductos->push($ventaHist);
             }
         }
-
+        
         // Ordenar por total vendido
         $ventasProductos = $ventasProductos->sortByDesc('total_vendido')->values();
-
+        
         $totalGeneral = $ventasProductos->sum('total_vendido');
         $cantidadTotal = $ventasProductos->sum('cantidad_vendida');
-
-        return view('informes.ventas-productos', compact('ventasProductos', 'totalGeneral', 'cantidadTotal', 'fechaInicial', 'fechaFinal'));
+        $subtotalGeneral = $ventasProductos->sum('base_imponible');
+        $totalIvaGeneral = $ventasProductos->sum('importe_iva');
+        
+        return view('informes.ventas-productos', compact('ventasProductos', 'totalGeneral', 'cantidadTotal', 'subtotalGeneral', 'totalIvaGeneral', 'fechaInicial', 'fechaFinal'));
     }
 
     /**

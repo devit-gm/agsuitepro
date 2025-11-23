@@ -98,7 +98,7 @@
             <th class="text-start">{{ __('Servicio') }}</th>
             <th>{{ __('Precio') }}</th>
 
-            @if($ficha->estado == 0)
+            @if($ficha->estado == 0 || (isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas'))
                 <th>{{ __('Añadir') }}</th>
             @endif
         </tr>
@@ -108,7 +108,8 @@
         @foreach ($serviciosFicha as $servicio)
 
         @php
-            $ocultar = ($servicio->marcado == 0 && $ficha->estado == 1) ? "d-none" : "";
+            $esModoMesas = isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas';
+            $ocultar = ($servicio->marcado == 0 && $ficha->estado == 1 && !$esModoMesas) ? "d-none" : "";
         @endphp
 
         <tr class="{{ $ocultar }}">
@@ -124,7 +125,7 @@
             </td>
 
             <!-- Switch -->
-            @if($ficha->estado == 0)
+            @if($ficha->estado == 0 || (isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas'))
             <td class="align-middle text-center">
                 <div class="form-check form-switch d-flex justify-content-center">
                     <input 
@@ -134,7 +135,7 @@
                         name="servicios[]"
                         value="{{ $servicio->uuid }}"
                         @if($servicio->marcado == 1) checked @endif
-                        @if($ficha->estado == 1) disabled @endif
+                        @if($ficha->estado == 1 && (!isset($ajustes->modo_operacion) || $ajustes->modo_operacion != 'mesas')) disabled @endif
                     >
                 </div>
             </td>
@@ -169,7 +170,7 @@
             @else
             <a class="btn btn-dark mx-1" href={{ fichaRoute('lista', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
             @endif
-            @if($ficha->estado == 0)
+            @if($ficha->estado == 0 || (isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas'))
             <button type="button" onclick="document.getElementById('editar-serviciosficha').submit();" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
             @endif
             @php
