@@ -26,7 +26,6 @@ use function substr;
 use function trim;
 use PHPUnit\Event\Code\Test;
 use PHPUnit\Event\Code\TestMethod;
-use PHPUnit\Event\Test\AfterLastTestMethodErrored;
 use PHPUnit\Event\Test\BeforeFirstTestMethodErrored;
 use PHPUnit\Event\Test\ConsideredRisky;
 use PHPUnit\Event\Test\DeprecationTriggered;
@@ -39,13 +38,12 @@ use PHPUnit\Event\Test\PhpunitErrorTriggered;
 use PHPUnit\Event\Test\PhpunitWarningTriggered;
 use PHPUnit\Event\Test\PhpWarningTriggered;
 use PHPUnit\Event\Test\WarningTriggered;
+use PHPUnit\Event\TestData\NoDataSetFromDataProviderException;
 use PHPUnit\TestRunner\TestResult\Issues\Issue;
 use PHPUnit\TestRunner\TestResult\TestResult;
 use PHPUnit\TextUI\Output\Printer;
 
 /**
- * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
- *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
 final class ResultPrinter
@@ -147,6 +145,11 @@ final class ResultPrinter
         }
     }
 
+    public function flush(): void
+    {
+        $this->printer->flush();
+    }
+
     private function printPhpunitErrors(TestResult $result): void
     {
         if (!$result->hasTestTriggeredPhpunitErrorEvents()) {
@@ -240,7 +243,7 @@ final class ResultPrinter
         $elements = [];
 
         foreach ($result->testErroredEvents() as $event) {
-            if ($event instanceof AfterLastTestMethodErrored || $event instanceof BeforeFirstTestMethodErrored) {
+            if ($event instanceof BeforeFirstTestMethodErrored) {
                 $title = $event->testClassName();
             } else {
                 $title = $this->name($event->test());
@@ -504,16 +507,15 @@ final class ResultPrinter
         );
     }
 
+    /**
+     * @throws NoDataSetFromDataProviderException
+     */
     private function name(Test $test): string
     {
         if ($test->isTestMethod()) {
             assert($test instanceof TestMethod);
 
-            if (!$test->testData()->hasDataFromDataProvider()) {
-                return $test->nameWithClass();
-            }
-
-            return $test->className() . '::' . $test->methodName() . $test->testData()->dataFromDataProvider()->dataAsStringForResultOutput();
+            return $test->nameWithClass();
         }
 
         return $test->name();

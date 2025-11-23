@@ -76,15 +76,15 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
      */
     private static array $freshCache = [];
 
-    public const VERSION = '6.4.20';
-    public const VERSION_ID = 60420;
+    public const VERSION = '6.3.8';
+    public const VERSION_ID = 60308;
     public const MAJOR_VERSION = 6;
-    public const MINOR_VERSION = 4;
-    public const RELEASE_VERSION = 20;
+    public const MINOR_VERSION = 3;
+    public const RELEASE_VERSION = 8;
     public const EXTRA_VERSION = '';
 
-    public const END_OF_MAINTENANCE = '11/2026';
-    public const END_OF_LIFE = '11/2027';
+    public const END_OF_MAINTENANCE = '01/2024';
+    public const END_OF_LIFE = '01/2024';
 
     public function __construct(string $environment, bool $debug)
     {
@@ -407,8 +407,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         $cachePath = $cache->getPath();
 
         // Silence E_WARNING to ignore "include" failures - don't use "@" to prevent silencing fatal errors
-        $errorLevel = error_reporting();
-        error_reporting($errorLevel & ~\E_WARNING);
+        $errorLevel = error_reporting(\E_ALL ^ \E_WARNING);
 
         try {
             if (is_file($cachePath) && \is_object($this->container = include $cachePath)
@@ -540,18 +539,10 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
             touch($oldContainerDir.'.legacy');
         }
 
-        $buildDir = $this->container->getParameter('kernel.build_dir');
-        $cacheDir = $this->container->getParameter('kernel.cache_dir');
-        $preload = $this instanceof WarmableInterface ? (array) $this->warmUp($cacheDir, $buildDir) : [];
+        $preload = $this instanceof WarmableInterface ? (array) $this->warmUp($this->container->getParameter('kernel.cache_dir')) : [];
 
         if ($this->container->has('cache_warmer')) {
-            $cacheWarmer = $this->container->get('cache_warmer');
-
-            if ($cacheDir !== $buildDir) {
-                $cacheWarmer->enableOptionalWarmers();
-            }
-
-            $preload = array_merge($preload, (array) $cacheWarmer->warmUp($cacheDir, $buildDir));
+            $preload = array_merge($preload, (array) $this->container->get('cache_warmer')->warmUp($this->container->getParameter('kernel.cache_dir')));
         }
 
         if ($preload && file_exists($preloadFile = $buildDir.'/'.$class.'.preload.php')) {
@@ -579,10 +570,6 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
             'kernel.project_dir' => realpath($this->getProjectDir()) ?: $this->getProjectDir(),
             'kernel.environment' => $this->environment,
             'kernel.runtime_environment' => '%env(default:kernel.environment:APP_RUNTIME_ENV)%',
-            'kernel.runtime_mode' => '%env(query_string:default:container.runtime_mode:APP_RUNTIME_MODE)%',
-            'kernel.runtime_mode.web' => '%env(bool:default::key:web:default:kernel.runtime_mode:)%',
-            'kernel.runtime_mode.cli' => '%env(not:default:kernel.runtime_mode.web:)%',
-            'kernel.runtime_mode.worker' => '%env(bool:default::key:worker:default:kernel.runtime_mode:)%',
             'kernel.debug' => $this->debug,
             'kernel.build_dir' => realpath($buildDir = $this->warmupDir ?: $this->getBuildDir()) ?: $buildDir,
             'kernel.cache_dir' => realpath($cacheDir = ($this->getCacheDir() === $this->getBuildDir() ? ($this->warmupDir ?: $this->getCacheDir()) : $this->getCacheDir())) ?: $cacheDir,
@@ -789,13 +776,9 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
      *
      * We don't use the PHP php_strip_whitespace() function
      * as we want the content to be readable and well-formatted.
-     *
-     * @deprecated since Symfony 6.4 without replacement
      */
     public static function stripComments(string $source): string
     {
-        trigger_deprecation('symfony/http-kernel', '6.4', 'Method "%s()" is deprecated without replacement.', __METHOD__);
-
         if (!\function_exists('token_get_all')) {
             return $source;
         }
@@ -854,9 +837,6 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
         return ['environment', 'debug'];
     }
 
-    /**
-     * @return void
-     */
     public function __wakeup()
     {
         if (\is_object($this->environment) || \is_object($this->debug)) {

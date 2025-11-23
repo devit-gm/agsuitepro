@@ -38,7 +38,7 @@ use Twilio\Deserialize;
  * @property bool|null $wasEdited
  * @property string|null $from
  * @property string|null $body
- * @property int $index
+ * @property int|null $index
  * @property string|null $type
  * @property array|null $media
  * @property string|null $url

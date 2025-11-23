@@ -46,21 +46,11 @@ class Number
      *
      * @param  int|float  $number
      * @param  string|null  $locale
-     * @param  int|null  $after
-     * @param  int|null  $until
      * @return string
      */
-    public static function spell(int|float $number, ?string $locale = null, ?int $after = null, ?int $until = null)
+    public static function spell(int|float $number, ?string $locale = null)
     {
         static::ensureIntlExtensionIsInstalled();
-
-        if (! is_null($after) && $number <= $after) {
-            return static::format($number, locale: $locale);
-        }
-
-        if (! is_null($until) && $number >= $until) {
-            return static::format($number, locale: $locale);
-        }
 
         $formatter = new NumberFormatter($locale ?? static::$locale, NumberFormatter::SPELLOUT);
 
@@ -144,92 +134,37 @@ class Number
     }
 
     /**
-     * Convert the number to its human-readable equivalent.
+     * Convert the number to its human readable equivalent.
      *
-     * @param  int|float  $number
+     * @param  int  $number
      * @param  int  $precision
      * @param  int|null  $maxPrecision
-     * @return bool|string
+     * @return string
      */
-    public static function abbreviate(int|float $number, int $precision = 0, ?int $maxPrecision = null)
+    public static function forHumans(int|float $number, int $precision = 0, ?int $maxPrecision = null)
     {
-        return static::forHumans($number, $precision, $maxPrecision, abbreviate: true);
-    }
-
-    /**
-     * Convert the number to its human-readable equivalent.
-     *
-     * @param  int|float  $number
-     * @param  int  $precision
-     * @param  int|null  $maxPrecision
-     * @param  bool  $abbreviate
-     * @return bool|string
-     */
-    public static function forHumans(int|float $number, int $precision = 0, ?int $maxPrecision = null, bool $abbreviate = false)
-    {
-        return static::summarize($number, $precision, $maxPrecision, $abbreviate ? [
-            3 => 'K',
-            6 => 'M',
-            9 => 'B',
-            12 => 'T',
-            15 => 'Q',
-        ] : [
-            3 => ' thousand',
-            6 => ' million',
-            9 => ' billion',
-            12 => ' trillion',
-            15 => ' quadrillion',
-        ]);
-    }
-
-    /**
-     * Convert the number to its human-readable equivalent.
-     *
-     * @param  int|float  $number
-     * @param  int  $precision
-     * @param  int|null  $maxPrecision
-     * @param  array  $units
-     * @return string|false
-     */
-    protected static function summarize(int|float $number, int $precision = 0, ?int $maxPrecision = null, array $units = [])
-    {
-        if (empty($units)) {
-            $units = [
-                3 => 'K',
-                6 => 'M',
-                9 => 'B',
-                12 => 'T',
-                15 => 'Q',
-            ];
-        }
+        $units = [
+            3 => 'thousand',
+            6 => 'million',
+            9 => 'billion',
+            12 => 'trillion',
+            15 => 'quadrillion',
+        ];
 
         switch (true) {
-            case floatval($number) === 0.0:
-                return $precision > 0 ? static::format(0, $precision, $maxPrecision) : '0';
+            case $number === 0:
+                return '0';
             case $number < 0:
-                return sprintf('-%s', static::summarize(abs($number), $precision, $maxPrecision, $units));
+                return sprintf('-%s', static::forHumans(abs($number), $precision, $maxPrecision));
             case $number >= 1e15:
-                return sprintf('%s'.end($units), static::summarize($number / 1e15, $precision, $maxPrecision, $units));
+                return sprintf('%s quadrillion', static::forHumans($number / 1e15, $precision, $maxPrecision));
         }
 
         $numberExponent = floor(log10($number));
         $displayExponent = $numberExponent - ($numberExponent % 3);
         $number /= pow(10, $displayExponent);
 
-        return trim(sprintf('%s%s', static::format($number, $precision, $maxPrecision), $units[$displayExponent] ?? ''));
-    }
-
-    /**
-     * Clamp the given number between the given minimum and maximum.
-     *
-     * @param  int|float  $number
-     * @param  int|float  $min
-     * @param  int|float  $max
-     * @return int|float
-     */
-    public static function clamp(int|float $number, int|float $min, int|float $max)
-    {
-        return min(max($number, $min), $max);
+        return trim(sprintf('%s %s', static::format($number, $precision, $maxPrecision), $units[$displayExponent] ?? ''));
     }
 
     /**
@@ -260,16 +195,14 @@ class Number
     }
 
     /**
-     * Ensure the "intl" PHP extension is installed.
+     * Ensure the "intl" PHP exntension is installed.
      *
      * @return void
      */
     protected static function ensureIntlExtensionIsInstalled()
     {
         if (! extension_loaded('intl')) {
-            $method = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function'];
-
-            throw new RuntimeException('The "intl" PHP extension is required to use the ['.$method.'] method.');
+            throw new RuntimeException('The "intl" PHP extension is required to use this method.');
         }
     }
 }

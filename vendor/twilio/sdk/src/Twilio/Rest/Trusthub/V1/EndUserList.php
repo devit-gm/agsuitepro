@@ -67,8 +67,7 @@ class EndUserList extends ListResource
                 Serialize::jsonObject($options['attributes']),
         ]);
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->create('POST', $this->uri, [], $data, $headers);
+        $payload = $this->version->create('POST', $this->uri, [], $data);
 
         return new EndUserInstance(
             $this->version,

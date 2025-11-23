@@ -35,7 +35,7 @@ class StartSession
      * @param  callable|null  $cacheFactoryResolver
      * @return void
      */
-    public function __construct(SessionManager $manager, ?callable $cacheFactoryResolver = null)
+    public function __construct(SessionManager $manager, callable $cacheFactoryResolver = null)
     {
         $this->manager = $manager;
         $this->cacheFactoryResolver = $cacheFactoryResolver;
@@ -219,16 +219,9 @@ class StartSession
     {
         if ($this->sessionIsPersistent($config = $this->manager->getSessionConfig())) {
             $response->headers->setCookie(new Cookie(
-                $session->getName(),
-                $session->getId(),
-                $this->getCookieExpirationDate(),
-                $config['path'],
-                $config['domain'],
-                $config['secure'] ?? false,
-                $config['http_only'] ?? true,
-                false,
-                $config['same_site'] ?? null,
-                $config['partitioned'] ?? false
+                $session->getName(), $session->getId(), $this->getCookieExpirationDate(),
+                $config['path'], $config['domain'], $config['secure'] ?? false,
+                $config['http_only'] ?? true, false, $config['same_site'] ?? null
             ));
         }
     }
@@ -286,7 +279,7 @@ class StartSession
      * @param  array|null  $config
      * @return bool
      */
-    protected function sessionIsPersistent(?array $config = null)
+    protected function sessionIsPersistent(array $config = null)
     {
         $config = $config ?: $this->manager->getSessionConfig();
 

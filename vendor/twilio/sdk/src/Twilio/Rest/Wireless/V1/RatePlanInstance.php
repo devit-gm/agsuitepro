@@ -32,13 +32,13 @@ use Twilio\Deserialize;
  * @property string|null $friendlyName
  * @property bool|null $dataEnabled
  * @property string|null $dataMetering
- * @property int $dataLimit
+ * @property int|null $dataLimit
  * @property bool|null $messagingEnabled
  * @property bool|null $voiceEnabled
  * @property bool|null $nationalRoamingEnabled
- * @property int $nationalRoamingDataLimit
+ * @property int|null $nationalRoamingDataLimit
  * @property string[]|null $internationalRoaming
- * @property int $internationalRoamingDataLimit
+ * @property int|null $internationalRoamingDataLimit
  * @property \DateTime|null $dateCreated
  * @property \DateTime|null $dateUpdated
  * @property string|null $url

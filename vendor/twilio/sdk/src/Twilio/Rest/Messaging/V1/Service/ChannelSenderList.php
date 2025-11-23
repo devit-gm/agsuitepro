@@ -16,7 +16,6 @@
 
 namespace Twilio\Rest\Messaging\V1\Service;
 
-use Twilio\Exceptions\TwilioException;
 use Twilio\ListResource;
 use Twilio\Stream;
 use Twilio\Values;
@@ -29,7 +28,7 @@ class ChannelSenderList extends ListResource
      * Construct the ChannelSenderList
      *
      * @param Version $version Version that contains the resource
-     * @param string $messagingServiceSid The SID of the [Service](https://www.twilio.com/docs/chat/rest/service-resource) to create the resource under.
+     * @param string $messagingServiceSid The SID of the [Service](https://www.twilio.com/docs/chat/rest/service-resource) to fetch the resource from.
      */
     public function __construct(
         Version $version,
@@ -47,32 +46,6 @@ class ChannelSenderList extends ListResource
         $this->uri = '/Services/' . \rawurlencode($messagingServiceSid)
         .'/ChannelSenders';
     }
-
-    /**
-     * Create the ChannelSenderInstance
-     *
-     * @param string $sid The SID of the Channel Sender being added to the Service.
-     * @return ChannelSenderInstance Created ChannelSenderInstance
-     * @throws TwilioException When an HTTP error occurs.
-     */
-    public function create(string $sid): ChannelSenderInstance
-    {
-
-        $data = Values::of([
-            'Sid' =>
-                $sid,
-        ]);
-
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->create('POST', $this->uri, [], $data, $headers);
-
-        return new ChannelSenderInstance(
-            $this->version,
-            $payload,
-            $this->solution['messagingServiceSid']
-        );
-    }
-
 
     /**
      * Reads ChannelSenderInstance records from the API as a list.
@@ -169,7 +142,7 @@ class ChannelSenderList extends ListResource
     /**
      * Constructs a ChannelSenderContext
      *
-     * @param string $sid The SID of the Channel Sender resource to delete.
+     * @param string $sid The SID of the ChannelSender resource to fetch.
      */
     public function getContext(
         string $sid

@@ -27,10 +27,10 @@ use Twilio\Deserialize;
 
 /**
  * @property string|null $accountSid
- * @property int $assignedTasks
+ * @property int|null $assignedTasks
  * @property bool|null $available
- * @property int $availableCapacityPercentage
- * @property int $configuredCapacity
+ * @property int|null $availableCapacityPercentage
+ * @property int|null $configuredCapacity
  * @property \DateTime|null $dateCreated
  * @property \DateTime|null $dateUpdated
  * @property string|null $sid

@@ -57,8 +57,7 @@ class EvaluationList extends ListResource
     public function create(): EvaluationInstance
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->create('POST', $this->uri, [], [], $headers);
+        $payload = $this->version->create('POST', $this->uri, [], []);
 
         return new EvaluationInstance(
             $this->version,

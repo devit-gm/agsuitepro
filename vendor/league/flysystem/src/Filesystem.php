@@ -25,7 +25,7 @@ class Filesystem implements FilesystemOperator
     public function __construct(
         private FilesystemAdapter $adapter,
         array $config = [],
-        ?PathNormalizer $pathNormalizer = null,
+        PathNormalizer $pathNormalizer = null,
         private ?PublicUrlGenerator $publicUrlGenerator = null,
         private ?TemporaryUrlGenerator $temporaryUrlGenerator = null,
     ) {
@@ -187,10 +187,7 @@ class Filesystem implements FilesystemOperator
             ?? throw UnableToGeneratePublicUrl::noGeneratorConfigured($path);
         $config = $this->config->extend($config);
 
-        return $this->publicUrlGenerator->publicUrl(
-            $this->pathNormalizer->normalizePath($path),
-            $config,
-        );
+        return $this->publicUrlGenerator->publicUrl($this->pathNormalizer->normalizePath($path), $config);
     }
 
     public function temporaryUrl(string $path, DateTimeInterface $expiresAt, array $config = []): string
@@ -217,15 +214,9 @@ class Filesystem implements FilesystemOperator
         }
 
         try {
-            return $this->adapter->checksum(
-                $this->pathNormalizer->normalizePath($path),
-                $config,
-            );
+            return $this->adapter->checksum($path, $config);
         } catch (ChecksumAlgoIsNotSupported) {
-            return $this->calculateChecksumFromStream(
-                $this->pathNormalizer->normalizePath($path),
-                $config,
-            );
+            return $this->calculateChecksumFromStream($path, $config);
         }
     }
 
@@ -273,7 +264,7 @@ class Filesystem implements FilesystemOperator
 
     private function resolveConfigForMoveAndCopy(array $config): Config
     {
-        $retainVisibility = $this->config->get(Config::OPTION_RETAIN_VISIBILITY, $config[Config::OPTION_RETAIN_VISIBILITY] ?? true);
+        $retainVisibility = $this->config->get('retain_visibility', $config['retain_visibility'] ?? true);
         $fullConfig = $this->config->extend($config);
 
         /*

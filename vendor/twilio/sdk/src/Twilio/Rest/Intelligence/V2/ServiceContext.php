@@ -58,8 +58,7 @@ class ServiceContext extends InstanceContext
     public function delete(): bool
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        return $this->version->delete('DELETE', $this->uri, [], [], $headers);
+        return $this->version->delete('DELETE', $this->uri);
     }
 
 
@@ -72,8 +71,7 @@ class ServiceContext extends InstanceContext
     public function fetch(): ServiceInstance
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->fetch('GET', $this->uri, [], [], $headers);
+        $payload = $this->version->fetch('GET', $this->uri, [], []);
 
         return new ServiceInstance(
             $this->version,
@@ -114,7 +112,8 @@ class ServiceContext extends InstanceContext
                 $options['webhookHttpMethod'],
         ]);
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' , 'If-Match' => $options['ifMatch']]);
+        $headers = Values::of(['If-Match' => $options['ifMatch']]);
+
         $payload = $this->version->update('POST', $this->uri, [], $data, $headers);
 
         return new ServiceInstance(

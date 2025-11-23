@@ -18,7 +18,6 @@
 namespace Twilio\Rest\Intelligence\V2;
 
 use Twilio\Exceptions\TwilioException;
-use Twilio\Values;
 use Twilio\Version;
 use Twilio\InstanceContext;
 
@@ -56,8 +55,7 @@ class PrebuiltOperatorContext extends InstanceContext
     public function fetch(): PrebuiltOperatorInstance
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->fetch('GET', $this->uri, [], [], $headers);
+        $payload = $this->version->fetch('GET', $this->uri, [], []);
 
         return new PrebuiltOperatorInstance(
             $this->version,

@@ -8,7 +8,7 @@
  *
  * @author Andrey Helldar <helldar@dragon-code.pro>
  *
- * @copyright 2024 Andrey Helldar
+ * @copyright 2023 Andrey Helldar
  *
  * @license MIT
  *
@@ -16,6 +16,8 @@
  */
 
 namespace DragonCode\Support\Helpers;
+
+use JetBrains\PhpStorm\Pure;
 
 class Boolean
 {
@@ -38,6 +40,7 @@ class Boolean
     /**
      * Converts a value to a boolean type.
      */
+    #[Pure]
     public function to(mixed $value): bool
     {
         return (bool) $this->parse($value);

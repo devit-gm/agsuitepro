@@ -259,13 +259,4 @@ class Dial extends TwiML {
     public function setReferMethod($referMethod): self {
         return $this->setAttribute('referMethod', $referMethod);
     }
-
-    /**
-     * Add Events attribute.
-     *
-     * @param string $events Subscription to events
-     */
-    public function setEvents($events): self {
-        return $this->setAttribute('events', $events);
-    }
 }

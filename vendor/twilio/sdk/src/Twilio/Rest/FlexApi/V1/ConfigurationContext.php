@@ -60,8 +60,7 @@ class ConfigurationContext extends InstanceContext
                 $options['uiVersion'],
         ]);
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->fetch('GET', $this->uri, $params, [], $headers);
+        $payload = $this->version->fetch('GET', $this->uri, $params, []);
 
         return new ConfigurationInstance(
             $this->version,
@@ -79,7 +78,6 @@ class ConfigurationContext extends InstanceContext
     public function update(): ConfigurationInstance
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
         $data = $body->toArray();
         $headers['Content-Type'] = 'application/json';
         $payload = $this->version->update('POST', $this->uri, [], $data, $headers);

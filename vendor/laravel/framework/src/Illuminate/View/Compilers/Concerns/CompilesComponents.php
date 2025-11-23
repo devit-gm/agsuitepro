@@ -67,7 +67,6 @@ trait CompilesComponents
     {
         return implode("\n", [
             '<?php if (isset($component)) { $__componentOriginal'.$hash.' = $component; } ?>',
-            '<?php if (isset($attributes)) { $__attributesOriginal'.$hash.' = $attributes; } ?>',
             '<?php $component = '.$component.'::resolve('.($data ?: '[]').' + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? (array) $attributes->getIterator() : [])); ?>',
             '<?php $component->withName('.$alias.'); ?>',
             '<?php if ($component->shouldRender()): ?>',
@@ -95,10 +94,6 @@ trait CompilesComponents
         $hash = array_pop(static::$componentHashStack);
 
         return $this->compileEndComponent()."\n".implode("\n", [
-            '<?php endif; ?>',
-            '<?php if (isset($__attributesOriginal'.$hash.')): ?>',
-            '<?php $attributes = $__attributesOriginal'.$hash.'; ?>',
-            '<?php unset($__attributesOriginal'.$hash.'); ?>',
             '<?php endif; ?>',
             '<?php if (isset($__componentOriginal'.$hash.')): ?>',
             '<?php $component = $__componentOriginal'.$hash.'; ?>',

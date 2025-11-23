@@ -10,7 +10,6 @@ use Illuminate\Contracts\Cache\Store;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Permission\Contracts\Permission;
-use Spatie\Permission\Contracts\PermissionsTeamResolver;
 use Spatie\Permission\Contracts\Role;
 
 class PermissionRegistrar
@@ -35,9 +34,10 @@ class PermissionRegistrar
 
     public bool $teams;
 
-    protected PermissionsTeamResolver $teamResolver;
-
     public string $teamsKey;
+
+    /** @var int|string */
+    protected $teamId = null;
 
     public string $cacheKey;
 
@@ -56,7 +56,6 @@ class PermissionRegistrar
     {
         $this->permissionClass = config('permission.models.permission');
         $this->roleClass = config('permission.models.role');
-        $this->teamResolver = new (config('permission.team_resolver', DefaultTeamResolver::class));
 
         $this->cacheManager = $cacheManager;
         $this->initializeCache();
@@ -103,15 +102,18 @@ class PermissionRegistrar
      */
     public function setPermissionsTeamId($id): void
     {
-        $this->teamResolver->setPermissionsTeamId($id);
+        if ($id instanceof \Illuminate\Database\Eloquent\Model) {
+            $id = $id->getKey();
+        }
+        $this->teamId = $id;
     }
 
     /**
-     * @return int|string|null
+     * @return int|string
      */
     public function getPermissionsTeamId()
     {
-        return $this->teamResolver->getPermissionsTeamId();
+        return $this->teamId;
     }
 
     /**
@@ -197,6 +199,14 @@ class PermissionRegistrar
         $this->permissions = $this->cache->remember(
             $this->cacheKey, $this->cacheExpirationTime, fn () => $this->getSerializedPermissionsForCache()
         );
+
+        // fallback for old cache method, must be removed on next mayor version
+        if (! isset($this->permissions['alias'])) {
+            $this->forgetCachedPermissions();
+            $this->loadPermissions();
+
+            return;
+        }
 
         $this->alias = $this->permissions['alias'];
 
@@ -348,10 +358,10 @@ class PermissionRegistrar
 
     private function getHydratedPermissionCollection(): Collection
     {
-        $permissionInstance = (new ($this->getPermissionClass())())->newInstance([], true);
+        $permissionInstance = new ($this->getPermissionClass())();
 
         return Collection::make(array_map(
-            fn ($item) => (clone $permissionInstance)
+            fn ($item) => $permissionInstance->newInstance([], true)
                 ->setRawAttributes($this->aliasedArray(array_diff_key($item, ['r' => 0])), true)
                 ->setRelation('roles', $this->getHydratedRoleCollection($item['r'] ?? [])),
             $this->permissions['permissions']
@@ -367,10 +377,10 @@ class PermissionRegistrar
 
     private function hydrateRolesCache(): void
     {
-        $roleInstance = (new ($this->getRoleClass())())->newInstance([], true);
+        $roleInstance = new ($this->getRoleClass())();
 
         array_map(function ($item) use ($roleInstance) {
-            $role = (clone $roleInstance)
+            $role = $roleInstance->newInstance([], true)
                 ->setRawAttributes($this->aliasedArray($item), true);
             $this->cachedRoles[$role->getKey()] = $role;
         }, $this->permissions['roles']);

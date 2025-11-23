@@ -84,8 +84,7 @@ class ChallengeList extends ListResource
                 $options['authPayload'],
         ]);
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->create('POST', $this->uri, [], $data, $headers);
+        $payload = $this->version->create('POST', $this->uri, [], $data);
 
         return new ChallengeInstance(
             $this->version,

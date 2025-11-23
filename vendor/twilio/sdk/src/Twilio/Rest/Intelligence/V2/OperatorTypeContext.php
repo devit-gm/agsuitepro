@@ -18,7 +18,6 @@
 namespace Twilio\Rest\Intelligence\V2;
 
 use Twilio\Exceptions\TwilioException;
-use Twilio\Values;
 use Twilio\Version;
 use Twilio\InstanceContext;
 
@@ -29,7 +28,7 @@ class OperatorTypeContext extends InstanceContext
      * Initialize the OperatorTypeContext
      *
      * @param Version $version Version that contains the resource
-     * @param string $sid Either a 34 character string that uniquely identifies this Operator Type or the unique name that references an Operator Type.
+     * @param string $sid A 34 character string that uniquely identifies this Operator Type.
      */
     public function __construct(
         Version $version,
@@ -56,8 +55,7 @@ class OperatorTypeContext extends InstanceContext
     public function fetch(): OperatorTypeInstance
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->fetch('GET', $this->uri, [], [], $headers);
+        $payload = $this->version->fetch('GET', $this->uri, [], []);
 
         return new OperatorTypeInstance(
             $this->version,

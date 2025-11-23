@@ -8,7 +8,7 @@
  *
  * @author Andrey Helldar <helldar@dragon-code.pro>
  *
- * @copyright 2024 Andrey Helldar
+ * @copyright 2023 Andrey Helldar
  *
  * @license MIT
  *
@@ -46,6 +46,8 @@ class Str
      * Get a new stringable object from the given string.
      *
      * @see https://github.com/illuminate/support/blob/master/Str.php
+     *
+     * @return \DragonCode\Support\Helpers\Ables\Stringable
      */
     public function of(?string $value): Ables\Stringable
     {
@@ -249,6 +251,8 @@ class Str
      * Convert the given string to upper-case.
      *
      * @see https://github.com/illuminate/support/blob/master/Str.php
+     *
+     * @return string
      */
     public function upper(?string $value): ?string
     {
@@ -409,6 +413,8 @@ class Str
      * Get the portion of a string before the first occurrence of a given value.
      *
      * @see https://github.com/illuminate/support/blob/master/Str.php
+     *
+     * @return string
      */
     public function before(string $subject, string $search): ?string
     {
@@ -419,6 +425,8 @@ class Str
      * Return the remainder of a string after the first occurrence of a given value.
      *
      * @see https://github.com/illuminate/support/blob/master/Str.php
+     *
+     * @return string
      */
     public function after(string $subject, string $search): ?string
     {
@@ -520,20 +528,9 @@ class Str
     }
 
     /**
-     * Determines if the value doesn't empty.
-     *
-     * @deprecated
-     * @see self::isNotEmpty()
+     * Determines if the value is doesn't empty.
      */
     public function doesntEmpty(mixed $value): bool
-    {
-        return $this->isNotEmpty($value);
-    }
-
-    /**
-     * Determines if the value isn't empty.
-     */
-    public function isNotEmpty(mixed $value): bool
     {
         return ! $this->isEmpty($value);
     }

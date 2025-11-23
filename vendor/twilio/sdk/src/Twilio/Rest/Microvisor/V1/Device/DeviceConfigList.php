@@ -66,8 +66,7 @@ class DeviceConfigList extends ListResource
                 $value,
         ]);
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->create('POST', $this->uri, [], $data, $headers);
+        $payload = $this->version->create('POST', $this->uri, [], $data);
 
         return new DeviceConfigInstance(
             $this->version,

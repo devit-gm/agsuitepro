@@ -81,8 +81,7 @@ class MessageInteractionList extends ListResource
                 Serialize::map($options['mediaUrl'], function ($e) { return $e; }),
         ]);
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->create('POST', $this->uri, [], $data, $headers);
+        $payload = $this->version->create('POST', $this->uri, [], $data);
 
         return new MessageInteractionInstance(
             $this->version,

@@ -79,7 +79,8 @@ class PluginVersionsList extends ListResource
                 $options['validateStatus'],
         ]);
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' , 'Flex-Metadata' => $options['flexMetadata']]);
+        $headers = Values::of(['Flex-Metadata' => $options['flexMetadata']]);
+
         $payload = $this->version->create('POST', $this->uri, [], $data, $headers);
 
         return new PluginVersionsInstance(

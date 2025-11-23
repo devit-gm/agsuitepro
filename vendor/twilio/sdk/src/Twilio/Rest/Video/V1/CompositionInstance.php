@@ -38,9 +38,9 @@ use Twilio\Deserialize;
  * @property string|null $resolution
  * @property bool|null $trim
  * @property string $format
- * @property int $bitrate
+ * @property int|null $bitrate
  * @property int|null $size
- * @property int $duration
+ * @property int|null $duration
  * @property string|null $mediaExternalLocation
  * @property string|null $statusCallback
  * @property string|null $statusCallbackMethod

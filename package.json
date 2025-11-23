@@ -23,6 +23,8 @@
     },
     "dependencies": {
         "eslint-config-standard": "^17.1.0",
-        "glob": "^10.4.1"
+        "firebase": "^12.6.0",
+        "glob": "^10.4.1",
+        "quagga": "^0.12.1"
     }
 }

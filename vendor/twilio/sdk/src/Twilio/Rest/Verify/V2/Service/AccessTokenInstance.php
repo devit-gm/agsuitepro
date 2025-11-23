@@ -33,7 +33,7 @@ use Twilio\Deserialize;
  * @property string|null $factorFriendlyName
  * @property string|null $token
  * @property string|null $url
- * @property int $ttl
+ * @property int|null $ttl
  * @property \DateTime|null $dateCreated
  */
 class AccessTokenInstance extends InstanceResource

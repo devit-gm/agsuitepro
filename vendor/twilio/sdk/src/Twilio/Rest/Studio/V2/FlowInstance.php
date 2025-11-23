@@ -34,11 +34,11 @@ use Twilio\Rest\Studio\V2\Flow\FlowTestUserList;
  * @property string|null $friendlyName
  * @property array|null $definition
  * @property string $status
- * @property int $revision
+ * @property int|null $revision
  * @property string|null $commitMessage
  * @property bool|null $valid
- * @property object[]|null $errors
- * @property object[]|null $warnings
+ * @property array[]|null $errors
+ * @property array[]|null $warnings
  * @property \DateTime|null $dateCreated
  * @property \DateTime|null $dateUpdated
  * @property string|null $webhookUrl

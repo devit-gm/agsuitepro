@@ -91,8 +91,7 @@ class AddressList extends ListResource
                 $options['streetSecondary'],
         ]);
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->create('POST', $this->uri, [], $data, $headers);
+        $payload = $this->version->create('POST', $this->uri, [], $data);
 
         return new AddressInstance(
             $this->version,
@@ -174,8 +173,6 @@ class AddressList extends ListResource
                 $options['customerName'],
             'FriendlyName' =>
                 $options['friendlyName'],
-            'EmergencyEnabled' =>
-                Serialize::booleanToString($options['emergencyEnabled']),
             'IsoCountry' =>
                 $options['isoCountry'],
             'PageToken' => $pageToken,

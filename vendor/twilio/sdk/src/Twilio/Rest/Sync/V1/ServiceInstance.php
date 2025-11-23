@@ -42,7 +42,7 @@ use Twilio\Rest\Sync\V1\Service\SyncMapList;
  * @property bool|null $reachabilityWebhooksEnabled
  * @property bool|null $aclEnabled
  * @property bool|null $reachabilityDebouncingEnabled
- * @property int $reachabilityDebouncingWindow
+ * @property int|null $reachabilityDebouncingWindow
  * @property array|null $links
  */
 class ServiceInstance extends InstanceResource

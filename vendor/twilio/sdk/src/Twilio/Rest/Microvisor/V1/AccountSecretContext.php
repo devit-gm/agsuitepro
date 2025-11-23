@@ -56,8 +56,7 @@ class AccountSecretContext extends InstanceContext
     public function delete(): bool
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        return $this->version->delete('DELETE', $this->uri, [], [], $headers);
+        return $this->version->delete('DELETE', $this->uri);
     }
 
 
@@ -70,8 +69,7 @@ class AccountSecretContext extends InstanceContext
     public function fetch(): AccountSecretInstance
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->fetch('GET', $this->uri, [], [], $headers);
+        $payload = $this->version->fetch('GET', $this->uri, [], []);
 
         return new AccountSecretInstance(
             $this->version,
@@ -96,8 +94,7 @@ class AccountSecretContext extends InstanceContext
                 $value,
         ]);
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->update('POST', $this->uri, [], $data, $headers);
+        $payload = $this->version->update('POST', $this->uri, [], $data);
 
         return new AccountSecretInstance(
             $this->version,

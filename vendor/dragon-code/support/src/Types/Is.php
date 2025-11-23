@@ -8,7 +8,7 @@
  *
  * @author Andrey Helldar <helldar@dragon-code.pro>
  *
- * @copyright 2024 Andrey Helldar
+ * @copyright 2023 Andrey Helldar
  *
  * @license MIT
  *
@@ -41,20 +41,9 @@ class Is
     }
 
     /**
-     * Determines if the value doesn't empty.
-     *
-     * @deprecated
-     * @see self::isNotEmpty()
+     * Determines if the value is doesn't empty.
      */
     public function doesntEmpty(mixed $value): bool
-    {
-        return ! $this->isEmpty($value);
-    }
-
-    /**
-     * Determines if the value isn't empty.
-     */
-    public function isNotEmpty(mixed $value): bool
     {
         return ! $this->isEmpty($value);
     }

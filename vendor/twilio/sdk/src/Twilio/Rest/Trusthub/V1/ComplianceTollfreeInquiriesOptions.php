@@ -41,7 +41,6 @@ abstract class ComplianceTollfreeInquiriesOptions
      * @param string $businessContactEmail The email address of the contact for the business or organization using the Tollfree number.
      * @param string $businessContactPhone The phone number of the contact for the business or organization using the Tollfree number.
      * @param string $themeSetId Theme id for styling the inquiry form.
-     * @param bool $skipMessagingUseCase Skip the messaging use case screen of the inquiry form.
      * @return CreateComplianceTollfreeInquiriesOptions Options builder
      */
     public static function create(
@@ -65,8 +64,7 @@ abstract class ComplianceTollfreeInquiriesOptions
         string $businessContactLastName = Values::NONE,
         string $businessContactEmail = Values::NONE,
         string $businessContactPhone = Values::NONE,
-        string $themeSetId = Values::NONE,
-        bool $skipMessagingUseCase = Values::BOOL_NONE
+        string $themeSetId = Values::NONE
 
     ): CreateComplianceTollfreeInquiriesOptions
     {
@@ -90,8 +88,7 @@ abstract class ComplianceTollfreeInquiriesOptions
             $businessContactLastName,
             $businessContactEmail,
             $businessContactPhone,
-            $themeSetId,
-            $skipMessagingUseCase
+            $themeSetId
         );
     }
 
@@ -120,7 +117,6 @@ class CreateComplianceTollfreeInquiriesOptions extends Options
      * @param string $businessContactEmail The email address of the contact for the business or organization using the Tollfree number.
      * @param string $businessContactPhone The phone number of the contact for the business or organization using the Tollfree number.
      * @param string $themeSetId Theme id for styling the inquiry form.
-     * @param bool $skipMessagingUseCase Skip the messaging use case screen of the inquiry form.
      */
     public function __construct(
         
@@ -143,8 +139,7 @@ class CreateComplianceTollfreeInquiriesOptions extends Options
         string $businessContactLastName = Values::NONE,
         string $businessContactEmail = Values::NONE,
         string $businessContactPhone = Values::NONE,
-        string $themeSetId = Values::NONE,
-        bool $skipMessagingUseCase = Values::BOOL_NONE
+        string $themeSetId = Values::NONE
 
     ) {
         $this->options['businessName'] = $businessName;
@@ -167,7 +162,6 @@ class CreateComplianceTollfreeInquiriesOptions extends Options
         $this->options['businessContactEmail'] = $businessContactEmail;
         $this->options['businessContactPhone'] = $businessContactPhone;
         $this->options['themeSetId'] = $themeSetId;
-        $this->options['skipMessagingUseCase'] = $skipMessagingUseCase;
     }
 
     /**
@@ -405,18 +399,6 @@ class CreateComplianceTollfreeInquiriesOptions extends Options
     public function setThemeSetId(string $themeSetId): self
     {
         $this->options['themeSetId'] = $themeSetId;
-        return $this;
-    }
-
-    /**
-     * Skip the messaging use case screen of the inquiry form.
-     *
-     * @param bool $skipMessagingUseCase Skip the messaging use case screen of the inquiry form.
-     * @return $this Fluent Builder
-     */
-    public function setSkipMessagingUseCase(bool $skipMessagingUseCase): self
-    {
-        $this->options['skipMessagingUseCase'] = $skipMessagingUseCase;
         return $this;
     }
 

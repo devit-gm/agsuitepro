@@ -13,12 +13,9 @@ class CacheReset extends Command
 
     public function handle()
     {
-        $permissionRegistrar = app(PermissionRegistrar::class);
-        $cacheExists = $permissionRegistrar->getCacheRepository()->has($permissionRegistrar->cacheKey);
-
-        if ($permissionRegistrar->forgetCachedPermissions()) {
+        if (app(PermissionRegistrar::class)->forgetCachedPermissions()) {
             $this->info('Permission cache flushed.');
-        } elseif ($cacheExists) {
+        } else {
             $this->error('Unable to flush cache.');
         }
     }

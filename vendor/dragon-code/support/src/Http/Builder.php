@@ -8,7 +8,7 @@
  *
  * @author Andrey Helldar <helldar@dragon-code.pro>
  *
- * @copyright 2024 Andrey Helldar
+ * @copyright 2023 Andrey Helldar
  *
  * @license MIT
  *
@@ -25,6 +25,7 @@ use DragonCode\Support\Facades\Helpers\Arr;
 use DragonCode\Support\Facades\Helpers\Str;
 use DragonCode\Support\Facades\Http\Url as UrlHelper;
 use DragonCode\Support\Helpers\Ables\Stringable;
+use JetBrains\PhpStorm\Pure;
 use Psr\Http\Message\UriInterface;
 
 class Builder implements BuilderContract
@@ -71,6 +72,8 @@ class Builder implements BuilderContract
 
     /**
      * Gets the current instance of the object.
+     *
+     * @return \DragonCode\Support\Http\Builder
      */
     public function same(): self
     {
@@ -80,9 +83,9 @@ class Builder implements BuilderContract
     /**
      * Parse a URL.
      *
-     * @param  UriInterface|string|null  $url
+     * @param  \Psr\Http\Message\UriInterface|string|null  $url
      *
-     * @return Builder
+     * @return \DragonCode\Support\Http\Builder
      */
     public function parse(mixed $url, int $component = self::PHP_URL_ALL): BuilderContract
     {
@@ -102,7 +105,7 @@ class Builder implements BuilderContract
     /**
      * Populate an object with parsed data.
      *
-     * @return Builder
+     * @return \DragonCode\Support\Http\Builder
      */
     public function parsed(array $parsed): BuilderContract
     {
@@ -295,7 +298,7 @@ class Builder implements BuilderContract
     /**
      * Remove the fragment component from the URI.
      *
-     * @return Builder
+     * @return \DragonCode\Support\Http\Builder
      */
     public function removeFragment(): BuilderContract
     {
@@ -306,6 +309,8 @@ class Builder implements BuilderContract
      * Return an instance with the specified scheme.
      *
      * @param  string  $scheme
+     *
+     * @return \DragonCode\Support\Http\Builder
      */
     public function withScheme($scheme): self
     {
@@ -317,6 +322,8 @@ class Builder implements BuilderContract
      *
      * @param  string  $user
      * @param  string|null  $password
+     *
+     * @return \DragonCode\Support\Http\Builder
      */
     public function withUserInfo($user, $password = null): self
     {
@@ -329,6 +336,8 @@ class Builder implements BuilderContract
      * Return an instance with the specified host.
      *
      * @param  string  $host
+     *
+     * @return \DragonCode\Support\Http\Builder
      */
     public function withHost($host): self
     {
@@ -339,6 +348,8 @@ class Builder implements BuilderContract
      * Return an instance with the specified port.
      *
      * @param  int|null  $port
+     *
+     * @return \DragonCode\Support\Http\Builder
      */
     public function withPort($port): self
     {
@@ -349,6 +360,8 @@ class Builder implements BuilderContract
      * Return an instance with the specified path.
      *
      * @param  string  $path
+     *
+     * @return \DragonCode\Support\Http\Builder
      */
     public function withPath($path): self
     {
@@ -359,6 +372,8 @@ class Builder implements BuilderContract
      * Return an instance with the specified query string.
      *
      * @param  array|string  $query
+     *
+     * @return \DragonCode\Support\Http\Builder
      */
     public function withQuery($query): self
     {
@@ -368,7 +383,7 @@ class Builder implements BuilderContract
     /**
      * Return an instance with the specified query object.
      *
-     * @return Builder
+     * @return \DragonCode\Support\Http\Builder
      */
     public function putQuery(string $key, $value): BuilderContract
     {
@@ -387,7 +402,7 @@ class Builder implements BuilderContract
     /**
      * Return an instance with the specified query object.
      *
-     * @return Builder
+     * @return \DragonCode\Support\Http\Builder
      */
     public function removeQuery(string $key): BuilderContract
     {
@@ -402,6 +417,8 @@ class Builder implements BuilderContract
      * Return an instance with the specified URI fragment.
      *
      * @param  string  $fragment
+     *
+     * @return \DragonCode\Support\Http\Builder
      */
     public function withFragment($fragment): self
     {
@@ -411,7 +428,7 @@ class Builder implements BuilderContract
     /**
      * Return an instance with the specified `UriInterface`.
      *
-     * @return Builder
+     * @return \DragonCode\Support\Http\Builder
      */
     public function fromPsr(UriInterface $uri): BuilderContract
     {
@@ -547,6 +564,7 @@ class Builder implements BuilderContract
         ];
     }
 
+    #[Pure]
     protected function resolveSame(int $component = self::PHP_URL_ALL): self
     {
         return $component === self::PHP_URL_ALL ? new self() : $this;

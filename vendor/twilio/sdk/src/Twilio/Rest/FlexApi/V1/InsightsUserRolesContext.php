@@ -55,7 +55,8 @@ class InsightsUserRolesContext extends InstanceContext
 
         $options = new Values($options);
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' , 'Authorization' => $options['authorization']]);
+        $headers = Values::of(['Authorization' => $options['authorization']]);
+
         $payload = $this->version->fetch('GET', $this->uri, [], [], $headers);
 
         return new InsightsUserRolesInstance(

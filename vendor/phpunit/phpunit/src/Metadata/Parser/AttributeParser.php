@@ -11,11 +11,8 @@ namespace PHPUnit\Metadata\Parser;
 
 use const JSON_THROW_ON_ERROR;
 use function assert;
-use function class_exists;
 use function json_decode;
-use function method_exists;
 use function str_starts_with;
-use Error;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\AfterClass;
 use PHPUnit\Framework\Attributes\BackupGlobals;
@@ -41,7 +38,6 @@ use PHPUnit\Framework\Attributes\ExcludeGlobalVariableFromBackup;
 use PHPUnit\Framework\Attributes\ExcludeStaticPropertyFromBackup;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\IgnoreClassForCodeCoverage;
-use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\Attributes\IgnoreFunctionForCodeCoverage;
 use PHPUnit\Framework\Attributes\IgnoreMethodForCodeCoverage;
 use PHPUnit\Framework\Attributes\Large;
@@ -69,7 +65,6 @@ use PHPUnit\Framework\Attributes\Ticket;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\Attributes\UsesFunction;
 use PHPUnit\Framework\Attributes\WithoutErrorHandler;
-use PHPUnit\Metadata\InvalidAttributeException;
 use PHPUnit\Metadata\Metadata;
 use PHPUnit\Metadata\MetadataCollection;
 use PHPUnit\Metadata\Version\ConstraintRequirement;
@@ -77,8 +72,6 @@ use ReflectionClass;
 use ReflectionMethod;
 
 /**
- * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
- *
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
 final class AttributeParser implements Parser
@@ -88,31 +81,14 @@ final class AttributeParser implements Parser
      */
     public function forClass(string $className): MetadataCollection
     {
-        assert(class_exists($className));
+        $result = [];
 
-        $reflector = new ReflectionClass($className);
-        $result    = [];
-
-        foreach ($reflector->getAttributes() as $attribute) {
+        foreach ((new ReflectionClass($className))->getAttributes() as $attribute) {
             if (!str_starts_with($attribute->getName(), 'PHPUnit\\Framework\\Attributes\\')) {
                 continue;
             }
 
-            if (!class_exists($attribute->getName())) {
-                continue;
-            }
-
-            try {
-                $attributeInstance = $attribute->newInstance();
-            } catch (Error $e) {
-                throw new InvalidAttributeException(
-                    $attribute->getName(),
-                    'class ' . $className,
-                    $reflector->getFileName(),
-                    $reflector->getStartLine(),
-                    $e->getMessage(),
-                );
-            }
+            $attributeInstance = $attribute->newInstance();
 
             switch ($attribute->getName()) {
                 case BackupGlobals::class:
@@ -191,13 +167,6 @@ final class AttributeParser implements Parser
                     assert($attributeInstance instanceof IgnoreClassForCodeCoverage);
 
                     $result[] = Metadata::ignoreClassForCodeCoverage($attributeInstance->className());
-
-                    break;
-
-                case IgnoreDeprecations::class:
-                    assert($attributeInstance instanceof IgnoreDeprecations);
-
-                    $result[] = Metadata::ignoreDeprecationsOnClass();
 
                     break;
 
@@ -356,32 +325,14 @@ final class AttributeParser implements Parser
      */
     public function forMethod(string $className, string $methodName): MetadataCollection
     {
-        assert(class_exists($className));
-        assert(method_exists($className, $methodName));
+        $result = [];
 
-        $reflector = new ReflectionMethod($className, $methodName);
-        $result    = [];
-
-        foreach ($reflector->getAttributes() as $attribute) {
+        foreach ((new ReflectionMethod($className, $methodName))->getAttributes() as $attribute) {
             if (!str_starts_with($attribute->getName(), 'PHPUnit\\Framework\\Attributes\\')) {
                 continue;
             }
 
-            if (!class_exists($attribute->getName())) {
-                continue;
-            }
-
-            try {
-                $attributeInstance = $attribute->newInstance();
-            } catch (Error $e) {
-                throw new InvalidAttributeException(
-                    $attribute->getName(),
-                    'method ' . $className . '::' . $methodName . '()',
-                    $reflector->getFileName(),
-                    $reflector->getStartLine(),
-                    $e->getMessage(),
-                );
-            }
+            $attributeInstance = $attribute->newInstance();
 
             switch ($attribute->getName()) {
                 case After::class:
@@ -528,13 +479,6 @@ final class AttributeParser implements Parser
                     assert($attributeInstance instanceof Group);
 
                     $result[] = Metadata::groupOnMethod($attributeInstance->name());
-
-                    break;
-
-                case IgnoreDeprecations::class:
-                    assert($attributeInstance instanceof IgnoreDeprecations);
-
-                    $result[] = Metadata::ignoreDeprecationsOnMethod();
 
                     break;
 

@@ -19,7 +19,6 @@ namespace Twilio\Rest\Intelligence\V2;
 
 use Twilio\Exceptions\TwilioException;
 use Twilio\ListResource;
-use Twilio\Values;
 use Twilio\Version;
 use Twilio\InstanceContext;
 use Twilio\Rest\Intelligence\V2\Transcript\SentenceList;
@@ -71,8 +70,7 @@ class TranscriptContext extends InstanceContext
     public function delete(): bool
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        return $this->version->delete('DELETE', $this->uri, [], [], $headers);
+        return $this->version->delete('DELETE', $this->uri);
     }
 
 
@@ -85,8 +83,7 @@ class TranscriptContext extends InstanceContext
     public function fetch(): TranscriptInstance
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->fetch('GET', $this->uri, [], [], $headers);
+        $payload = $this->version->fetch('GET', $this->uri, [], []);
 
         return new TranscriptInstance(
             $this->version,

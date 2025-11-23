@@ -79,6 +79,8 @@ interface Builder extends Arrayable, UriInterface
 
     /**
      * Remove the fragment component from the URI.
+     *
+     * @return \DragonCode\Contracts\Http\Builder
      */
     public function removeFragment(): self;
 
@@ -89,16 +91,22 @@ interface Builder extends Arrayable, UriInterface
 
     /**
      * Return an instance with the specified query object.
+     *
+     * @return \DragonCode\Contracts\Http\Builder
      */
     public function putQuery(string $key, $value): self;
 
     /**
      * Return an instance with the specified query object.
+     *
+     * @return \DragonCode\Contracts\Http\Builder
      */
     public function removeQuery(string $key): self;
 
     /**
      * Return an instance with the specified `UriInterface`.
+     *
+     * @return \DragonCode\Contracts\Http\Builder
      */
     public function fromPsr(UriInterface $uri): self;
 

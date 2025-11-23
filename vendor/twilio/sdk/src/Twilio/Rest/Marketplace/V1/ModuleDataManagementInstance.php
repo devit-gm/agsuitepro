@@ -32,8 +32,6 @@ use Twilio\Version;
  * @property array|null $policies
  * @property array|null $moduleInfo
  * @property array|null $documentation
- * @property array|null $configuration
- * @property array|null $pricing
  */
 class ModuleDataManagementInstance extends InstanceResource
 {
@@ -42,7 +40,7 @@ class ModuleDataManagementInstance extends InstanceResource
      *
      * @param Version $version Version that contains the resource
      * @param mixed[] $payload The response payload
-     * @param string $sid The unique identifier of a Listing.
+     * @param string $sid 
      */
     public function __construct(Version $version, array $payload, string $sid = null)
     {
@@ -57,8 +55,6 @@ class ModuleDataManagementInstance extends InstanceResource
             'policies' => Values::array_get($payload, 'policies'),
             'moduleInfo' => Values::array_get($payload, 'module_info'),
             'documentation' => Values::array_get($payload, 'documentation'),
-            'configuration' => Values::array_get($payload, 'configuration'),
-            'pricing' => Values::array_get($payload, 'pricing'),
         ];
 
         $this->solution = ['sid' => $sid ?: $this->properties['sid'], ];

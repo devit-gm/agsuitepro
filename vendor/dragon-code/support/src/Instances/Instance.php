@@ -8,7 +8,7 @@
  *
  * @author Andrey Helldar <helldar@dragon-code.pro>
  *
- * @copyright 2024 Andrey Helldar
+ * @copyright 2023 Andrey Helldar
  *
  * @license MIT
  *
@@ -88,18 +88,7 @@ class Instance
             return true;
         }
 
-        if (! IsHelper::string($haystack)) {
-            return false;
-        }
-
-        if (in_array($haystack, ['/', '\\'])) {
-            return false;
-        }
-
-        return class_exists($haystack)
-            || interface_exists($haystack)
-            || trait_exists($haystack)
-            || enum_exists($haystack);
+        return IsHelper::string($haystack) && (class_exists($haystack) || interface_exists($haystack) || trait_exists($haystack) || enum_exists($haystack));
     }
 
     /**

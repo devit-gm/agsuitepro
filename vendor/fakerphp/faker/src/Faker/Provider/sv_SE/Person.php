@@ -121,11 +121,12 @@ class Person extends \Faker\Provider\Person
      *
      * @see http://en.wikipedia.org/wiki/Personal_identity_number_(Sweden)
      *
-     * @param string $gender Person::GENDER_MALE || Person::GENDER_FEMALE
+     * @param \DateTime $birthdate
+     * @param string    $gender    Person::GENDER_MALE || Person::GENDER_FEMALE
      *
      * @return string on format XXXXXX-XXXX
      */
-    public function personalIdentityNumber(?\DateTime $birthdate = null, $gender = null)
+    public function personalIdentityNumber(\DateTime $birthdate = null, $gender = null)
     {
         if (!$birthdate) {
             $birthdate = \Faker\Provider\DateTime::dateTimeThisCentury();

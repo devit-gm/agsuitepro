@@ -32,7 +32,7 @@ use Twilio\Deserialize;
  * @property string|null $friendlyName
  * @property bool|null $dataEnabled
  * @property string|null $dataMetering
- * @property int $dataLimit
+ * @property int|null $dataLimit
  * @property bool|null $messagingEnabled
  * @property bool|null $voiceEnabled
  * @property bool|null $nationalRoamingEnabled

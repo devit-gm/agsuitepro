@@ -1,5 +1,4 @@
 <?php
-
 /*
  * This file is part of the "dragon-code/support" project.
  *
@@ -8,7 +7,7 @@
  *
  * @author Andrey Helldar <helldar@dragon-code.pro>
  *
- * @copyright 2024 Andrey Helldar
+ * @copyright 2023 Andrey Helldar
  *
  * @license MIT
  *
@@ -17,10 +16,12 @@
 
 namespace DragonCode\Support\Exceptions;
 
+use JetBrains\PhpStorm\Pure;
 use LogicException;
 
 class UnknownUrlComponentIndexException extends LogicException
 {
+    #[Pure]
     public function __construct(int $component)
     {
         parent::__construct('Unknown URL component index: ' . $component);

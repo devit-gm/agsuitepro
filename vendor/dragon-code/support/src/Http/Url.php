@@ -8,7 +8,7 @@
  *
  * @author Andrey Helldar <helldar@dragon-code.pro>
  *
- * @copyright 2024 Andrey Helldar
+ * @copyright 2023 Andrey Helldar
  *
  * @license MIT
  *
@@ -99,6 +99,8 @@ class Url
      * Parsing URL into components.
      *
      * @param  BuilderContract|string|null  $url
+     *
+     * @return \DragonCode\Support\Http\Builder
      */
     public function parse(string|UriInterface|null $url): Builder
     {
@@ -127,7 +129,7 @@ class Url
      *
      * @param  BuilderContract|string|null  $url
      *
-     * @throws NotValidUrlException
+     * @throws \DragonCode\Support\Exceptions\NotValidUrlException
      */
     public function validate(mixed $url): void
     {
@@ -141,9 +143,9 @@ class Url
      *
      * @param  BuilderContract|string|null  $url
      *
-     * @throws NotValidUrlException
+     * @throws \DragonCode\Support\Exceptions\NotValidUrlException
      *
-     * @return BuilderContract|Builder|string
+     * @return BuilderContract|\DragonCode\Support\Http\Builder|string
      */
     public function validated(mixed $url): mixed
     {
@@ -157,7 +159,7 @@ class Url
      *
      * @param  BuilderContract|string|null  $url
      *
-     * @throws NotValidUrlException
+     * @throws \DragonCode\Support\Exceptions\NotValidUrlException
      */
     public function exists(string|UriInterface|null $url): bool
     {
@@ -185,7 +187,7 @@ class Url
      * @param  BuilderContract|string  $url
      * @param  BuilderContract|string  $default
      *
-     * @throws NotValidUrlException
+     * @throws \DragonCode\Support\Exceptions\NotValidUrlException
      *
      * @return string|null
      */

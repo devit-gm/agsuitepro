@@ -33,8 +33,8 @@ use Twilio\Deserialize;
  * @property \DateTime|null $dateCreated
  * @property \DateTime|null $dateCompleted
  * @property string|null $url
- * @property int $totalCount
- * @property object[]|null $results
+ * @property int|null $totalCount
+ * @property array[]|null $results
  */
 class BulkHostedNumberOrderInstance extends InstanceResource
 {

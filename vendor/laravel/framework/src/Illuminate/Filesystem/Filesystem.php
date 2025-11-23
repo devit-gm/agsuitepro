@@ -16,7 +16,8 @@ use Symfony\Component\Mime\MimeTypes;
 
 class Filesystem
 {
-    use Conditionable, Macroable;
+    use Conditionable;
+    use Macroable;
 
     /**
      * Determine if a file or directory exists.
@@ -267,12 +268,11 @@ class Filesystem
      *
      * @param  string  $path
      * @param  string  $data
-     * @param  bool  $lock
      * @return int
      */
-    public function append($path, $data, $lock = false)
+    public function append($path, $data)
     {
-        return file_put_contents($path, $data, FILE_APPEND | ($lock ? LOCK_EX : 0));
+        return file_put_contents($path, $data, FILE_APPEND);
     }
 
     /**
@@ -347,7 +347,7 @@ class Filesystem
      *
      * @param  string  $target
      * @param  string  $link
-     * @return bool|null
+     * @return void
      */
     public function link($target, $link)
     {
@@ -545,7 +545,7 @@ class Filesystem
     {
         $hash = @md5_file($firstFile);
 
-        return $hash && hash_equals($hash, (string) @md5_file($secondFile));
+        return $hash && $hash === @md5_file($secondFile);
     }
 
     /**

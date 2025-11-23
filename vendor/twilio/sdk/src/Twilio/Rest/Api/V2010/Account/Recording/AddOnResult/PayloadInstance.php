@@ -22,7 +22,6 @@ use Twilio\InstanceResource;
 use Twilio\Values;
 use Twilio\Version;
 use Twilio\Deserialize;
-use Twilio\Rest\Api\V2010\Account\Recording\AddOnResult\Payload\DataList;
 
 
 /**
@@ -40,8 +39,6 @@ use Twilio\Rest\Api\V2010\Account\Recording\AddOnResult\Payload\DataList;
  */
 class PayloadInstance extends InstanceResource
 {
-    protected $_data;
-
     /**
      * Initialize the PayloadInstance
      *
@@ -117,14 +114,6 @@ class PayloadInstance extends InstanceResource
     {
 
         return $this->proxy()->fetch();
-    }
-
-    /**
-     * Access the data
-     */
-    protected function getData(): DataList
-    {
-        return $this->proxy()->data;
     }
 
     /**

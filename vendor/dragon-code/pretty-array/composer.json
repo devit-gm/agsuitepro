@@ -15,7 +15,7 @@
         {
             "name": "Andrey Helldar",
             "email": "helldar@dragon-code.pro",
-            "homepage": "https://dragon-code.pro"
+            "homepage": "https://github.com/andrey-helldar"
         }
     ],
     "support": {
@@ -23,6 +23,14 @@
         "source": "https://github.com/TheDragonCode/pretty-array"
     },
     "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/TheDragonCode"
+        },
+        {
+            "type": "open_collective",
+            "url": "https://opencollective.com/dragon-code"
+        },
         {
             "type": "boosty",
             "url": "https://boosty.to/dragon-code"
@@ -40,7 +48,7 @@
         "dragon-code/support": "^6.11.2"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.6 || ^10.0 || ^11.0 || ^12.0"
+        "phpunit/phpunit": "^9.6 || ^10.2"
     },
     "suggest": {
         "symfony/thanks": "Give thanks (in the form of a GitHub) to your fellow PHP package maintainers"
@@ -61,8 +69,7 @@
         "allow-plugins": {
             "dragon-code/codestyler": true,
             "ergebnis/composer-normalize": true,
-            "friendsofphp/php-cs-fixer": true,
-            "symfony/thanks": true
+            "friendsofphp/php-cs-fixer": true
         },
         "preferred-install": "dist",
         "sort-packages": true

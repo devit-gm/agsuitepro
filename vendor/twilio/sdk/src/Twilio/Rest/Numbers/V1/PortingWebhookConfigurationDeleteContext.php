@@ -18,7 +18,6 @@
 namespace Twilio\Rest\Numbers\V1;
 
 use Twilio\Exceptions\TwilioException;
-use Twilio\Values;
 use Twilio\Version;
 use Twilio\InstanceContext;
 
@@ -29,7 +28,7 @@ class PortingWebhookConfigurationDeleteContext extends InstanceContext
      * Initialize the PortingWebhookConfigurationDeleteContext
      *
      * @param Version $version Version that contains the resource
-     * @param string $webhookType The webhook type for the configuration to be delete. `PORT_IN`, `PORT_OUT`
+     * @param string $webhookType The of the webhook type of the configuration to be deleted
      */
     public function __construct(
         Version $version,
@@ -56,8 +55,7 @@ class PortingWebhookConfigurationDeleteContext extends InstanceContext
     public function delete(): bool
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        return $this->version->delete('DELETE', $this->uri, [], [], $headers);
+        return $this->version->delete('DELETE', $this->uri);
     }
 
 

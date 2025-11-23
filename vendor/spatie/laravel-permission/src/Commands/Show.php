@@ -40,12 +40,12 @@ class Show extends Command
                 ->when($teamsEnabled, fn ($q) => $q->orderBy($team_key))
                 ->orderBy('name')->get()->mapWithKeys(fn ($role) => [
                     $role->name.'_'.($teamsEnabled ? ($role->$team_key ?: '') : '') => [
-                        'permissions' => $role->permissions->pluck($permissionClass->getKeyName()),
+                        'permissions' => $role->permissions->pluck('id'),
                         $team_key => $teamsEnabled ? $role->$team_key : null,
                     ],
                 ]);
 
-            $permissions = $permissionClass::whereGuardName($guard)->orderBy('name')->pluck('name', $permissionClass->getKeyName());
+            $permissions = $permissionClass::whereGuardName($guard)->orderBy('name')->pluck('name', 'id');
 
             $body = $permissions->map(fn ($permission, $id) => $roles->map(
                 fn (array $role_data) => $role_data['permissions']->contains($id) ? ' ✔' : ' ·'

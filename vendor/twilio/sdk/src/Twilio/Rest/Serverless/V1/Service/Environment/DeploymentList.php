@@ -22,7 +22,6 @@ use Twilio\Options;
 use Twilio\Stream;
 use Twilio\Values;
 use Twilio\Version;
-use Twilio\Serialize;
 
 
 class DeploymentList extends ListResource
@@ -71,12 +70,9 @@ class DeploymentList extends ListResource
         $data = Values::of([
             'BuildSid' =>
                 $options['buildSid'],
-            'IsPlugin' =>
-                Serialize::booleanToString($options['isPlugin']),
         ]);
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->create('POST', $this->uri, [], $data, $headers);
+        $payload = $this->version->create('POST', $this->uri, [], $data);
 
         return new DeploymentInstance(
             $this->version,

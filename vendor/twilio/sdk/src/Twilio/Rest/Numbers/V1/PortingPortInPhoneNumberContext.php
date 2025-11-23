@@ -18,7 +18,6 @@
 namespace Twilio\Rest\Numbers\V1;
 
 use Twilio\Exceptions\TwilioException;
-use Twilio\Values;
 use Twilio\Version;
 use Twilio\InstanceContext;
 
@@ -61,8 +60,7 @@ class PortingPortInPhoneNumberContext extends InstanceContext
     public function delete(): bool
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        return $this->version->delete('DELETE', $this->uri, [], [], $headers);
+        return $this->version->delete('DELETE', $this->uri);
     }
 
 
@@ -75,8 +73,7 @@ class PortingPortInPhoneNumberContext extends InstanceContext
     public function fetch(): PortingPortInPhoneNumberInstance
     {
 
-        $headers = Values::of(['Content-Type' => 'application/x-www-form-urlencoded' ]);
-        $payload = $this->version->fetch('GET', $this->uri, [], [], $headers);
+        $payload = $this->version->fetch('GET', $this->uri, [], []);
 
         return new PortingPortInPhoneNumberInstance(
             $this->version,

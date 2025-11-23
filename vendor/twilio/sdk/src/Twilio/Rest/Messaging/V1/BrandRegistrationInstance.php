@@ -37,7 +37,7 @@ use Twilio\Rest\Messaging\V1\BrandRegistration\BrandVettingList;
  * @property string $status
  * @property string|null $tcrId
  * @property string|null $failureReason
- * @property object[]|null $errors
+ * @property array[]|null $errors
  * @property string|null $url
  * @property int|null $brandScore
  * @property string[]|null $brandFeedback
