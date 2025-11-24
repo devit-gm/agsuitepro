@@ -15,6 +15,14 @@
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ siteFavicon() }}-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ siteFavicon() }}-16x16.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ route('manifest') }}">
+    <meta name="theme-color" content="#dc3545">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="{{ siteName() }}">
 
     <!-- Scripts -->
     <link rel="stylesheet" href="{{ siteStyles() }}">
@@ -723,8 +731,15 @@
     </footer>
     @endguest
         <!-- Service Worker Registration (solo en HTTPS) --> 
-        @if(request()-> secure()) 
+        @if(request()-> secure())
+        @php
+            $domain = request()->getHost();
+            $site = \App\Models\Site::where('dominio', $domain)->first();
+            $iconBasePath = ($site && $site->carpeta_pwa) ? '/' . trim($site->carpeta_pwa, '/') : '/images/icons';
+        @endphp
 <script>
+            // Variable global con la ruta base de iconos PWA
+            window.PWA_ICON_PATH = '{{ $iconBasePath }}';
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                     navigator.serviceWorker.register('/firebase-messaging-sw.js').then(registration => {
@@ -781,8 +796,8 @@
                             const reg = await navigator.serviceWorker.ready;
                             reg.showNotification(title, {
                                 body: body,
-                                icon: '/images/icons/icon-192x192.png',
-                                badge: '/images/icons/icon-72x72.png',
+                                icon: window.PWA_ICON_PATH + '/icon-192x192.png',
+                                badge: window.PWA_ICON_PATH + '/icon-72x72.png',
                                 data: data
                             });
                             return;

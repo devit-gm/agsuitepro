@@ -13,6 +13,19 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Variable para almacenar la ruta de iconos
+let iconBasePath = '/images/icons';
+
+// Obtener configuración de iconos dinámicamente
+fetch('/pwa-config.json')
+    .then(response => response.json())
+    .then(config => {
+        iconBasePath = config.iconPath || '/images/icons';
+    })
+    .catch(() => {
+        console.log('Usando ruta de iconos por defecto');
+    });
+
 // Notificaciones cuando la PWA está en segundo plano
 messaging.onBackgroundMessage((payload) => {
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
@@ -26,8 +39,8 @@ messaging.onBackgroundMessage((payload) => {
 
         self.registration.showNotification(title, {
             body: body,
-            icon: '/images/icons/icon-192x192.png',
-            badge: '/images/icons/icon-72x72.png',
+            icon: iconBasePath + '/icon-192x192.png',
+            badge: iconBasePath + '/icon-72x72.png',
             data: payload.data
         });
     });
@@ -41,8 +54,8 @@ messaging.onBackgroundMessage((payload) => {
         event.waitUntil(
             self.registration.showNotification(title, {
                 body: body,
-                icon: '/images/icons/icon-192x192.png',
-                badge: '/images/icons/icon-72x72.png',
+                icon: iconBasePath + '/icon-192x192.png',
+                badge: iconBasePath + '/icon-72x72.png',
                 data: payload.data
             })
         );

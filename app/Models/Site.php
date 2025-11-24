@@ -22,7 +22,8 @@ class Site extends Model
         'locale',
         'direccion',
         'cif',
-        'telefono'
+        'telefono',
+        'carpeta_pwa'
     ];
 
     protected $hidden = [

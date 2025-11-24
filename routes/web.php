@@ -16,6 +16,8 @@ use App\Http\Controllers\LicenciasController;
 use App\Http\Controllers\SitiosController;
 use App\Http\Controllers\SmsController;
 use App\Http\Controllers\ContactoController;
+use App\Http\Controllers\ManifestController;
+use App\Http\Controllers\PwaConfigController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Services\FirebaseService;
 
@@ -31,6 +33,10 @@ use App\Services\FirebaseService;
 */
 
 //Auth::routes();
+
+// Rutas públicas para PWA
+Route::get('/manifest.json', [ManifestController::class, 'show'])->name('manifest');
+Route::get('/pwa-config.json', [PwaConfigController::class, 'getIconPath'])->name('pwa.config');
 
 Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     // Ruta raíz dinámica según modo de operación

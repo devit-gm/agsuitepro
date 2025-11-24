@@ -94,6 +94,11 @@
                                         <label for="estilos" class="fw-bold form-label">{{ __('Archivo de estilos CSS') }}</label>
                                         <input type="text" class="form-control" id="estilos" name="estilos" value="{{ basename($sitio->ruta_estilos) }}">
                                     </div>
+                                    <div class="form-group mb-3">
+                                        <label for="carpeta_pwa" class="fw-bold form-label">{{ __('Carpeta PWA (iconos)') }}</label>
+                                        <input type="text" class="form-control" id="carpeta_pwa" name="carpeta_pwa" value="{{ $sitio->carpeta_pwa ?? '' }}" placeholder="eldespiste">
+                                        <small class="form-text text-muted">{{ __('Nombre de la carpeta en /public/ donde están los iconos de PWA (icon-192x192.png, icon-512x512.png). Dejar vacío para usar la raíz.') }}</small>
+                                    </div>
 
                                     <!-- Configuración de base de datos -->
                                     <h5 class="mb-3 mt-4 text-primary">{{ __('Configuración de base de datos') }}</h5>

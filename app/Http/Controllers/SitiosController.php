@@ -80,6 +80,7 @@ class SitiosController extends Controller
             'mail_encryption' => 'nullable|string|max:255',
             'mail_from_address' => 'nullable|email|max:255',
             'mail_from_name' => 'nullable|string|max:255',
+            'carpeta_pwa' => 'nullable|string|max:100'
         ]);
 
         $sitio = new Site();
@@ -92,6 +93,7 @@ class SitiosController extends Controller
         $sitio->ruta_logo_nav = $request->logo_nav;
         $sitio->favicon = $request->favicon;
         $sitio->ruta_estilos = $request->estilos;
+        $sitio->carpeta_pwa = $request->carpeta_pwa;
         $sitio->db_host = $request->db_host;
         $sitio->db_name = $request->db_name;
         $sitio->db_user = $request->db_user;
@@ -148,6 +150,7 @@ class SitiosController extends Controller
             'mail_encryption' => 'nullable|string|max:255',
             'mail_from_address' => 'nullable|email|max:255',
             'mail_from_name' => 'nullable|string|max:255',
+            'carpeta_pwa' => 'nullable|string|max:100',
         ]);
 
         $sitio->nombre = $request->nombre;
@@ -189,6 +192,9 @@ class SitiosController extends Controller
         
         // Configuración de idioma
         $sitio->locale = $request->locale ?? $sitio->locale ?? 'es';
+        
+        // Carpeta PWA
+        $sitio->carpeta_pwa = $request->carpeta_pwa;
 
         $sitio->save();
 
