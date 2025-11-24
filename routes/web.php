@@ -38,11 +38,16 @@ use App\Services\FirebaseService;
 Route::get('/manifest.json', [ManifestController::class, 'show'])->name('manifest');
 Route::get('/pwa-config.json', [PwaConfigController::class, 'getIconPath'])->name('pwa.config');
 
-Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
+Route::middleware(['detect.site', 'auth'])->group(function () {
     // Ruta raíz dinámica según modo de operación
     Route::get('/', function () {
-        $ajustes = \App\Models\Ajustes::first();
-        $modoOperacion = $ajustes->modo_operacion ?? 'fichas';
+        try {
+            $ajustes = \App\Models\Ajustes::first();
+            $modoOperacion = $ajustes->modo_operacion ?? 'fichas';
+        } catch (\Exception $e) {
+            \Log::warning('Tabla ajustes no encontrada en ruta raíz', ['error' => $e->getMessage()]);
+            $modoOperacion = 'fichas';
+        }
         
         if ($modoOperacion === 'mesas') {
             return redirect()->route('mesas.index');
@@ -52,8 +57,13 @@ Route::middleware(['middleware' => 'detect.site', 'auth'])->group(function () {
     })->name('home');
     
     Route::get('/home', function () {
-        $ajustes = \App\Models\Ajustes::first();
-        $modoOperacion = $ajustes->modo_operacion ?? 'fichas';
+        try {
+            $ajustes = \App\Models\Ajustes::first();
+            $modoOperacion = $ajustes->modo_operacion ?? 'fichas';
+        } catch (\Exception $e) {
+            \Log::warning('Tabla ajustes no encontrada en ruta /home', ['error' => $e->getMessage()]);
+            $modoOperacion = 'fichas';
+        }
         
         if ($modoOperacion === 'mesas') {
             return redirect()->route('mesas.index');

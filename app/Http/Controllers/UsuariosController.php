@@ -48,16 +48,24 @@ class UsuariosController extends Controller
         $site = app('site');
         $usuarios = User::where('site_id', $site->id)->orderBy('id')->get();
         $roles = Role::orderBy('id')->get();
+        
+        // Obtener usuarios que tienen fichas o reservas en una sola consulta
+        $usuariosConFichas = FichaUsuario::whereIn('user_id', $usuarios->pluck('uuid'))
+            ->distinct()
+            ->pluck('user_id')
+            ->toArray();
+        
+        $usuariosConReservas = Reserva::whereIn('user_id', $usuarios->pluck('uuid'))
+            ->distinct()
+            ->pluck('user_id')
+            ->toArray();
+        
         foreach ($usuarios as $usuario) {
             if ($usuario->role_id == 1) {
                 $usuario->borrable = false;
             } else {
                 //Si el usuario está en FichaUsuario o en Reservas no se puede borrar
-                if (FichaUsuario::where('user_id', $usuario->uuid)->first() || Reserva::where('user_id', $usuario->uuid)->first()) {
-                    $usuario->borrable = false;
-                } else {
-                    $usuario->borrable = true;
-                }
+                $usuario->borrable = !in_array($usuario->uuid, $usuariosConFichas) && !in_array($usuario->uuid, $usuariosConReservas);
             }
         }
         return view('usuarios.index', compact('usuarios', 'roles'));

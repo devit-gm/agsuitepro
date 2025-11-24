@@ -16,17 +16,16 @@ class ServiciosController extends Controller
      */
     public function index()
     {
-        $servicios = Servicio::orderBy('posicion')->get();
+        $servicios = Servicio::with(['fichasRelacion.ficha'])->orderBy('posicion')->get();
         $num = 1;
         foreach ($servicios as $servicio) {
-            $servicio->fichas = FichaServicio::where('id_servicio', $servicio->uuid)->get();
+            $servicio->fichas = $servicio->fichasRelacion;
             $servicio->numero = $num;
             //si el usuario activo es administrador
-            if (Auth::user()->role_id == 1) {
+            if (Auth::check() && Auth::user()->role_id == 1) {
                 $servicio->borrable = true;
-                foreach ($servicio->fichas as $servicio) {
-                    $ficha = Ficha::find($servicio->id_ficha);
-                    if ($ficha->estado == 0) {
+                foreach ($servicio->fichas as $fichaServicio) {
+                    if ($fichaServicio->ficha && $fichaServicio->ficha->estado == 0) {
                         $servicio->borrable = false;
                         break;
                     }
@@ -118,14 +117,13 @@ class ServiciosController extends Controller
      */
     public function edit($id)
     {
-        $servicio = Servicio::find($id);
-        $servicio->fichas = FichaServicio::where('id_servicio', $servicio->uuid)->get();
+        $servicio = Servicio::with(['fichasRelacion.ficha'])->findOrFail($id);
+        $servicio->fichas = $servicio->fichasRelacion;
         //si el usuario activo es administrador
-        if (Auth::user()->role_id == 1) {
+        if (Auth::check() && Auth::user()->role_id == 1) {
             $servicio->borrable = true;
             foreach ($servicio->fichas as $fichaServicio) {
-                $ficha = Ficha::find($fichaServicio->id_ficha);
-                if ($ficha->estado == 0) {
+                if ($fichaServicio->ficha && $fichaServicio->ficha->estado == 0) {
                     $servicio->borrable = false;
                     break;
                 }

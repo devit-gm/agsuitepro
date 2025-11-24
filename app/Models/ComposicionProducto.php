@@ -17,4 +17,20 @@ class ComposicionProducto extends Model
         'id_producto',
         'id_componente'
     ];
+
+    /**
+     * Relación con el producto componente
+     */
+    public function componenteProducto()
+    {
+        return $this->belongsTo(Producto::class, 'id_componente', 'uuid');
+    }
+
+    /**
+     * Relación con el producto padre
+     */
+    public function productoBase()
+    {
+        return $this->belongsTo(Producto::class, 'id_producto', 'uuid');
+    }
 }

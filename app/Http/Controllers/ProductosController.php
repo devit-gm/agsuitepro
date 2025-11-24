@@ -21,6 +21,11 @@ class ProductosController extends Controller
         $this->middleware(function ($request, $next) {
             $domain = $request->getHost();
             $site = Site::where('dominio', $domain)->first();
+            
+            if (!$site) {
+                abort(404, 'Sitio no encontrado.');
+            }
+            
             if ($site->central == 1) {
                 abort(403, 'No tiene acceso a este recurso.');
             }
@@ -55,7 +60,7 @@ foreach ($productos as $producto) {
         $producto->precio = number_format((float)$precio, 2, '.', '');
 
         // Determinar si es borrable
-        if (Auth::user()->role_id == 1) {
+        if (Auth::check() && Auth::user()->role_id == 1) {
             // Si alguna ficha del producto está en estado pendiente (0), NO se borra
             $tienePendientes = $producto->fichas->contains(fn($f) => $f->estado == 0);
             $producto->borrable = !$tienePendientes;
@@ -113,7 +118,7 @@ return view('productos.index', compact('productos'));
     public function show(string $id)
     {
         $producto = Producto::find($id);
-        if (Auth::user()->role_id == 1) {
+        if (Auth::check() && Auth::user()->role_id == 1) {
             $producto->borrable = true;
             foreach ($producto->fichas as $ficha) {
                 if ($ficha->estado == 0) {
@@ -197,18 +202,22 @@ return view('productos.index', compact('productos'));
      */
     public function edit($id)
     {
-        $producto = Producto::find($id);
+        $producto = Producto::findOrFail($id);
         //Find components of product in composition table
-        $composicion = ComposicionProducto::where('id_producto', $id)->get();
+        $composicion = ComposicionProducto::with('componenteProducto')
+            ->where('id_producto', $id)
+            ->get();
         if ($producto->combinado == 1) {
             $precio = 0.00;
             foreach ($composicion as $componente) {
-                $precio += Producto::find($componente->id_componente)->precio;
+                if ($componente->componenteProducto) {
+                    $precio += $componente->componenteProducto->precio;
+                }
             }
             $producto->precio =  number_format((float)$precio, 2, '.', '');
         }
 
-        if (Auth::user()->role_id == 1) {
+        if (Auth::check() && Auth::user()->role_id == 1) {
             $producto->borrable = true;
             $producto->fichas = FichaProducto::where('id_producto', $producto->id)->get();
             foreach ($producto->fichas as $ficha) {
@@ -227,27 +236,31 @@ return view('productos.index', compact('productos'));
 
     public function components($id)
     {
-        $producto = Producto::find($id);
+        $producto = Producto::with('familiaObj')->findOrFail($id);
         //Find components of product in composition table
-        $composicion = ComposicionProducto::where('id_producto', $id)->get();
+        $composicion = ComposicionProducto::with('componenteProducto')
+            ->where('id_producto', $id)
+            ->get();
         if ($producto->combinado == 1) {
             $precio = 0.00;
             foreach ($composicion as $componente) {
-                $precio += Producto::find($componente->id_componente)->precio;
+                if ($componente->componenteProducto) {
+                    $precio += $componente->componenteProducto->precio;
+                }
             }
             $producto->precio =  number_format((float)$precio, 2, '.', '');
         }
         $familias = Familia::orderBy('posicion')->get();
-        $producto->familia = Familia::find($producto->familia);
+        $producto->familia = $producto->familiaObj;
 
+        // Obtener componentes del producto en una consulta
+        $componentesActuales = ComposicionProducto::where('id_producto', $id)
+            ->pluck('id_componente')
+            ->toArray();
+        
         $componentes = Producto::where('combinado', 0)->orderBy('nombre')->get();
         foreach ($componentes as $componente) {
-            $esComposicion = ComposicionProducto::where('id_producto', $id)->where('id_componente', $componente->uuid)->get();
-            if ($esComposicion->count() > 0) {
-                $componente->familia = 1;
-            } else {
-                $componente->familia = 0;
-            }
+            $componente->familia = in_array($componente->uuid, $componentesActuales) ? 1 : 0;
         }
         return view('productos.components', compact('producto', 'familias', 'componentes'));
     }
@@ -263,28 +276,31 @@ return view('productos.index', compact('productos'));
             ]);
         }
 
-        $producto = Producto::find($id);
+        $producto = Producto::with('familiaObj')->findOrFail($id);
         //Find components of product in composition table
-        $composicion = ComposicionProducto::where('id_producto', $id)->get();
+        $composicion = ComposicionProducto::with('componenteProducto')
+            ->where('id_producto', $id)
+            ->get();
         if ($producto->combinado == 1) {
             $precio = 0.00;
             foreach ($composicion as $componente) {
-                $precio += Producto::find($componente->id_componente)->precio;
+                if ($componente->componenteProducto) {
+                    $precio += $componente->componenteProducto->precio;
+                }
             }
             $producto->precio =  number_format((float)$precio, 2, '.', '');
         }
         $familias = Familia::orderBy('posicion')->get();
-        $producto->familia = Familia::find($producto->familia);
+        $producto->familia = $producto->familiaObj;
 
+        // Obtener componentes del producto en una consulta
+        $componentesActuales = ComposicionProducto::where('id_producto', $id)
+            ->pluck('id_componente')
+            ->toArray();
+        
         $componentes = Producto::where('combinado', 0)->orderBy('nombre')->get();
         foreach ($componentes as $componente) {
-            $esComposicion = ComposicionProducto::where('id_producto', $id)->where('id_componente', $componente->uuid)->get();
-
-            if ($esComposicion->count() > 0) {
-                $componente->familia = 1;
-            } else {
-                $componente->familia = 0;
-            }
+            $componente->familia = in_array($componente->uuid, $componentesActuales) ? 1 : 0;
         }
         $success = new \Illuminate\Support\MessageBag();
         $success->add('msg', 'Componentes actualizados con éxito.');

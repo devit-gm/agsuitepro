@@ -31,11 +31,16 @@ class FichasController extends Controller
         $this->middleware(function ($request, $next) {
             $domain = $request->getHost();
             $site = Site::where('dominio', $domain)->first();
+            
+            if (!$site) {
+                abort(404, 'Sitio no encontrado.');
+            }
+            
             if ($site->central == 1) {
                 abort(403, 'No tiene acceso a este recurso.');
-            } else {
-                return $next($request);
             }
+            
+            return $next($request);
         });
     }
     /**
@@ -76,10 +81,11 @@ $fichasMostrar = $query->get();
 
 // FILTRO DE FICHAS
 $fichas = [];
+$user = Auth::user();
 
 foreach ($fichasMostrar as $ficha) {
 
-    $esAdmin = Auth::user()->role_id == 1;
+    $esAdmin = $user && $user->role_id == 1;
     $esPropietario = Auth::id() == $ficha->user_id;
     $estaEnFicha = $ficha->inscritos->where('user_id', Auth::id())->isNotEmpty();
 
@@ -101,7 +107,7 @@ foreach ($fichas as $ficha) {
     $ficha->precio = $this->ObtenerImporteFicha($ficha);
 
     // Borrable
-    $esAdmin = Auth::user()->role_id == 1;
+    $esAdmin = $user && $user->role_id == 1;
     $esPropietario = Auth::id() == $ficha->user_id;
     $estaEnFicha = $ficha->inscritos->where('user_id', Auth::id())->isNotEmpty();
 
@@ -174,7 +180,7 @@ foreach ($fichas as $ficha) {
     public function show(string $uuid)
     {
         $ficha = Ficha::find($uuid);
-        if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first()) {
+        if ($ficha->user_id == Auth::id() || (Auth::check() && Auth::user()->role_id == 1) || FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first()) {
             $ficha->borrable = true;
         } else {
             $ficha->borrable = false;
@@ -294,7 +300,7 @@ foreach ($fichas as $ficha) {
         $ficha = Ficha::where('uuid', $uuid)->get()->first();
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
         $fechaCambiada = Carbon::parse($ficha->fecha)->todateString();
-        if ($ficha->user_id == Auth::id() || Auth::user()->role_id == 1 || FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first()) {
+        if ($ficha->user_id == Auth::id() || (Auth::check() && Auth::user()->role_id == 1) || FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first()) {
             $ficha->borrable = true;
         } else {
             $ficha->borrable = false;
@@ -609,28 +615,33 @@ foreach ($fichas as $ficha) {
             }
 
             //Descontamos el stock de cada artículo consumido
-            $productos = FichaProducto::where('id_ficha', $uuid)->get();
+            $productos = FichaProducto::with(['producto.composicion.componenteProducto'])
+                ->where('id_ficha', $uuid)
+                ->get();
+            
+            $stockService = new \App\Services\StockNotificationService();
+            
             foreach ($productos as $producto) {
-                $productoFicha = Producto::where('uuid', $producto->id_producto)->first();
+                $productoFicha = $producto->producto;
+                if (!$productoFicha) continue;
+                
                 if ($productoFicha->combinado == 1) {
-                    $productosCombinados = DB::connection('site')->table('composicion_productos')->where('id_producto', $productoFicha->uuid)->get();
-                    foreach ($productosCombinados as $productoCombinado) {
-                        $producto2 = Producto::find($productoCombinado->id_componente);
-                        $producto2->stock -= $producto->cantidad;
-                        $producto2->save();
-                        
-                        // Verificar stock bajo
-                        $stockService = new \App\Services\StockNotificationService();
-                        $stockService->verificarYNotificar($producto2->uuid);
+                    foreach ($productoFicha->composicion as $composicion) {
+                        $producto2 = $composicion->componenteProducto;
+                        if ($producto2) {
+                            $producto2->stock -= $producto->cantidad;
+                            $producto2->save();
+                            
+                            // Verificar stock bajo
+                            $stockService->verificarYNotificar($producto2->uuid);
+                        }
                     }
                 } else {
-                    $producto->producto = Producto::find($producto->id_producto);
-                    $producto->producto->stock -= $producto->cantidad;
-                    $producto->producto->save();
+                    $productoFicha->stock -= $producto->cantidad;
+                    $productoFicha->save();
                     
                     // Verificar stock bajo
-                    $stockService = new \App\Services\StockNotificationService();
-                    $stockService->verificarYNotificar($producto->producto->uuid);
+                    $stockService->verificarYNotificar($productoFicha->uuid);
                 }
             }
         }
@@ -642,11 +653,11 @@ foreach ($fichas as $ficha) {
 
     public function gastos($uuid)
     {
+        $ajustes = Ajustes::first();
         $ficha = Ficha::find($uuid);
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
-        $gastosFicha = FichaGasto::where('id_ficha', $uuid)->get();
+        $gastosFicha = FichaGasto::with('usuario')->where('id_ficha', $uuid)->get();
         foreach ($gastosFicha as $gastoFicha) {
-            $gastoFicha->usuario = User::find($gastoFicha->user_id);
             $gastoFicha->borrable = true;
         }
 
@@ -670,9 +681,9 @@ foreach ($fichas as $ficha) {
         $errors = new \Illuminate\Support\MessageBag();
         if ($gastosFicha == null || count($gastosFicha) == 0) {
             $errors->add('msg', __('No se han introducido gastos.'));
-            return view('fichas.gastos', compact('ficha', 'gastosFicha', 'errors'));
+            return view('fichas.gastos', compact('ficha', 'gastosFicha', 'errors', 'ajustes'));
         } else {
-            return view('fichas.gastos', compact('ficha', 'gastosFicha'));
+            return view('fichas.gastos', compact('ficha', 'gastosFicha', 'ajustes'));
         }
     }
 
@@ -1122,7 +1133,7 @@ foreach ($fichas as $ficha) {
         $mesa = Ficha::findOrFail($mesaId);
         
         // Verificar que sea el camarero asignado o admin
-        if ($mesa->camarero_id != Auth::id() && Auth::user()->role_id != 1) {
+        if ($mesa->camarero_id != Auth::id() && (!Auth::check() || Auth::user()->role_id != 1)) {
             return response()->json([
                 'success' => false,
                 'message' => 'No tienes permiso para cerrar esta mesa'
@@ -1272,7 +1283,7 @@ foreach ($fichas as $ficha) {
         $mesa = Ficha::findOrFail($mesaId);
         
         // Solo admin o el mismo camarero puede liberar
-        if ($mesa->camarero_id != Auth::id() && Auth::user()->role_id != 1) {
+        if ($mesa->camarero_id != Auth::id() && (!Auth::check() || Auth::user()->role_id != 1)) {
             return response()->json([
                 'success' => false,
                 'message' => 'No tienes permiso'
@@ -1381,7 +1392,7 @@ foreach ($fichas as $ficha) {
     public function generarMesas(Request $request)
     {
         // Verificar que el usuario tenga permisos (tipo < 4, es decir, no camareros)
-        if (Auth::user()->role_id >= 4) {
+        if (!Auth::check() || Auth::user()->role_id >= 4) {
             return redirect()->back()->with('error', __('No tienes permisos para crear mesas'));
         }
 
@@ -1442,7 +1453,7 @@ foreach ($fichas as $ficha) {
     public function crearMesaIndividual(Request $request)
     {
         // Verificar permisos
-        if (Auth::user()->role_id >= 4) {
+        if (!Auth::check() || Auth::user()->role_id >= 4) {
             return redirect()->back()->with('error', __('No tienes permisos para crear mesas'));
         }
 
@@ -1488,7 +1499,7 @@ foreach ($fichas as $ficha) {
     public function actualizarMesa(Request $request, $mesaUuid)
     {
         // Verificar permisos
-        if (Auth::user()->role_id >= 4) {
+        if (!Auth::check() || Auth::user()->role_id >= 4) {
             return redirect()->back()->with('error', __('No tienes permisos para editar mesas'));
         }
 
@@ -1523,7 +1534,7 @@ foreach ($fichas as $ficha) {
     public function eliminarMesa($mesaUuid)
     {
         // Verificar permisos
-        if (Auth::user()->role_id >= 4) {
+        if (!Auth::check() || Auth::user()->role_id >= 4) {
             return redirect()->back()->with('error', __('No tienes permisos para eliminar mesas'));
         }
 
@@ -1560,7 +1571,7 @@ foreach ($fichas as $ficha) {
     public function reordenarMesas(Request $request)
     {
         // Verificar permisos
-        if (Auth::user()->role_id >= 4) {
+        if (!Auth::check() || Auth::user()->role_id >= 4) {
             return response()->json(['success' => false, 'message' => __('No tienes permisos para reordenar mesas')], 403);
         }
 

@@ -180,10 +180,15 @@
 <div class="card-footer">
     <form>
         <div class="d-flex align-items-center justify-content-center">
-            @if(!isset($ajustes->modo_operacion) || $ajustes->modo_operacion == 'fichas' || (isset($ajustes->mostrar_gastos) && $ajustes->mostrar_gastos == 1))
-            <a class="btn btn-dark mx-1" href={{ fichaRoute('gastos', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+            @if(!isset($ajustes->modo_operacion) || $ajustes->modo_operacion == 'fichas')
+                {{-- Modo fichas: siempre ir a gastos --}}
+                <a class="btn btn-dark mx-1" href="{{ fichaRoute('gastos', $ficha->uuid) }}"><i class="bi bi-chevron-left"></i></a>
+            @elseif($ajustes->modo_operacion == 'mesas' && isset($ajustes->mostrar_gastos) && $ajustes->mostrar_gastos)
+                {{-- Modo mesas con gastos habilitados: ir a gastos --}}
+                <a class="btn btn-dark mx-1" href="{{ fichaRoute('gastos', $ficha->uuid) }}"><i class="bi bi-chevron-left"></i></a>
             @else
-            <a class="btn btn-dark mx-1" href={{ fichaRoute('servicios', $ficha->uuid) }}><i class="bi bi-chevron-left"></i></a>
+                {{-- Modo mesas sin gastos: ir a servicios --}}
+                <a class="btn btn-dark mx-1" href="{{ fichaRoute('servicios', $ficha->uuid) }}"><i class="bi bi-chevron-left"></i></a>
             @endif
             
             @if(isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas')

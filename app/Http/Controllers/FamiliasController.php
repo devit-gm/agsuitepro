@@ -17,15 +17,18 @@ class FamiliasController extends Controller
     public function index()
     {
         $familias = Familia::orderBy('posicion')->get();
+        
+        // Obtener familias que tienen productos en una sola consulta
+        $familiasConProductos = Producto::whereIn('familia', $familias->pluck('uuid'))
+            ->distinct()
+            ->pluck('familia')
+            ->toArray();
+        
         foreach ($familias as $familia) {
             //si la familia tiene productos no se puede borrar
             //si el usuario activo es administrador
-            if (Auth::user()->role_id == 1) {
-                if (Producto::where('familia', $familia->uuid)->first()) {
-                    $familia->borrable = false;
-                } else {
-                    $familia->borrable = true;
-                }
+            if (Auth::check() && Auth::user()->role_id == 1) {
+                $familia->borrable = !in_array($familia->uuid, $familiasConProductos);
             } else {
                 $familia->borrable = false;
             }
@@ -127,14 +130,8 @@ class FamiliasController extends Controller
      */
     public function edit($uuid)
     {
-        $familia = Familia::where('uuid', $uuid)->get();
-        foreach ($familia as $familia) {
-            if (Producto::where('familia', $uuid)->first()) {
-                $familia->borrable = false;
-            } else {
-                $familia->borrable = true;
-            }
-        }
+        $familia = Familia::where('uuid', $uuid)->firstOrFail();
+        $familia->borrable = !Producto::where('familia', $uuid)->exists();
         return view('familias.edit', compact('familia'));
     }
 

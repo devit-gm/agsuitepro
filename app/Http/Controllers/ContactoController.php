@@ -27,11 +27,12 @@ class ContactoController extends Controller
             return redirect()->back()->with('error', __('No hay configuración de correo. Contacte con el administrador del sistema.'));
         }
 
+        $user = Auth::user();
         $data = [
             'asunto' => $request->asunto,
             'mensaje' => $request->mensaje,
-            'usuario' => Auth::user()->name,
-            'email' => Auth::user()->email,
+            'usuario' => $user->name,
+            'email' => $user->email,
         ];
 
         try {

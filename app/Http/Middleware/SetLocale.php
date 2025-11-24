@@ -28,8 +28,11 @@ class SetLocale
         }
 
         // Si hay un usuario autenticado y tiene un idioma configurado, tiene prioridad
-        if (Auth::check() && Auth::user()->locale) {
-            $locale = Auth::user()->locale;
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user && $user->locale) {
+                $locale = $user->locale;
+            }
         }
 
         // Establecer el idioma de la aplicación

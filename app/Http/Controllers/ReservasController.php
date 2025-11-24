@@ -56,7 +56,7 @@ class ReservasController extends Controller
             $reserva->hora = $start->format('H:i');
 
             // Borrable
-            $reserva->borrable = ($reserva->user_id == Auth::id() || Auth::user()->role_id == 1);
+            $reserva->borrable = ($reserva->user_id == Auth::id() || (Auth::check() && Auth::user()->role_id == 1));
         }
 
         return view('reservas.index', compact('reservas'));

@@ -21,9 +21,14 @@ class LicenciasController extends Controller
         $sites = Site::where('id', '>', 1)->get();
         if ($request->method() == 'GET') {
             $licenses = DB::connection('central')->table('licenses')->whereNotNull('actived')->where('expires_at', '>', Carbon::now())->orderBy('id')->get();
+            
+            // Cargar sites y users en una sola consulta
+            $sitesMap = Site::whereIn('id', $licenses->pluck('site_id'))->get()->keyBy('id');
+            $usersMap = User::whereIn('id', $licenses->pluck('user_id'))->get()->keyBy('id');
+            
             foreach ($licenses as $license) {
-                $license->site = Site::find($license->site_id);
-                $license->user = User::find($license->user_id);
+                $license->site = $sitesMap->get($license->site_id);
+                $license->user = $usersMap->get($license->user_id);
                 $license->borrable = false;
                 $license->estado = '<span class="badge btn bt-sm btn-success">Activa</span>';
 
@@ -54,9 +59,13 @@ class LicenciasController extends Controller
             if ($licenses->isEmpty()) {
                 $errors->add('msg', __('No se encontraron licencias'));
             } else {
+                // Cargar sites y users en una sola consulta
+                $sitesMap = Site::whereIn('id', $licenses->pluck('site_id'))->get()->keyBy('id');
+                $usersMap = User::whereIn('id', $licenses->pluck('user_id'))->get()->keyBy('id');
+                
                 foreach ($licenses as $license) {
-                    $license->site = Site::find($license->site_id);
-                    $license->user = User::find($license->user_id);
+                    $license->site = $sitesMap->get($license->site_id);
+                    $license->user = $usersMap->get($license->user_id);
                     $license->borrable = false;
                     $license->estado = '<span class="badge btn bt-sm btn-success">Activa</span>';
 
@@ -82,9 +91,9 @@ class LicenciasController extends Controller
 
     public function edit($id)
     {
-        $licencia = License::find($id);
-        $licencia->sitio = Site::find($licencia->site_id);
-        $licencia->usuario = User::find($licencia->user_id);
+        $licencia = License::with(['site', 'user'])->findOrFail($id);
+        $licencia->sitio = $licencia->site;
+        $licencia->usuario = $licencia->user;
         $licencia->borrable = false;
         $licencia->estado = '<span class="badge btn bt-sm btn-success">Activa</span>';
 

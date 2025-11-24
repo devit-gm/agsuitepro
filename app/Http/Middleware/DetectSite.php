@@ -34,6 +34,11 @@ class DetectSite
             ->orWhere('dominio', $domainWithoutWww)
             ->first();
         
+        // Validar que el sitio existe
+        if (!$site) {
+            abort(404, 'Sitio no encontrado para este dominio: ' . $domain);
+        }
+        
         $user = Auth::user();
         if ($request->route()->getName() == "home") {
             return redirect('/');

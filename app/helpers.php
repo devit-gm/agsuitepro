@@ -59,8 +59,13 @@ if (!function_exists('fichaRoute')) {
      */
     function fichaRoute($action, $parameters = [])
     {
-        $ajustes = \App\Models\Ajustes::first();
-        $modoOperacion = $ajustes->modo_operacion ?? 'fichas';
+        try {
+            $ajustes = \App\Models\Ajustes::first();
+            $modoOperacion = $ajustes?->modo_operacion ?? 'fichas';
+        } catch (\Exception $e) {
+            // Fallback seguro si la tabla no existe o hay error de BD
+            $modoOperacion = 'fichas';
+        }
         
         $prefix = $modoOperacion === 'mesas' ? 'mesas' : 'fichas';
         

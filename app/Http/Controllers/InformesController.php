@@ -32,7 +32,8 @@ class InformesController extends Controller
         }
         
         // Obtener usuarios según el rol
-        if (Auth::user()->role_id > 3) {
+        $user = Auth::user();
+        if ($user && $user->role_id > 3) {
             $usuariosInforme = User::where('site_id', $site->id)->where('id', Auth::id())->get();
         } else {
             $usuariosInforme = User::where('site_id', $site->id)->orderBy('id')->get();
