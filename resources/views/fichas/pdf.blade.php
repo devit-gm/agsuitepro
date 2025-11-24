@@ -192,7 +192,6 @@
                     @endif
                 </div>
             </div>
-        </div>
             <div class="info-row">
                 <div class="info-label">{{ __('Estado') }}:</div>
                 <div class="info-value">{{ $ficha->estado == 0 ? __('Abierta') : __('Cerrada') }}</div>

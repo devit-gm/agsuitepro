@@ -263,7 +263,13 @@ foreach ($fichas as $ficha) {
     public function download(string $uuid)
     {
         $ficha = Ficha::with(['productos.producto', 'servicios.servicio', 'camarero'])
-            ->find($uuid);
+            ->where('uuid', $uuid)
+            ->first();
+        
+        if (!$ficha) {
+            return redirect()->back()->with('error', 'Ficha no encontrada');
+        }
+        
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
         $fechaCambiada = Carbon::parse($ficha->fecha)->todateString();
         
