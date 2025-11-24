@@ -606,13 +606,13 @@
                     @if (Auth::user()->role_id < 4)
                     <li class="nav-item dropdown">
                         <a id="navbarDropdown" class="nav-link dropdown-toggle {{ (request()->routeIs('usuarios.*') || request()->routeIs('familias.*') || request()->routeIs('productos.*') || request()->routeIs('servicios.*') || request()->routeIs('facturas.*')) ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                            GESTIÓN
+                            {{ __('GESTIÓN') }}
                         </a>
                         <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ url('/usuarios') }}">USUARIOS</a>
-                            <a class="dropdown-item {{ request()->routeIs('familias.*') ? 'active' : '' }}" href="{{ url('/familias') }}">FAMILIAS</a>
-                            <a class="dropdown-item {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ url('/productos') }}">PRODUCTOS</a>
-                            <a class="dropdown-item {{ request()->routeIs('servicios.*') ? 'active' : '' }}" href="{{ url('/servicios') }}">SERVICIOS</a>
+                            <a class="dropdown-item {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ url('/usuarios') }}">{{ __('USUARIOS') }}</a>
+                            <a class="dropdown-item {{ request()->routeIs('familias.*') ? 'active' : '' }}" href="{{ url('/familias') }}">{{ __('FAMILIAS') }}</a>
+                            <a class="dropdown-item {{ request()->routeIs('productos.*') ? 'active' : '' }}" href="{{ url('/productos') }}">{{ __('PRODUCTOS') }}</a>
+                            <a class="dropdown-item {{ request()->routeIs('servicios.*') ? 'active' : '' }}" href="{{ url('/servicios') }}">{{ __('SERVICIOS') }}</a>
                             @php
                                 try {
                                     $ajustesMenu = \App\Models\Ajustes::first();
@@ -671,11 +671,11 @@
 
                             @else
                             <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('sitios.*') ? 'active' : '' }}" href="{{ url('/sitios') }}">SOCIEDADES</a>
+                                <a class="nav-link {{ request()->routeIs('sitios.*') ? 'active' : '' }}" href="{{ url('/sitios') }}">{{ __('SOCIEDADES') }}</a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('licencias.*') ? 'active' : '' }}" href="{{ url('/licencias') }}">Licencias</a>
+                                <a class="nav-link {{ request()->routeIs('licencias.*') ? 'active' : '' }}" href="{{ url('/licencias') }}">{{ __('Licencias') }}</a>
                             </li>
                             @endif
                 </ul>
@@ -691,16 +691,16 @@
                         <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
 
                             <a class="dropdown-item {{ request()->routeIs('usuarios.edit') ? 'active' : '' }}" href="{{ route('usuarios.edit', Auth::id()) }}">
-                                MI CUENTA
+                                {{ __('MI CUENTA') }}
                             </a>
 
                             <a class="dropdown-item {{ request()->routeIs('contacto.*') ? 'active' : '' }}" href="{{ route('contacto.index') }}">
-                                CONTACTO
+                                {{ __('CONTACTO') }}
                             </a>
 
                             <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault();
                                                     document.getElementById('logout-form').submit();">
-                                CERRAR SESIÓN
+                                {{ __('CERRAR SESIÓN') }}
                             </a>
 
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">

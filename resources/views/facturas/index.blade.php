@@ -55,15 +55,15 @@
                 <table class="table table-sm table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 100px;">Nº</th>
-                            <th style="width: 100px;">Fecha</th>
-                            <th class="d-none d-md-table-cell">Mesa</th>
-                            <th class="d-none d-md-table-cell">Camarero</th>
-                            <th class="d-none d-lg-table-cell">Cliente</th>
+                            <th style="width: 100px;">{{ __('Nº') }}</th>
+                            <th style="width: 100px;">{{ __('Fecha') }}</th>
+                            <th class="d-none d-md-table-cell">{{ __('Mesa') }}</th>
+                            <th class="d-none d-md-table-cell">{{ __('Camarero') }}</th>
+                            <th class="d-none d-lg-table-cell">{{ __('Cliente') }}</th>
                            
-                            <th class="text-end d-none d-md-table-cell" style="width: 80px;">IVA</th>
-                            <th class="text-end" style="width: 100px;">Total</th>
-                            <th class="text-center" style="width: 120px;">Acciones</th>
+                            <th class="text-end d-none d-md-table-cell" style="width: 80px;">{{ __('IVA') }}</th>
+                            <th class="text-end" style="width: 100px;">{{ __('Total') }}</th>
+                            <th class="text-center" style="width: 120px;">{{ __('Acciones') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -77,7 +77,7 @@
                             </td>
                             <td class="d-none d-md-table-cell">
                                 @if($factura->mesa)
-                                    <small>Mesa {{ $factura->mesa->numero_mesa }}</small>
+                                    <small>{{ __('Mesa') }} {{ $factura->mesa->numero_mesa }}</small>
                                 @else
                                     <small class="text-muted">-</small>
                                 @endif
@@ -96,7 +96,7 @@
                                         <br><small class="text-muted">{{ $factura->cliente_nif }}</small>
                                     @endif
                                 @else
-                                    <small class="text-muted">Cliente Final</small>
+                                    <small class="text-muted">{{ __('Cliente Final') }}</small>
                                 @endif
                             </td>
                             

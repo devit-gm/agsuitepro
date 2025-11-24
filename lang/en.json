@@ -634,5 +634,14 @@
     "Uds": "Units",
     "P.Unit": "Unit P.",
     "TOTALES": "TOTALS",
-    "Cant.": "Qty."
+    "Cant.": "Qty.",
+    "MI CUENTA": "MY ACCOUNT",
+    "CONTACTO": "CONTACT",
+    "CERRAR SESIÓN": "LOGOUT",
+    "Bienvenido": "Welcome",
+    "Nº": "No.",
+    "Calle, número, ciudad, código postal": "Street, number, city, postal code",
+    "Error al acceder a la cámara:": "Error accessing camera:",
+    "Scanner y cámara detenidos": "Scanner and camera stopped",
+    "Quagga inicializado correctamente": "Quagga initialized successfully"
 }

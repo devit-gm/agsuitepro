@@ -34,7 +34,7 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label for="direccion" class="fw-bold form-label">{{ __('Dirección') }}</label>
-                                        <textarea class="form-control" id="direccion" name="direccion" rows="2" placeholder="Calle, número, ciudad, código postal"></textarea>
+                                        <textarea class="form-control" id="direccion" name="direccion" rows="2" placeholder="{{ __('Calle, número, ciudad, código postal') }}"></textarea>
                                     </div>
                                     <div class="form-group mb-3">
                                         <label for="telefono" class="fw-bold form-label">{{ __('Teléfono') }}</label>

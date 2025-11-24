@@ -135,7 +135,7 @@
                                                     @if ($ficha->tipo == 1)
                                                             <span class="badge-tipo individual">
                                                                 <i class="bi bi-person-fill"></i>
-                                                                Individual
+                                                                {{ __('Individual') }}
                                                             </span>
 
                                                         @elseif($ficha->tipo == 2)
@@ -146,13 +146,13 @@
                                                             </div>
                                                             <span class="badge-tipo conjunta">
                                                                 <i class="bi bi-people-fill"></i>
-                                                                Conjunta
+                                                                {{ __('Conjunta') }}
                                                             </span>
 
                                                         @elseif($ficha->tipo == 3)
                                                             <span class="badge-tipo compra">
                                                                 <i class="bi bi-cart"></i>
-                                                                Compra
+                                                                {{ __('Compra') }}
                                                             </span>
 
                                                         @elseif($ficha->tipo == 4)
@@ -163,7 +163,7 @@
                                                             </div>
                                                             <span class="badge-tipo evento">
                                                                 <i class="bi bi-calendar-event"></i>
-                                                                Evento
+                                                                {{ __('Evento') }}
                                                             </span>
                                                         @endif
 
