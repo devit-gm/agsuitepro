@@ -21,6 +21,22 @@ class Servicio extends Model
     ];
 
     /**
+     * Relación con FichaServicio
+     */
+    public function fichasRelacion()
+    {
+        return $this->hasMany(FichaServicio::class, 'id_servicio', 'uuid');
+    }
+
+    /**
+     * Relación con fichas a través de FichaServicio
+     */
+    public function fichas()
+    {
+        return $this->belongsToMany(Ficha::class, 'ficha_servicios', 'id_servicio', 'id_ficha', 'uuid', 'uuid');
+    }
+
+    /**
      * Calcular precio con IVA incluido (el precio ya viene con IVA)
      */
     public function precioConIva()

@@ -97,7 +97,7 @@ class ServiciosController extends Controller
     {
         $servicio = Servicio::find($id);
         $servicio->delete();
-        return redirect()->route('servicio.index')
+        return redirect()->route('servicios.index')
             ->with('success', __('Servicio eliminado con éxito'));
     }
 
