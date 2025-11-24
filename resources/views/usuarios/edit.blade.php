@@ -29,14 +29,27 @@
                                                 <input type="text" class="form-control" id="name" name="name" value="{{ $usuario->name }}" required>
                                             </div>
                                             <div class="form-group mb-3 required">
-                                                <img width="100" class="float-end" src="{{ URL::to('/') }}/images/{{ $usuario->image }}" />
+                                                <label for="image" class="fw-bold form-label">{{ __('Imagen') }}</label>
+                                                <div class="text-center mb-2">
+                                                    <strong class="d-block mb-2">{{ __('Imagen actual') }}</strong>
+                                                    <img width="100" class="img-thumbnail" loading="lazy" src="{{ URL::to('/') }}/images/{{ $usuario->image }}" alt="{{ $usuario->name }}" />
+                                                </div>
                                                 <div class="form-group">
-                                                    <label for="image" class="fw-bold form-label">{{ __('Imagen') }}</label>
-                                                    <div class="input-group">
+                                                    <label class="fw-bold form-label">{{ __('Cambiar imagen') }}</label>
+                                                    <div class="input-group mb-2">
                                                         <input type="text" class="form-control" id="file-name-image" readonly placeholder="{{ __('Ningún archivo seleccionado') }}">
-                                                        <label class="input-group-text" for="image" style="cursor: pointer;">{{ __('Seleccionar archivo') }}</label>
-                                                        <input type="file" id="image" name="image" onchange="updateFileName(this, 'file-name-image')" style="display: none;" />
+                                                        <label class="input-group-text" for="image" style="cursor: pointer;">
+                                                            <i class="bi bi-folder2-open me-1"></i>{{ __('Seleccionar') }}
+                                                        </label>
+                                                        <button type="button" class="btn btn-outline-secondary" id="clear-image" style="display: none;" onclick="clearImageSelection()">
+                                                            <i class="bi bi-x-lg"></i>
+                                                        </button>
+                                                        <input type="file" id="image" name="image" onchange="handleImageSelection(this, 'file-name-image', 'preview-image')" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;" />
                                                     </div>
+                                                    <div id="preview-image" class="text-center" style="display: none;">
+                                                        <img src="" alt="Preview" class="img-thumbnail" style="max-height: 150px; max-width: 100%;">
+                                                    </div>
+                                                    <small class="text-muted">{{ __('Formatos: JPG, PNG, WEBP. Máximo 2MB') }}</small>
                                                 </div>
                                             </div>
                                             <div class="form-group required mb-3">
@@ -115,9 +128,56 @@
                         </div>
 						
 <script>
-function updateFileName(input, inputId) {
-    const fileName = input.files[0] ? input.files[0].name : '';
-    document.getElementById(inputId).value = fileName;
+function handleImageSelection(input, inputId, previewId) {
+    const fileNameInput = document.getElementById(inputId);
+    const previewContainer = document.getElementById(previewId);
+    const clearBtn = document.getElementById('clear-image');
+    
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Validar tipo de archivo
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            alert('{{ __('Por favor selecciona una imagen válida (JPG, PNG o WEBP)') }}');
+            input.value = '';
+            return;
+        }
+        
+        // Validar tamaño (2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            alert('{{ __('La imagen no debe superar los 2MB') }}');
+            input.value = '';
+            return;
+        }
+        
+        // Mostrar nombre del archivo
+        fileNameInput.value = file.name;
+        
+        // Mostrar preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = previewContainer.querySelector('img');
+            img.src = e.target.result;
+            previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+        
+        // Mostrar botón limpiar
+        if (clearBtn) clearBtn.style.display = 'inline-block';
+    }
+}
+
+function clearImageSelection() {
+    const fileInput = document.getElementById('image');
+    const fileNameInput = document.getElementById('file-name-image');
+    const previewContainer = document.getElementById('preview-image');
+    const clearBtn = document.getElementById('clear-image');
+    
+    fileInput.value = '';
+    fileNameInput.value = '';
+    previewContainer.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'none';
 }
 </script>
 

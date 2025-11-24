@@ -230,27 +230,23 @@ foreach ($fichas as $ficha) {
      */
     public function destroy(string $uuid)
     {
-        $fichaProductos = FichaProducto::where('id_ficha', $uuid)->get();
-        foreach ($fichaProductos as $fichaProducto) {
-            $fichaProducto->delete();
-        }
-        $fichaServicios = FichaServicio::where('id_ficha', $uuid)->get();
-        foreach ($fichaServicios as $fichaServicio) {
-            $fichaServicio->delete();
-        }
-        $fichaUsuarios = FichaUsuario::where('id_ficha', $uuid)->get();
-        foreach ($fichaUsuarios as $fichaUsuario) {
-            $fichaUsuario->delete();
-        }
-        $fichaGastos = FichaGasto::where('id_ficha', $uuid)->get();
+        // Eliminar archivos de tickets antes de borrar registros
+        $fichaGastos = FichaGasto::where('id_ficha', $uuid)->get(['ticket']);
         foreach ($fichaGastos as $fichaGasto) {
-            if (File::exists(public_path('images') . '/'  . $fichaGasto->ticket)) {
+            if ($fichaGasto->ticket && File::exists(public_path('images') . '/'  . $fichaGasto->ticket)) {
                 File::delete(public_path('images') . '/'  . $fichaGasto->ticket);
             }
-            $fichaGasto->delete();
         }
+        
+        // Eliminación masiva con una sola query cada una
+        FichaProducto::where('id_ficha', $uuid)->delete();
+        FichaServicio::where('id_ficha', $uuid)->delete();
+        FichaUsuario::where('id_ficha', $uuid)->delete();
+        FichaGasto::where('id_ficha', $uuid)->delete();
+        
         $ficha = Ficha::find($uuid);
         $ficha->delete();
+        
         return redirect()->route('fichas.index')
             ->with('success', __('Ficha eliminada con éxito'));
     }
@@ -297,10 +293,10 @@ foreach ($fichas as $ficha) {
      */
     public function edit(string $uuid)
     {
-        $ficha = Ficha::where('uuid', $uuid)->get()->first();
+        $ficha = Ficha::where('uuid', $uuid)->firstOrFail();
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
         $fechaCambiada = Carbon::parse($ficha->fecha)->todateString();
-        if ($ficha->user_id == Auth::id() || (Auth::check() && Auth::user()->role_id == 1) || FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->first()) {
+        if ($ficha->user_id == Auth::id() || (Auth::check() && Auth::user()->role_id == 1) || FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', Auth::id())->exists()) {
             $ficha->borrable = true;
         } else {
             $ficha->borrable = false;
@@ -313,38 +309,33 @@ foreach ($fichas as $ficha) {
 
     private function ObtenerImporteFicha($ficha, $sumarInvitados = false)
     {
-        $precio = 0.0;
-        $ajustes = DB::connection('site')->table('ajustes')->first();
-        $productos = FichaProducto::where('id_ficha', $ficha->uuid)->get();
-        foreach ($productos as $producto) {
-            $precio += $producto->precio;
-        }
-        $usuarios = FichaUsuario::where('id_ficha', $ficha->uuid)->get();
-        foreach ($usuarios as $usuario) {
-            $num_invitados = $usuario->invitados;
-            if ($num_invitados > $ajustes->max_invitados_cobrar) {
-                $num_invitados = $ajustes->max_invitados_cobrar;
-            }
-            if ($ajustes->primer_invitado_gratis && $num_invitados > 0) {
-                $num_invitados--;
-            }
-            if ($sumarInvitados) {
+        // Usar ajustes cacheados si están disponibles
+        $ajustes = app()->has('ajustes') ? app('ajustes') : Ajustes::first();
+        
+        // Usar sum() en lugar de loops para mejor rendimiento
+        $precio = FichaProducto::where('id_ficha', $ficha->uuid)->sum('precio');
+        $precio += FichaServicio::where('id_ficha', $ficha->uuid)->sum('precio');
+        $precio += FichaGasto::where('id_ficha', $ficha->uuid)->sum('precio');
+        
+        // Solo procesar invitados si es necesario
+        if ($sumarInvitados) {
+            $usuarios = FichaUsuario::where('id_ficha', $ficha->uuid)->get(['invitados']);
+            foreach ($usuarios as $usuario) {
+                $num_invitados = $usuario->invitados;
+                if ($num_invitados > $ajustes->max_invitados_cobrar) {
+                    $num_invitados = $ajustes->max_invitados_cobrar;
+                }
+                if ($ajustes->primer_invitado_gratis && $num_invitados > 0) {
+                    $num_invitados--;
+                }
                 $precio += $num_invitados * $ajustes->precio_invitado;
             }
         }
-        $servicios = FichaServicio::where('id_ficha', $ficha->uuid)->get();
-        foreach ($servicios as $servicio) {
-            $precio += $servicio->precio;
+        
+        if ($ajustes->activar_invitados_grupo && $ficha->invitados_grupo > 0) {
+            $precio += $ficha->invitados_grupo;
         }
-        $gastos = FichaGasto::where('id_ficha', $ficha->uuid)->get();
-        foreach ($gastos as $gasto) {
-            $precio += $gasto->precio;
-        }
-        if ($ajustes->activar_invitados_grupo) {
-            if ($ficha->invitados_grupo > 0) {
-                $precio = $precio + $ficha->invitados_grupo;
-            }
-        }
+        
         return $precio;
     }
 

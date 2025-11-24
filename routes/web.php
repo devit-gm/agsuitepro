@@ -171,7 +171,7 @@ Route::middleware(['detect.site', 'auth'])->group(function () {
     Route::put('/informes/facturar', [InformesController::class, 'facturar'])->name('informes.facturar');
     
     // Informes para modo mesas
-    Route::get('/informes/ventas-productos', [InformesController::class, 'ventasProductos'])->name('informes.ventas-productos');
+    Route::get('/informes/ventas-productos', [InformesController::class, 'informeProductos'])->name('informes.ventas-productos');
     Route::get('/informes/ventas-camareros', [InformesController::class, 'ventasCamareros'])->name('informes.ventas-camareros');
     Route::get('/informes/ocupacion-mesas', [InformesController::class, 'ocupacionMesas'])->name('informes.ocupacion-mesas');
     Route::get('/informes/horas-pico', [InformesController::class, 'horasPico'])->name('informes.horas-pico');

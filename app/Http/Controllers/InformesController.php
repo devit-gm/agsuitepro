@@ -17,7 +17,7 @@ class InformesController extends Controller
     public function index(Request $request)
     {
         $site = app('site');
-        $ajustes = DB::connection('site')->table('ajustes')->first();
+        $ajustes = app('ajustes');
         
         if($ajustes->facturar_ficha_automaticamente){
             // Si la facturación automática de fichas está activada, no mostrar el botón de facturar
@@ -134,9 +134,9 @@ class InformesController extends Controller
     /**
      * Informe de ventas por producto
      */
-    public function ventasProductos(Request $request)
+    public function informeProductos(Request $request)
     {
-        $ajustes = DB::connection('site')->table('ajustes')->first();
+        $ajustes = app('ajustes');
         
         // Verificar que estamos en modo mesas
         if ($ajustes->modo_operacion !== 'mesas') {
@@ -275,9 +275,9 @@ class InformesController extends Controller
      */
     public function ventasCamareros(Request $request)
     {
-        $ajustes = DB::connection('site')->table('ajustes')->first();
+        $ajustes = app('ajustes');
         
-        if ($ajustes->modo_operacion !== 'mesas') {
+        if ($ajustes->modo_operacion !== 'fichas') {
             return redirect()->route('informes.index');
         }
 

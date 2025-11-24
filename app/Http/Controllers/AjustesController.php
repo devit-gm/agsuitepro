@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Ajustes;
+use Illuminate\Support\Facades\Cache;
 
 class AjustesController extends Controller
 {
@@ -35,6 +36,11 @@ class AjustesController extends Controller
 
         $ajustes = Ajustes::where('id', 1)->first();
         $ajustes->update($request->all());
+        
+        // Invalidar caché de ajustes
+        $site = app('site');
+        Cache::forget('ajustes_site_' . $site->id);
+        
         return redirect()->route('ajustes.index')->with('success', __('Ajustes actualizados correctamente'));
     }
 }

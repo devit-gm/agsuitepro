@@ -8,6 +8,7 @@ use App\Models\Producto;
 use Illuminate\Support\Facades\File;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ImageService;
 
 class FamiliasController extends Controller
 {
@@ -43,11 +44,17 @@ class FamiliasController extends Controller
     {
         $request->validate([
             'nombre' => 'required|max:255',
-            'imagen' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+            'imagen' => 'required|image|mimes:png,jpg,jpeg,webp|max:2048',
             'posicion' => 'required'
         ]);
-        $imageName = time() . '.' . $request->imagen->extension();
-        $request->imagen->move(public_path('images'), $imageName);
+        
+        // Procesar y redimensionar imagen
+        $imageName = ImageService::processAndSave($request->imagen, 'public/images');
+        
+        // Copiar a public/images para compatibilidad
+        $sourcePath = storage_path('app/public/images/' . $imageName);
+        $destPath = public_path('images/' . $imageName);
+        copy($sourcePath, $destPath);
 
         // ...
 
@@ -77,7 +84,7 @@ class FamiliasController extends Controller
     {
         $request->validate([
             'nombre' => 'required|max:255',
-            'imagen' => 'image|mimes:png,jpg,jpeg|max:2048',
+            'imagen' => 'image|mimes:png,jpg,jpeg,webp|max:2048',
             'posicion' => 'required'
         ]);
         $familia = Familia::find($id);
@@ -86,8 +93,17 @@ class FamiliasController extends Controller
             if (File::exists(public_path('images') . '/'  . $familia->imagen)) {
                 File::delete(public_path('images') . '/'  . $familia->imagen);
             }
-            $imageName = time() . '.' . $request->imagen->extension();
-            $request->imagen->move(public_path('images'), $imageName);
+            if (File::exists(storage_path('app/public/images') . '/'  . $familia->imagen)) {
+                File::delete(storage_path('app/public/images') . '/'  . $familia->imagen);
+            }
+            
+            // Procesar y redimensionar imagen
+            $imageName = ImageService::processAndSave($request->imagen, 'public/images');
+            
+            // Copiar a public/images para compatibilidad
+            $sourcePath = storage_path('app/public/images/' . $imageName);
+            $destPath = public_path('images/' . $imageName);
+            copy($sourcePath, $destPath);
         } else {
             $imageName = $familia->imagen;
         }

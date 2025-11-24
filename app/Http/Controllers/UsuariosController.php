@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use App\Services\ImageService;
 
 
 class UsuariosController extends Controller
@@ -80,12 +81,18 @@ class UsuariosController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:3'],
-            'image' => 'image|mimes:png,jpg,jpeg',
+            'image' => 'required|image|mimes:png,jpg,jpeg,webp|max:2048',
             'role_id' => 'required',
             'phone_number' => ['required', 'unique:users']
         ]);
-        $imageName = time() . '.' . $request->image->extension();
-        $request->image->move(public_path('images'), $imageName);
+        
+        // Procesar y redimensionar imagen
+        $imageName = ImageService::processAndSave($request->image, 'public/images');
+        
+        // Copiar a public/images para compatibilidad
+        $sourcePath = storage_path('app/public/images/' . $imageName);
+        $destPath = public_path('images/' . $imageName);
+        copy($sourcePath, $destPath);
 
         $domain = $request->getHost();
         $site = Site::where('dominio', $domain)->first();
@@ -151,7 +158,7 @@ class UsuariosController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $usuario->id],
-            'image' => 'image|mimes:png,jpg,jpeg',
+            'image' => 'image|mimes:png,jpg,jpeg,webp|max:2048',
             'role_id' => 'required',
             'phone_number' => ['required', 'unique:users,email,' . $usuario->phone_number],
             'password' => 'required|string|min:8'
@@ -162,8 +169,17 @@ class UsuariosController extends Controller
             if (File::exists(public_path('images') . '/'  . $usuario->image)) {
                 File::delete(public_path('images') . '/'  . $usuario->image);
             }
-            $imageName = time() . '.' . $request->image->extension();
-            $request->image->move(public_path('images'), $imageName);
+            if (File::exists(storage_path('app/public/images') . '/'  . $usuario->image)) {
+                File::delete(storage_path('app/public/images') . '/'  . $usuario->image);
+            }
+            
+            // Procesar y redimensionar imagen
+            $imageName = ImageService::processAndSave($request->image, 'public/images');
+            
+            // Copiar a public/images para compatibilidad
+            $sourcePath = storage_path('app/public/images/' . $imageName);
+            $destPath = public_path('images/' . $imageName);
+            copy($sourcePath, $destPath);
         } else {
             $imageName = $usuario->image;
         }

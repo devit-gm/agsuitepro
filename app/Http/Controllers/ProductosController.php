@@ -10,6 +10,7 @@ use Illuminate\Console\View\Components\Component;
 use Illuminate\Support\Facades\File;
 use Ramsey\Uuid\Uuid;
 use App\Models\FichaProducto;
+use App\Services\ImageService;
 use App\Models\Site;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -89,14 +90,20 @@ return view('productos.index', compact('productos'));
     {
         $request->validate([
             'nombre' => 'required|max:255',
-            'imagen' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+            'imagen' => 'required|image|mimes:png,jpg,jpeg,webp|max:2048',
             'posicion' => 'required',
             'familia' => 'required',
             'combinado' => 'required',
             'precio' => 'required'
         ]);
-        $imageName = time() . '.' . $request->imagen->extension();
-        $request->imagen->move(public_path('images'), $imageName);
+        
+        // Procesar y redimensionar imagen
+        $imageName = ImageService::processAndSave($request->imagen, 'public/images');
+        
+        // Copiar a public/images para compatibilidad
+        $sourcePath = storage_path('app/public/images/' . $imageName);
+        $destPath = public_path('images/' . $imageName);
+        copy($sourcePath, $destPath);
 
         Producto::create([
             'uuid' => (string) Uuid::uuid4(),
@@ -139,7 +146,7 @@ return view('productos.index', compact('productos'));
     {
         $request->validate([
             'nombre' => 'required|max:255',
-            'imagen' => 'image|mimes:png,jpg,jpeg|max:2048',
+            'imagen' => 'image|mimes:png,jpg,jpeg,webp|max:2048',
             'posicion' => 'required',
             'familia' => 'required',
             'combinado' => 'required',
@@ -151,8 +158,17 @@ return view('productos.index', compact('productos'));
             if (File::exists(public_path('images') . '/'  . $producto->imagen)) {
                 File::delete(public_path('images') . '/'  . $producto->imagen);
             }
-            $imageName = time() . '.' . $request->imagen->extension();
-            $request->imagen->move(public_path('images'), $imageName);
+            if (File::exists(storage_path('app/public/images') . '/'  . $producto->imagen)) {
+                File::delete(storage_path('app/public/images') . '/'  . $producto->imagen);
+            }
+            
+            // Procesar y redimensionar imagen
+            $imageName = ImageService::processAndSave($request->imagen, 'public/images');
+            
+            // Copiar a public/images para compatibilidad
+            $sourcePath = storage_path('app/public/images/' . $imageName);
+            $destPath = public_path('images/' . $imageName);
+            copy($sourcePath, $destPath);
         } else {
             $imageName = $producto->imagen;
         }
