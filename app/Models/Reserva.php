@@ -19,13 +19,21 @@ class Reserva extends Model
         'name',
         'user_id',
         'start_time',
-        'end_time'
+        'end_time',
+        'notificado_recordatorio'
     ];
 
+
     public function usuario()
-{
-    return $this->belongsTo(User::class, 'user_id');
-}
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // Alias para compatibilidad con notificación
+    public function user()
+    {
+        return $this->usuario();
+    }
 
     
 }

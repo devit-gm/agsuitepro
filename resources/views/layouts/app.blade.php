@@ -830,8 +830,12 @@
     <script>
         function triggerParentClick(event, tdElement) {
             event.stopPropagation();
-            const row = tdElement.closest('tr');
-            if (row.dataset.borrable) {
+            // Buscar el ancestro <tr> o .reserva-item
+            let row = tdElement.closest('tr');
+            if (!row) {
+                row = tdElement.closest('.reserva-item');
+            }
+            if (row && row.dataset.borrable) {
                 if (row.dataset.hrefborrar != null) {
                     if (confirm(row.dataset.textoborrar)) {
                         var formulario = document.getElementById("frmBorrar");

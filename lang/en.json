@@ -1,4 +1,6 @@
 {
+    "Días de antelación para recordatorio": "Days in advance for reminder",
+    "Se enviará un recordatorio a los usuarios que tengan reservas en el/los día(s) siguiente(s)": "A reminder will be sent to users who have bookings on the following day(s)",
     "(and :count more error)": "(and :count more error)",
     "(and :count more errors)": "(and :count more errors)",
     "A fresh verification link has been sent to your email address.": "A fresh verification link has been sent to your email address.",

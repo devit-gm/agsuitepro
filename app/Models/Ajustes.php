@@ -35,6 +35,9 @@ class Ajustes extends Model
         'modo_operacion',
         'mostrar_usuarios',
         'mostrar_gastos',
-        'mostrar_compras'
+        'mostrar_compras',
+        'recordatorio_reservas_minutos',
+        'recordatorio_reservas_email',
+        'recordatorio_reservas_push'
     ];
 }

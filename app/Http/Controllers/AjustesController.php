@@ -32,6 +32,9 @@ class AjustesController extends Controller
             'mostrar_usuarios' => 'nullable|boolean',
             'mostrar_gastos' => 'nullable|boolean',
             'mostrar_compras' => 'nullable|boolean',
+            'recordatorio_reservas_minutos' => 'nullable|integer|min:5',
+            'recordatorio_reservas_email' => 'nullable|boolean',
+            'recordatorio_reservas_push' => 'nullable|boolean',
         ]);
 
         $ajustes = Ajustes::where('id', 1)->first();

@@ -38,6 +38,15 @@ use App\Services\FirebaseService;
 Route::get('/manifest.json', [ManifestController::class, 'show'])->name('manifest');
 Route::get('/pwa-config.json', [PwaConfigController::class, 'getIconPath'])->name('pwa.config');
 
+// Ruta protegida para ejecución de cron desde IONOS
+Route::get('/cron/reservas-verificar/{token}', function($token) {
+    if ($token !== env('CRON_SECRET')) {
+        abort(403);
+    }
+    \Artisan::call('reservas:verificar-proximas');
+    return 'OK';
+});
+
 Route::middleware(['detect.site', 'auth'])->group(function () {
     // Ruta raíz dinámica según modo de operación
     Route::get('/', function () {
