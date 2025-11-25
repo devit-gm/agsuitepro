@@ -800,7 +800,52 @@ Para preguntas y soporte:
 
 **Versión**: 2025 Noviembre con Sistema de Facturación e IVA
 
+
+## 🆕 Novedades 2025.11 (Recordatorios y Cron Multi-sitio)
+
+- 🔔 **Recordatorio de reservas configurable por días**: Ahora puedes configurar desde Ajustes cuántos días antes se envía el recordatorio de reservas.
+- 📧 **Notificaciones de recordatorio**: Se envían tanto por email como por notificación push (Firebase) al usuario creador de la reserva.
+- 🛠️ **Comando Artisan multi-sitio**: El comando `reservas:verificar-proximas` recorre automáticamente todos los sitios configurados y ejecuta la lógica de notificación para cada uno (multi-tenant real).
+- 🌐 **URL segura para cron**: Puedes programar el cron en IONOS u otro hosting llamando a una URL protegida con token secreto, que ejecuta el comando para todos los sitios.
+- 📝 **Instrucciones para cron en IONOS**: Añadidas recomendaciones y ejemplo de ruta segura para programar el cron en hostings compartidos.
+- ⚠️ **Advertencias sobre .htaccess y URLs amigables**: Añadidas recomendaciones para evitar problemas con index.php en la URL y asegurar la redirección www/sin www.
+
+### Configuración del recordatorio de reservas
+
+1. Ve a **Ajustes > Recordatorio de reservas** y elige los días de antelación.
+2. Activa/desactiva notificación por email y push según prefieras.
+3. El sistema notificará automáticamente a los usuarios con reservas para el día configurado.
+
+### Programar el cron en IONOS (o similar)
+
+1. Añade en tu `.env`:
+  ```
+  CRON_SECRET=tu_token_secreto
+  ```
+2. La URL para el cron será:
+  ```
+  https://tudominio.com/cron/reservas-verificar/tu_token_secreto
+  ```
+3. Programa el cron en el panel de IONOS usando esa URL.
+
+### Multi-tenant automático
+
+El comando recorre todos los sitios (tabla `sitios`) y ejecuta la lógica de notificación para cada uno, usando la conexión y configuración correspondiente.
+
+### .htaccess y URLs amigables
+
+Asegúrate de que tu dominio apunte a la carpeta `public/` y que el archivo `.htaccess` sea el estándar de Laravel. Si tienes problemas con index.php en la URL o con www/sin www, revisa la sección de instalación y las recomendaciones del README.
+
+---
+
 ### 📝 Changelog
+
+#### v2025.11 - Recordatorio de Reservas y Cron Multi-sitio
+- 🔔 Recordatorio de reservas configurable por días (Ajustes)
+- 📧 Notificaciones de recordatorio por email y push (Firebase)
+- 🛠️ Comando Artisan multi-sitio: recorre todos los sitios y ejecuta la lógica para cada uno
+- 🌐 URL segura para cron programable en IONOS/hosting compartido
+- 📝 Instrucciones y advertencias para cron multi-tenant y .htaccess
 
 #### v2025.11 - Sistema de Facturación e IVA
 - ✨ Sistema completo de facturación para mesas
