@@ -990,39 +990,51 @@ foreach ($fichas as $ficha) {
             'numero_comensales' => 'required|integer|min:1|max:20'
         ]);
         
-        $mesa = Ficha::findOrFail($mesaId);
-        
-        // Verificar que esté libre
-        if ($mesa->estado_mesa != 'libre') {
+        try {
+            return DB::transaction(function () use ($request, $mesaId) {
+                // Locking pesimista: bloquea el registro hasta que termine la transacción
+                $mesa = Ficha::where('uuid', $mesaId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                
+                // Verificar que esté libre
+                if ($mesa->estado_mesa != 'libre') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Esta mesa ya está ocupada'
+                    ], 400);
+                }
+                
+                // Abrir mesa y asignar al camarero actual
+                $mesa->update([
+                    'estado_mesa' => 'ocupada',
+                    'camarero_id' => Auth::id(),
+                    'numero_comensales' => $request->numero_comensales,
+                    'hora_apertura' => now()
+                ]);
+                
+                // Registrar en historial
+                \App\Models\MesaHistorial::create([
+                    'mesa_id' => $mesa->uuid,
+                    'accion' => 'abrir',
+                    'camarero_id' => Auth::id(),
+                    'detalles' => json_encode([
+                        'comensales' => $request->numero_comensales,
+                        'notas' => $request->notas
+                    ])
+                ]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Mesa abierta correctamente'
+                ]);
+            });
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Esta mesa ya está ocupada'
-            ], 400);
+                'message' => 'Error al abrir la mesa. Por favor, inténtalo de nuevo.'
+            ], 500);
         }
-        
-        // Abrir mesa y asignar al camarero actual
-        $mesa->update([
-            'estado_mesa' => 'ocupada',
-            'camarero_id' => Auth::id(),
-            'numero_comensales' => $request->numero_comensales,
-            'hora_apertura' => now()
-        ]);
-        
-        // Registrar en historial
-        \App\Models\MesaHistorial::create([
-            'mesa_id' => $mesa->uuid,
-            'accion' => 'abrir',
-            'camarero_id' => Auth::id(),
-            'detalles' => json_encode([
-                'comensales' => $request->numero_comensales,
-                'notas' => $request->notas
-            ])
-        ]);
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Mesa abierta correctamente'
-        ]);
     }
     
     /**
@@ -1030,39 +1042,59 @@ foreach ($fichas as $ficha) {
      */
     public function tomarMesa($mesaId)
     {
-        $mesa = Ficha::findOrFail($mesaId);
-        
-        // Verificar que esté ocupada (no libre ni cerrada)
-        if ($mesa->estado_mesa != 'ocupada') {
+        try {
+            return DB::transaction(function () use ($mesaId) {
+                // Locking pesimista: bloquea el registro hasta que termine la transacción
+                $mesa = Ficha::where('uuid', $mesaId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                
+                // Verificar que esté ocupada (no libre ni cerrada)
+                if ($mesa->estado_mesa != 'ocupada') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Esta mesa no está disponible para tomar'
+                    ], 400);
+                }
+                
+                // Verificar que no sea ya del camarero actual
+                if ($mesa->camarero_id == Auth::id()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Esta mesa ya es tuya'
+                    ], 400);
+                }
+                
+                $camareroAnterior = $mesa->camarero_id;
+                
+                // Transferir mesa al camarero actual
+                $mesa->update([
+                    'ultimo_camarero_id' => $camareroAnterior,
+                    'camarero_id' => Auth::id()
+                ]);
+                
+                // Registrar en historial
+                \App\Models\MesaHistorial::create([
+                    'mesa_id' => $mesa->uuid,
+                    'accion' => 'tomar',
+                    'camarero_id' => Auth::id(),
+                    'camarero_anterior_id' => $camareroAnterior,
+                    'detalles' => json_encode([
+                        'importe_actual' => $mesa->importe
+                    ])
+                ]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Mesa tomada correctamente'
+                ]);
+            });
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Esta mesa no está disponible para tomar'
-            ], 400);
+                'message' => 'Error al tomar la mesa. Por favor, inténtalo de nuevo.'
+            ], 500);
         }
-        
-        $camareroAnterior = $mesa->camarero_id;
-        
-        // Transferir mesa al camarero actual
-        $mesa->update([
-            'ultimo_camarero_id' => $camareroAnterior,
-            'camarero_id' => Auth::id()
-        ]);
-        
-        // Registrar en historial
-        \App\Models\MesaHistorial::create([
-            'mesa_id' => $mesa->uuid,
-            'accion' => 'tomar',
-            'camarero_id' => Auth::id(),
-            'camarero_anterior_id' => $camareroAnterior,
-            'detalles' => json_encode([
-                'importe_actual' => $mesa->importe
-            ])
-        ]);
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Mesa tomada correctamente'
-        ]);
     }
     
     /**
@@ -1121,20 +1153,34 @@ foreach ($fichas as $ficha) {
      */
     public function cerrarMesa(Request $request, $mesaId)
     {
-        $mesa = Ficha::findOrFail($mesaId);
-        
-        // Verificar que sea el camarero asignado o admin
-        if ($mesa->camarero_id != Auth::id() && (!Auth::check() || Auth::user()->role_id != 1)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No tienes permiso para cerrar esta mesa'
-            ], 403);
-        }
-        
         $request->validate([
             'metodo_pago' => 'required|in:efectivo,tarjeta,mixto',
             'propina' => 'nullable|numeric|min:0'
         ]);
+        
+        try {
+            return DB::transaction(function () use ($request, $mesaId) {
+                // Locking pesimista: bloquea la mesa y productos relacionados
+                $mesa = Ficha::where('uuid', $mesaId)
+                    ->with(['productos.producto', 'servicios.servicio'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                
+                // Verificar que sea el camarero asignado o admin
+                if ($mesa->camarero_id != Auth::id() && (!Auth::check() || Auth::user()->role_id != 1)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No tienes permiso para cerrar esta mesa'
+                    ], 403);
+                }
+                
+                // Verificar que esté en estado ocupada
+                if ($mesa->estado_mesa != 'ocupada') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Esta mesa no está en estado ocupada'
+                    ], 400);
+                }
         
         // Calcular importe total de la mesa con IVA
         $subtotal = 0;
@@ -1195,75 +1241,100 @@ foreach ($fichas as $ficha) {
             'fecha' => now()
         ]);
         
-        // Descontar stock de productos consumidos
-        foreach ($mesa->productos as $fichaProducto) {
-            $producto = Producto::find($fichaProducto->id_producto);
-            if ($producto) {
-                if ($producto->combinado == 1) {
-                    // Producto combinado: descontar componentes
-                    $productosCombinados = DB::connection('site')
-                        ->table('composicion_productos')
-                        ->where('id_producto', $producto->uuid)
-                        ->get();
+                // Descontar stock de productos consumidos con locking
+                foreach ($mesa->productos as $fichaProducto) {
+                    // Lock del producto para evitar race conditions en stock
+                    $producto = Producto::where('uuid', $fichaProducto->id_producto)
+                        ->lockForUpdate()
+                        ->first();
                     
-                    foreach ($productosCombinados as $productoCombinado) {
-                        $componente = Producto::find($productoCombinado->id_componente);
-                        if ($componente) {
-                            $componente->stock -= $fichaProducto->cantidad;
-                            $componente->save();
+                    if ($producto) {
+                        if ($producto->combinado == 1) {
+                            // Producto combinado: descontar componentes
+                            $productosCombinados = DB::connection('site')
+                                ->table('composicion_productos')
+                                ->where('id_producto', $producto->uuid)
+                                ->get();
+                            
+                            foreach ($productosCombinados as $productoCombinado) {
+                                // Lock de cada componente
+                                $componente = Producto::where('uuid', $productoCombinado->id_componente)
+                                    ->lockForUpdate()
+                                    ->first();
+                                
+                                if ($componente) {
+                                    // Verificar que haya stock suficiente
+                                    if ($componente->stock < $fichaProducto->cantidad) {
+                                        throw new \Exception('Stock insuficiente para ' . $componente->nombre);
+                                    }
+                                    
+                                    $componente->stock -= $fichaProducto->cantidad;
+                                    $componente->save();
+                                    
+                                    // Verificar stock bajo
+                                    $stockService = new \App\Services\StockNotificationService();
+                                    $stockService->verificarYNotificar($componente->uuid);
+                                }
+                            }
+                        } else {
+                            // Producto simple: verificar y descontar stock
+                            if ($producto->stock < $fichaProducto->cantidad) {
+                                throw new \Exception('Stock insuficiente para ' . $producto->nombre);
+                            }
+                            
+                            $producto->stock -= $fichaProducto->cantidad;
+                            $producto->save();
                             
                             // Verificar stock bajo
                             $stockService = new \App\Services\StockNotificationService();
-                            $stockService->verificarYNotificar($componente->uuid);
+                            $stockService->verificarYNotificar($producto->uuid);
                         }
                     }
-                } else {
-                    // Producto simple: descontar stock directamente
-                    $producto->stock -= $fichaProducto->cantidad;
-                    $producto->save();
-                    
-                    // Verificar stock bajo
-                    $stockService = new \App\Services\StockNotificationService();
-                    $stockService->verificarYNotificar($producto->uuid);
                 }
-            }
+                
+                // Cerrar mesa
+                $mesa->update([
+                    'estado_mesa' => 'cerrada',
+                    'hora_cierre' => now(),
+                    'ultimo_camarero_id' => Auth::id(),
+                    'estado' => 1,
+                    'precio' => $importeTotal + $propina
+                ]);
+                
+                // Registrar en historial con desglose de IVA
+                \App\Models\MesaHistorial::create([
+                    'mesa_id' => $mesa->uuid,
+                    'accion' => 'cerrar',
+                    'camarero_id' => Auth::id(),
+                    'detalles' => [
+                        'metodo_pago' => $request->metodo_pago,
+                        'propina' => $propina,
+                        'subtotal' => round($subtotal, 2),
+                        'iva_desglose' => $ivaDesglose,
+                        'total_iva' => round($totalIva, 2),
+                        'importe_total' => round($importeTotal + $propina, 2)
+                    ]
+                ]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Mesa cerrada correctamente',
+                    'desglose' => [
+                        'subtotal' => round($subtotal, 2),
+                        'iva_desglose' => $ivaDesglose,
+                        'total_iva' => round($totalIva, 2),
+                        'propina' => $propina,
+                        'total' => round($importeTotal + $propina, 2)
+                    ]
+                ]);
+            });
+        } catch (\Exception $e) {
+            Log::error('Error al cerrar mesa: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Error al cerrar la mesa. Por favor, inténtalo de nuevo.'
+            ], 500);
         }
-        
-        // Cerrar mesa
-        $mesa->update([
-            'estado_mesa' => 'cerrada',
-            'hora_cierre' => now(),
-            'ultimo_camarero_id' => Auth::id(),
-            'estado' => 1, // Marcar como pagada
-            'precio' => $importeTotal + $propina // Guardar precio final
-        ]);
-        
-        // Registrar en historial con desglose de IVA
-        \App\Models\MesaHistorial::create([
-            'mesa_id' => $mesa->uuid,
-            'accion' => 'cerrar',
-            'camarero_id' => Auth::id(),
-            'detalles' => [
-                'metodo_pago' => $request->metodo_pago,
-                'propina' => $propina,
-                'subtotal' => round($subtotal, 2),
-                'iva_desglose' => $ivaDesglose,
-                'total_iva' => round($totalIva, 2),
-                'importe_total' => round($importeTotal + $propina, 2)
-            ]
-        ]);
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Mesa cerrada correctamente',
-            'desglose' => [
-                'subtotal' => round($subtotal, 2),
-                'iva_desglose' => $ivaDesglose,
-                'total_iva' => round($totalIva, 2),
-                'propina' => $propina,
-                'total' => round($importeTotal + $propina, 2)
-            ]
-        ]);
     }
     
     /**
@@ -1271,15 +1342,28 @@ foreach ($fichas as $ficha) {
      */
     public function liberarMesa($mesaId)
     {
-        $mesa = Ficha::findOrFail($mesaId);
-        
-        // Solo admin o el mismo camarero puede liberar
-        if ($mesa->camarero_id != Auth::id() && (!Auth::check() || Auth::user()->role_id != 1)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No tienes permiso'
-            ], 403);
-        }
+        try {
+            return DB::transaction(function () use ($mesaId) {
+                // Locking pesimista
+                $mesa = Ficha::where('uuid', $mesaId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                
+                // Solo admin o el mismo camarero puede liberar
+                if ($mesa->camarero_id != Auth::id() && (!Auth::check() || Auth::user()->role_id != 1)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No tienes permiso'
+                    ], 403);
+                }
+                
+                // Verificar que esté cerrada
+                if ($mesa->estado_mesa != 'cerrada') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Esta mesa no está cerrada'
+                    ], 400);
+                }
         
         // Guardar productos y servicios antes de eliminar (para historial de ventas)
         $productos = FichaProducto::where('id_ficha', $mesa->uuid)
@@ -1352,29 +1436,36 @@ foreach ($fichas as $ficha) {
             'estado' => 0
         ]);
         
-        // Limpiar consumos de la mesa
-        FichaProducto::where('id_ficha', $mesa->uuid)->delete();
-        FichaServicio::where('id_ficha', $mesa->uuid)->delete();
-        
-        // Guardar en historial con los productos y servicios
-        \App\Models\MesaHistorial::create([
-            'mesa_id' => $mesa->uuid,
-            'accion' => 'liberar',
-            'camarero_id' => Auth::id(),
-            'detalles' => [
-                'productos' => $productos,
-                'servicios' => $servicios,
-                'subtotal' => round($subtotal, 2),
-                'iva_desglose' => $ivaDesglose,
-                'total_iva' => round($totalIva, 2),
-                'total_general' => round($totalGeneral, 2)
-            ]
-        ]);
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Mesa liberada'
-        ]);
+                // Limpiar consumos de la mesa
+                FichaProducto::where('id_ficha', $mesa->uuid)->delete();
+                FichaServicio::where('id_ficha', $mesa->uuid)->delete();
+                
+                // Guardar en historial con los productos y servicios
+                \App\Models\MesaHistorial::create([
+                    'mesa_id' => $mesa->uuid,
+                    'accion' => 'liberar',
+                    'camarero_id' => Auth::id(),
+                    'detalles' => [
+                        'productos' => $productos,
+                        'servicios' => $servicios,
+                        'subtotal' => round($subtotal, 2),
+                        'iva_desglose' => $ivaDesglose,
+                        'total_iva' => round($totalIva, 2),
+                        'total_general' => round($totalGeneral, 2)
+                    ]
+                ]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Mesa liberada'
+                ]);
+            });
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al liberar la mesa. Por favor, inténtalo de nuevo.'
+            ], 500);
+        }
     }
 
     /**
