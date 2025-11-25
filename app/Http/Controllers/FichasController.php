@@ -60,20 +60,22 @@ class FichasController extends Controller
 
 // Consulta principal (solo una)
 $query = Ficha::query()
-    ->with(['usuario', 'inscritos'])   // 🔥 Eager loading
-    ->orderBy('fecha')
-    ->orderBy('hora');
+    ->with(['usuario', 'inscritos']);   // 🔥 Eager loading
 
 if ($request->method() == "GET") {
-    $query->where('estado', 0);
+    $query->where('estado', 0)
+          ->orderBy('fecha', 'asc')
+          ->orderBy('hora', 'asc');
 } else {
     if ($request->incluir_cerradas == 0) {
-        $query->where('estado', 0);
+        $query->where('estado', 0)
+              ->orderBy('fecha', 'asc')
+              ->orderBy('hora', 'asc');
     } else {
+        // Fichas cerradas: orden descendente (más recientes primero)
         $query->where('estado', 1)
               ->orderBy('fecha', 'desc')
-              ->orderBy('hora', 'desc')
-              ->take(20);
+              ->orderBy('hora', 'desc');
     }
 }
 
@@ -120,6 +122,11 @@ foreach ($fichas as $ficha) {
 
     $ficha->total_comensales = $usuariosFicha->sum(fn($u) => 1 + $u->invitados + $u->ninos);
     $ficha->total_ninos      = $usuariosFicha->sum('ninos');
+}
+
+// Si son fichas cerradas, limitar a 20 más recientes después del filtro de permisos
+if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
+    $fichas = array_slice($fichas, 0, 20);
 }
 
         $errors = new \Illuminate\Support\MessageBag();
