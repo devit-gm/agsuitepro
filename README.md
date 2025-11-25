@@ -801,6 +801,39 @@ Para preguntas y soporte:
 **Versión**: 2025 Noviembre con Sistema de Facturación e IVA
 
 
+## 📝 Novedades recientes
+
+### Recordatorio unificado multi-tenant para reservas y eventos
+
+- El sistema de recordatorios ahora es multi-tenant y configurable por sitio.
+- Se ha unificado la lógica de notificación para reservas y eventos:
+  - Dos campos de días de antelación: uno para reservas y otro para eventos (solo visible en modo fichas).
+  - Un solo switch para activar/desactivar el envío de recordatorio por email y otro para notificación push (aplican a ambos tipos).
+- El recordatorio de eventos solo se envía para fichas de tipo 4 (eventos).
+- Los usuarios notificados para eventos se obtienen desde la base central, filtrando por el identificador del sitio.
+- El campo de días de antelación para eventos no aparece ni se requiere en modo mesas.
+- Si el campo no está presente en el formulario, el sistema asigna un valor por defecto para evitar errores.
+- Se han añadido instrucciones SQL para añadir los nuevos campos a la tabla ajustes en cada base de datos de sitio:
+
+```sql
+ALTER TABLE ajustes ADD COLUMN recordatorio_reservas_dias INT NOT NULL DEFAULT 1 AFTER recordatorio_reservas_minutos;
+ALTER TABLE ajustes ADD COLUMN limite_inscripcion_dias_eventos INT NOT NULL DEFAULT 1 AFTER facturar_ficha_automaticamente;
+```
+
+### Uso
+
+Configura los recordatorios desde Ajustes > Recordatorios:
+
+- Días de antelación para reservas
+- Días de antelación para eventos (solo modo fichas)
+- Enviar recordatorio por email (sí/no)
+- Enviar recordatorio por notificación push (sí/no)
+
+El comando `php artisan reservas:verificar-proximas` recorre todos los sitios no centrales y envía los recordatorios según la configuración de cada uno.
+
+---
+
+
 ## 🆕 Novedades 2025.11 (Recordatorios y Cron Multi-sitio)
 
 - 🔔 **Recordatorio de reservas configurable por días**: Ahora puedes configurar desde Ajustes cuántos días antes se envía el recordatorio de reservas.

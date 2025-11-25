@@ -193,36 +193,42 @@
                                     </div>
                                     @endif
 
-                                    <!-- Configuración de Recordatorios de Reservas -->
+
+                                    <!-- Configuración de Recordatorios de Reservas y Eventos -->
                                     <div class="mb-4">
                                         <h5 class="mb-3 d-flex align-items-center" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#collapseRecordatorios" aria-expanded="false" aria-controls="collapseRecordatorios">
-                                            <i class="bi bi-bell me-2"></i> {{ __('Configuración de Recordatorios de Reservas') }}
+                                            <i class="bi bi-bell me-2"></i> {{ __('Configuración de Recordatorios de Reservas y Eventos') }}
                                             <i class="bi bi-chevron-down ms-auto"></i>
                                         </h5>
                                         <div class="collapse" id="collapseRecordatorios">
                                             <div class="border-start border-3 border-info ps-3">
                                                 <div class="form-group mb-3 required">
-                                                    <label for="recordatorio_reservas_dias" class="fw-bold form-label">{{ __('Días de antelación para recordatorio') }}:</label>
+                                                    <label for="recordatorio_reservas_dias" class="fw-bold form-label">{{ __('Días de antelación para recordatorio de reservas') }}:</label>
                                                     <input type="number" min="1" step="1" placeholder="1" value="{{ $ajustes->recordatorio_reservas_dias ?? 1 }}" class="form-control" id="recordatorio_reservas_dias" name="recordatorio_reservas_dias" required>
                                                     <small class="form-text text-muted">{{ __('Se enviará un recordatorio a los usuarios que tengan reservas en el/los día(s) siguiente(s)') }}</small>
                                                 </div>
-
+                                                @if($ajustes->modo_operacion !== 'mesas')
+                                                <div class="form-group mb-3 required">
+                                                    <label for="limite_inscripcion_dias_eventos" class="fw-bold form-label">{{ __('Días de antelación para recordatorio de eventos') }}:</label>
+                                                    <input type="number" min="1" step="1" placeholder="1" value="{{ $ajustes->limite_inscripcion_dias_eventos ?? 1 }}" class="form-control" id="limite_inscripcion_dias_eventos" name="limite_inscripcion_dias_eventos" required>
+                                                    <small class="form-text text-muted">{{ __('Se enviará un recordatorio a todos los usuarios cuando falten estos días para el cierre de inscripción a un evento') }}</small>
+                                                </div>
+                                                @endif
                                                 <div class="form-group mb-3 required">
                                                     <label for="recordatorio_reservas_email" class="fw-bold form-label">{{ __('Enviar recordatorio por email') }}:</label>
                                                     <select name="recordatorio_reservas_email" id="recordatorio_reservas_email" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
                                                         <option value="0" @if( isset($ajustes->recordatorio_reservas_email) && $ajustes->recordatorio_reservas_email == 0 ) selected @endif>{{ __('No') }}</option>
                                                         <option value="1" @if( !isset($ajustes->recordatorio_reservas_email) || $ajustes->recordatorio_reservas_email == 1 ) selected @endif>{{ __('Sí') }}</option>
                                                     </select>
-                                                    <small class="form-text text-muted">{{ __('El creador de la reserva recibirá un email de recordatorio') }}</small>
+                                                    <small class="form-text text-muted">{{ __('El email se enviará tanto para reservas como para eventos') }}</small>
                                                 </div>
-
                                                 <div class="form-group mb-3 required">
                                                     <label for="recordatorio_reservas_push" class="fw-bold form-label">{{ __('Enviar recordatorio por notificación push') }}:</label>
                                                     <select name="recordatorio_reservas_push" id="recordatorio_reservas_push" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
                                                         <option value="0" @if( isset($ajustes->recordatorio_reservas_push) && $ajustes->recordatorio_reservas_push == 0 ) selected @endif>{{ __('No') }}</option>
                                                         <option value="1" @if( !isset($ajustes->recordatorio_reservas_push) || $ajustes->recordatorio_reservas_push == 1 ) selected @endif>{{ __('Sí') }}</option>
                                                     </select>
-                                                    <small class="form-text text-muted">{{ __('El creador de la reserva recibirá una notificación push en su dispositivo') }}</small>
+                                                    <small class="form-text text-muted">{{ __('La notificación push se enviará tanto para reservas como para eventos') }}</small>
                                                 </div>
                                             </div>
                                         </div>
