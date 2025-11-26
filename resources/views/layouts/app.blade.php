@@ -731,8 +731,7 @@
     </footer>
     @endguest
         <!-- Service Worker Registration (solo en HTTPS) --> 
-        @if(request()-> secure())
-        @php
+@if(request()->secure() || str_contains(request()->getHost(), '127.0.0.1'))        @php
             $domain = request()->getHost();
             $site = \App\Models\Site::where('dominio', $domain)->first();
             $iconBasePath = ($site && $site->carpeta_pwa) ? '/' . trim($site->carpeta_pwa, '/') : '/images/icons';

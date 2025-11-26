@@ -154,8 +154,7 @@
                                                     <small class="form-text text-muted">{{ __('Los usuarios con role_id < 4 recibirán emails y notificaciones push') }}</small>
                                                 </div>
 
-                                                @if(request()->secure())
-                                                <div class="form-group mb-3 required">
+@if(request()->secure() || str_contains(request()->getHost(), '127.0.0.1'))                                                <div class="form-group mb-3 required">
                                                     <label for="permitir_lectura_codigo_barras" class="fw-bold form-label">{{ __('Permitir lectura de código de barras') }}:</label>
                                                     <select name="permitir_lectura_codigo_barras" id="permitir_lectura_codigo_barras" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
                                                         <option value="0" @if( $ajustes->permitir_lectura_codigo_barras == 0 ) selected @endif>{{ __('No') }}</option>

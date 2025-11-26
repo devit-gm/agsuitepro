@@ -64,7 +64,7 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label for="ean13" class="fw-bold form-label">{{ __('EAN') }}</label>
-                                        @if(isset($ajustes) && $ajustes->permitir_lectura_codigo_barras == 1 && request()->secure())
+            @if(isset($ajustes) && $ajustes->permitir_lectura_codigo_barras == 1 && (request()->secure() || str_contains(request()->getHost(), '127.0.0.1')))
                                         <div class="input-group">
                                             <input type="text" class="form-control" id="ean13" name="ean13">
                                             <button class="btn btn-outline-secondary" type="button" id="openScannerBtnEAN">
@@ -163,8 +163,7 @@ function clearImageSelection() {
 }
 </script>
 
-@if(isset($ajustes) && $ajustes->permitir_lectura_codigo_barras == 1 && request()->secure())
-<!-- Modal Scanner EAN -->
+            @if(isset($ajustes) && $ajustes->permitir_lectura_codigo_barras == 1 && (request()->secure() || str_contains(request()->getHost(), '127.0.0.1')))
 <div class="modal fade" id="scannerModalEAN" tabindex="-1" aria-labelledby="scannerModalEANLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">

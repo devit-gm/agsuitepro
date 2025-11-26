@@ -1,0 +1,13 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    # Redirigir sin www a www
+    RewriteCond %{HTTP_HOST} ^mezzix\.es$ [NC]
+    RewriteRule ^(.*)$ https://www.mezzix.es/$1 [L,R=301]
+
+    # Eliminar index.php de la URL
+    RewriteRule ^index\.php$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php/$1 [L]
+</IfModule>

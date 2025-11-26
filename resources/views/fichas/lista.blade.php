@@ -172,7 +172,7 @@
             }
             @endphp
             <a class="btn btn-dark mx-1" href="{{ $ruta }}"><i class="bi bi-chevron-left"></i></a>
-            @if(isset($ajustes) && $ajustes->permitir_lectura_codigo_barras == 1 && request()->secure())
+            @if(isset($ajustes) && $ajustes->permitir_lectura_codigo_barras == 1 && (request()->secure() || str_contains(request()->getHost(), '127.0.0.1')))
             <button type="button" id="btn-open-scanner" class="btn btn-primary mx-1">
                 <i class="bi bi-upc-scan"></i>
             </button>

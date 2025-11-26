@@ -86,20 +86,23 @@
                                                     <input type="password" class="form-control" id="password" name="password" value="{{ $usuario->password }}" required>
                                                 </div>
 
-                                                @if(request()->secure() && Auth::id() == $usuario->id)
-                                                <!-- Sección de Notificaciones Push (solo en HTTPS y solo para el usuario activo) -->
-                                                <hr class="my-4">
-                                                <div class="form-group mb-3">
-                                                    <label class="fw-bold form-label"><i class="bi bi-bell"></i> {{ __('Notificaciones Push') }}</label>
-                                                    <div class="alert alert-info d-flex align-items-center" id="notification-status">
-                                                        <i class="bi bi-bell me-2"></i>
-                                                        <span id="notification-text">{{ __('Verificando estado...') }}</span>
+                                                <!-- Sección de Notificaciones Push (si no corresponde, se oculta con CSS) -->
+                                                @php
+                                                    $mostrarNotificaciones = (request()->secure() || str_contains(request()->getHost(), '127.0.0.1')) && Auth::id() == $usuario->id;
+                                                @endphp
+                                                <div class="notificaciones-push-wrapper" style="@if(!$mostrarNotificaciones) display:none; @endif">
+                                                    <hr class="my-4">
+                                                    <div class="form-group mb-3">
+                                                        <label class="fw-bold form-label"><i class="bi bi-bell"></i> {{ __('Notificaciones Push') }}</label>
+                                                        <div class="alert alert-info d-flex align-items-center" id="notification-status">
+                                                            <i class="bi bi-bell me-2"></i>
+                                                            <span id="notification-text">{{ __('Verificando estado...') }}</span>
+                                                        </div>
+                                                        <button type="button" id="enable-notifications-btn" class="btn btn-primary" onclick="requestNotificationPermission()" style="display: none;">
+                                                            <i class="bi bi-bell-fill"></i> {{ __('Activar Notificaciones') }}
+                                                        </button>
                                                     </div>
-                                                    <button type="button" id="enable-notifications-btn" class="btn btn-primary" onclick="requestNotificationPermission()" style="display: none;">
-                                                        <i class="bi bi-bell-fill"></i> {{ __('Activar Notificaciones') }}
-                                                    </button>
                                                 </div>
-                                                @endif
 
                                         </form>
                                     </div>
