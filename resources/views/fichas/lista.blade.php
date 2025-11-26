@@ -63,7 +63,7 @@
     }
 
     .tabla-ficha td {
-        padding: 20px;
+        padding: 10px;
         vertical-align: middle;
         border-top: 1px solid #efefef;
     }
@@ -109,12 +109,10 @@
         @foreach ($productosFicha as $componente)
         <tr class="{{ $clickable }}"
             style="min-height: 90px;"
-            data-hrefsumarcantidadpreguntar="true"
-            data-hrefsumarcantidad="{{ fichaRoute('updatelista', ['uuid' => $ficha->uuid, 'uuid2' => $componente->id_producto, 'cantidad' => 1]) }}"
-            data-hrefrestarcantidad="{{ fichaRoute('updatelista', ['uuid' => $ficha->uuid, 'uuid2' => $componente->id_producto, 'cantidad' => -1]) }}"
-            data-hrefborrar="{{ fichaRoute('destroylista', ['uuid' => $ficha->uuid, 'uuid2' => $componente->id_producto]) }}"
-            data-textoborrar="{{ __('¿Está seguro de eliminar el artículo de la lista?') }}"
-            data-borrable="{{ $componente->borrable }}">
+            data-uuid="{{ $ficha->uuid }}"
+            data-uuid2="{{ $componente->id_producto }}"
+            data-borrable="{{ $componente->borrable }}"
+            data-textoborrar="{{ __('¿Está seguro de eliminar el artículo de la lista?') }}">
 
             <td>
                 {{ $componente->cantidad }}x {{ $componente->producto->nombre }}
@@ -126,10 +124,24 @@
             </td>
 
             @if($ficha->estado == 0 || (isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas'))
-            <td class="text-center">
-                <button type="button" class="btn btn-md btn-borrar-min btn-danger" onclick="triggerParentClick(event,this);">
+            <td class="text-center d-flex justify-content-center align-items-center gap-1">
+                <form class="form-cantidad-accion d-inline" method="POST" style="display:inline;">
+                    @csrf
+                    @method('PUT')
+                    <button type="button" class="btn btn-sm btn-borrar-min btn-danger" title="Restar cantidad" onclick="enviarCantidad(this, -1)">
+                        <i class="bi bi-dash"></i>
+                    </button>
+                </form>
+                <button type="button" class="btn btn-sm btn-borrar-min btn-danger" onclick="triggerParentClick(event,this);" title="Eliminar">
                     <i class="bi bi-trash"></i>
                 </button>
+                <form class="form-cantidad-accion d-inline" method="POST" style="display:inline;">
+                    @csrf
+                    @method('PUT')
+                    <button type="button" class="btn btn-sm btn-borrar-min btn-danger" title="Sumar cantidad" onclick="enviarCantidad(this, 1)">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </form>
             </td>
             @endif
         </tr>
@@ -221,12 +233,45 @@
         z-index: 1061 !important;
         position: relative;
     }
+
+    /* Botones + y - minimalistas */
+    .btn-sumar-cantidad, .btn-restar-cantidad {
+        font-size: 1.2rem;
+        min-width: 32px;
+        min-height: 32px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.2s;
+    }
+    .btn-sumar-cantidad:hover, .btn-restar-cantidad:hover {
+        background: #e5e5e5;
+    }
 </style>
 @endpush
 
 @push('scripts')
 <!-- Cargar Quagga desde CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
+
+<script>
+function enviarCantidad(btn, cantidad) {
+    var tr = btn.closest('tr');
+    var uuid = tr.getAttribute('data-uuid');
+    var uuid2 = tr.getAttribute('data-uuid2');
+    var form = btn.closest('form');
+    var action = '';
+    if(window.location.pathname.includes('/mesas/')) {
+        action = '/mesas/' + uuid + '/lista/' + uuid2 + '/' + cantidad;
+    } else {
+        action = '/fichas/' + uuid + '/lista/' + uuid2 + '/' + cantidad;
+    }
+    form.action = action;
+    form.submit();
+}
+</script>
 
 <script>
 // Objeto BarcodeScanner
