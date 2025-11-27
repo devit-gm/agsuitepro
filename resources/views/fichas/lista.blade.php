@@ -112,8 +112,8 @@
             data-uuid="{{ $ficha->uuid }}"
             data-uuid2="{{ $componente->id_producto }}"
             data-borrable="{{ $componente->borrable }}"
-            data-textoborrar="{{ __('¿Está seguro de eliminar el artículo de la lista?') }}">
-
+            data-textoborrar="{{ __('¿Está seguro de eliminar el artículo de la lista?') }}"
+            data-hrefborrar="{{ fichaRoute('destroylista', ['uuid' => $ficha->uuid, 'uuid2' => $componente->id_producto]) }}">
             <td>
                 {{ $componente->cantidad }}x {{ $componente->producto->nombre }}
             </td>

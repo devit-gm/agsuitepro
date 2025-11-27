@@ -10,3 +10,4 @@ storage/firebase-credentials.json
 *.key
 *.pem
 .env
+lanzar_mezzix.sh

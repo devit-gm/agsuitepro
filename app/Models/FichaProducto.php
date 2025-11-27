@@ -20,6 +20,7 @@ class FichaProducto extends Model
         'id_producto',
         'cantidad',
         'precio',
+        'estado', // campo para el estado del producto en cocina
     ];
 
     /**

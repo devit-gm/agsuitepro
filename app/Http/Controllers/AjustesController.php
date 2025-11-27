@@ -38,9 +38,6 @@ class AjustesController extends Controller
             'recordatorio_reservas_push' => 'required|boolean',
             'recordatorio_reservas_dias' => 'required|integer|min:1',
         ];
-        if ($modo !== 'mesas') {
-            $rules['limite_inscripcion_dias_eventos'] = 'required|integer|min:1';
-        }
         $request->validate($rules);
 
         $ajustes = Ajustes::on('site')->where('id', 1)->first();

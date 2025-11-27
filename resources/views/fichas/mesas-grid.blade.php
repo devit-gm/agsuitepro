@@ -176,12 +176,15 @@
                             <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalCrearMesa">
                                 <i class="bi bi-plus"></i>
                             </button>
+<a href="{{route('cocina.mesas')}}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-egg-fried"></i>
+                            </a>
                         </div>
                         @endif
         
         <!-- Auto-refresh invisible -->
         <button class="btn btn-sm" id="toggle-refresh" style="display: none !important;">
-            <span id="countdown">60</span>
+            <span id="countdown">30</span>
         </button>
     </div>
 </div>
@@ -336,7 +339,7 @@
     }
     
     .mesa-numero {
-        font-size: 1.5rem;
+        font-size: 1.5rem !important;
     }
     
     .mesa-info {

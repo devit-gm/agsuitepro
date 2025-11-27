@@ -47,7 +47,12 @@ class UsuariosController extends Controller
     public function index()
     {
         $site = app('site');
-        $usuarios = User::where('site_id', $site->id)->orderBy('id')->get();
+        if(Auth::user()->role_id > 1){
+            $usuarios = User::where('site_id', $site->id)->where('role_id', '>', 1)->orderBy('id')->get();
+        }else{
+            $usuarios = User::where('site_id', $site->id)->orderBy('id')->get();
+        }
+        
         $roles = Role::orderBy('id')->get();
         
         // Obtener usuarios que tienen fichas o reservas en una sola consulta
