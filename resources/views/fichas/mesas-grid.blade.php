@@ -487,7 +487,7 @@ function abrirMesa(mesaId, numeroMesa) {
 
 // Tomar mesa de otro camarero
 function tomarMesa(mesaId, numeroMesa, camareroAnterior) {
-    if (confirm(`¿Quieres tomar la Mesa ${numeroMesa}?\n\nActualmente está con: ${camareroAnterior}\n\nSi la tomas, pasará a ser tuya y podrás gestionarla.`)) {
+    if (confirm(`¿Quieres tomar la mesa?\n\nActualmente está con: ${camareroAnterior}\n\nSi la tomas, pasará a ser tuya y podrás gestionarla.`)) {
         const baseUrl = '{{ rtrim(fichaRoute("tomar", ["mesaId" => "MESA_ID_PLACEHOLDER"]), "/") }}'.replace('MESA_ID_PLACEHOLDER', mesaId);
         fetch(baseUrl, {
             method: 'POST',
@@ -565,7 +565,7 @@ function cerrarMesa(mesaId, numeroMesa) {
 
 // Liberar mesa cerrada
 function liberarMesa(mesaId, numeroMesa) {
-    if (confirm(`¿Liberar la Mesa ${numeroMesa} para que pueda volver a usarse?`)) {
+    if (confirm(`¿Desea liberar la mesa para que pueda volver a usarse?`)) {
         const baseUrl = '{{ rtrim(fichaRoute("liberar", ["mesaId" => "MESA_ID_PLACEHOLDER"]), "/") }}'.replace('MESA_ID_PLACEHOLDER', mesaId);
         fetch(baseUrl, {
             method: 'POST',
@@ -620,7 +620,7 @@ document.addEventListener('click', function(e) {
 
 // Función para confirmar eliminación de mesa
 function confirmarEliminar(mesaUuid, numeroMesa) {
-    if (confirm(`¿Está seguro de que desea eliminar la Mesa ${numeroMesa}?\n\nEsta acción no se puede deshacer.`)) {
+    if (confirm(`¿Está seguro de que desea eliminar la mesa?\n\nEsta acción no se puede deshacer.`)) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `/mesas/${mesaUuid}`;
