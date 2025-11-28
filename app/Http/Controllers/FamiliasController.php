@@ -64,6 +64,7 @@ class FamiliasController extends Controller
             'imagen' => $imageName,
             'posicion' => $request->posicion
         ]);
+        \Cache::forget('familias_grid_html');
         return redirect()->route('familias.index')
             ->with('success', __('Familia creada con éxito.'));
     }
@@ -113,6 +114,7 @@ class FamiliasController extends Controller
             'imagen' => $imageName,
             'posicion' => $request->posicion
         ]);
+        \Cache::forget('familias_grid_html');
         return redirect()->route('familias.index')
             ->with('success', __('Familia actualizada con éxito.'));
     }
@@ -127,6 +129,7 @@ class FamiliasController extends Controller
             File::delete(public_path('images') . '/'  . $familia->imagen);
         }
         $familia->delete();
+        \Cache::forget('familias_grid_html');
         return redirect()->route('familias.index')
             ->with('success', __('Familia eliminada con éxito'));
     }

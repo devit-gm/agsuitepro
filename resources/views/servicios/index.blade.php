@@ -39,12 +39,10 @@
                                     <tbody>
                                         @foreach ($servicios as $servicio)
                                         <tr class="clickable-row" data-href="{{ route('servicios.edit', $servicio->uuid) }}" data-hrefborrar="{{ route('servicios.destroy', $servicio->uuid) }}" data-textoborrar="{{ __('¿Está seguro de eliminar el servicio?') }}" data-borrable="{{$servicio->borrable}}">
-                                            <td class="align-middle">
-                                                <div class="fondo-calendario">
-                                                    <p style="padding-top:22px">
-                                                        <span style="clear: both;display: block; margin-top: 8px;">{{ $servicio->numero }}</span>
-                                                    </p>
-                                                </div>
+                                            <td class="align-middle text-center">
+                                                <span style="display: inline-block; min-width: 36px; height: 36px; line-height: 36px; border-radius: 50%; background: #dc3545; color: #fff; font-weight: bold; font-size: 1.1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                                    {{ $servicio->numero }}
+                                                </span>
                                             </td>
 
                                             <td class="align-middle">

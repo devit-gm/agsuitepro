@@ -705,7 +705,7 @@ function actualizarOrdenMesas(orden) {
 
 // Cargar librería y luego inicializar
 const sortableScript = document.createElement('script');
-sortableScript.src = 'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js';
+sortableScript.src = 'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js?v=281120252245';
 sortableScript.onload = function() {
     // Inicializar sortable cuando la librería esté cargada
     if (document.querySelector('.mesas-grid')) {

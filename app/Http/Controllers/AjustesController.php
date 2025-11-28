@@ -59,9 +59,8 @@ class AjustesController extends Controller
         ]));
         $ajustes->save();
 
-        // Invalidar caché de ajustes
-        $site = app('site');
-        Cache::forget('ajustes_site_' . $site->id);
+        // Invalidar caché de ajustes del menú
+        \Cache::forget('ajustes_menu');
 
         return redirect()->route('ajustes.index')->with('success', __('Ajustes actualizados correctamente'));
     }

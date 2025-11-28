@@ -39,47 +39,28 @@ class ProductosController extends Controller
      */
     public function index()
     {
-        $productos = Producto::with([
-        'familiaObj',     // familia del producto
-        'composicion',    // filas de composición (id_producto → id_componente)
-        'componentes',    // productos componentes
-        'fichas'          // fichas en las que aparece el producto
-    ])
-    ->orderBy('nombre')
-    ->get();
-
-foreach ($productos as $producto) {
-
-    // Reemplazar familia con su relación real
-    $producto->familia = $producto->familiaObj;
-
-    if ($producto->combinado == 1) {
-
-        // Calcular precio sumando los componentes YA cargados (sin consultas SQL)
-        $precio = $producto->componentes->sum('precio');
-
-        $producto->precio = number_format((float)$precio, 2, '.', '');
-
-        // Determinar si es borrable
-        if (Auth::check() && Auth::user()->role_id == 1) {
-            // Si alguna ficha del producto está en estado pendiente (0), NO se borra
-            $tienePendientes = $producto->fichas->contains(fn($f) => $f->estado == 0);
-            $producto->borrable = !$tienePendientes;
-        } else {
-            $producto->borrable = false;
+        $productos = productos_menu();
+        // Mantener lógica de borrable y precio
+        foreach ($productos as $producto) {
+            // Reemplazar familia con su relación real si existe la relación cargada
+            if (isset($producto->familiaObj)) {
+                $producto->familia = $producto->familiaObj;
+            }
+            if ($producto->combinado == 1) {
+                $precio = method_exists($producto, 'componentes') ? $producto->componentes->sum('precio') : 0;
+                $producto->precio = number_format((float)$precio, 2, '.', '');
+                if (Auth::check() && Auth::user()->role_id == 1 && isset($producto->fichas)) {
+                    $tienePendientes = $producto->fichas->contains(fn($f) => $f->estado == 0);
+                    $producto->borrable = !$tienePendientes;
+                } else {
+                    $producto->borrable = false;
+                }
+            } else {
+                $producto->precio = number_format((float)$producto->precio, 2, '.', '');
+                $producto->borrable = true;
+            }
         }
-
-    } else {
-
-        // Producto no combinado → usa su precio real
-        $producto->precio = number_format((float)$producto->precio, 2, '.', '');
-
-        // No está en ninguna ficha y no depende de componentes
-        $producto->borrable = true;
-    }
-}
-
-return view('productos.index', compact('productos'));
+        return view('productos.index', compact('productos'));
 
     }
 
@@ -115,6 +96,7 @@ return view('productos.index', compact('productos'));
             'precio' => $request->precio,
             'ean13' => $request->ean13
         ]);
+        \Cache::forget('productos_menu');
         return redirect()->route('productos.index')
             ->with('success', __('Producto creado con éxito.'));
     }
@@ -182,6 +164,7 @@ return view('productos.index', compact('productos'));
             'precio' => $request->precio,
             'ean13' => $request->ean13
         ]);
+        \Cache::forget('productos_menu');
         return redirect()->route('productos.index')
             ->with('success', __('Producto actualizado con éxito.'));
     }
@@ -197,6 +180,7 @@ return view('productos.index', compact('productos'));
         }
         ComposicionProducto::where('id_producto', $id)->delete();
         $producto->delete();
+        \Cache::forget('productos_menu');
         return redirect()->route('productos.index')
             ->with('success', __('Producto eliminado con éxito'));
     }

@@ -28,20 +28,14 @@
                         </ul>
                     </div>
                     @endif
+@php
+    $cacheKey = 'familias_grid_html';
+@endphp
 
-                    <div class="productos-grid">
-                        @foreach($familias as $familia)
-                        <div class="producto-card">
-                            <a href="{{ fichaRoute('productos', [$ficha->uuid, $familia->uuid]) }}">
-                                <img src="{{ cachedImage($familia->imagen) }}" 
-                                     class="img-fluid rounded" 
-                                     alt="{{ $familia->nombre }}"
-                                     loading="lazy"
-                                     decoding="async">
-                            </a>
-                        </div>
-                        @endforeach
-                    </div>
+{!! Cache::rememberForever($cacheKey, function() use ($familias, $ficha) {
+    return view('partials.familias-grid', compact('familias','ficha'))->render();
+}) !!}
+
                 </div>
 			
             </div>

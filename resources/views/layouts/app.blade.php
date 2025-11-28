@@ -12,9 +12,9 @@
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ siteFavicon() }}-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ siteFavicon() }}-16x16.png">
+    <link href="https://fonts.bunny.net/css?family=Nunito?v=281120252245" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ siteFavicon() }}-32x32.png?v=281120252245">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ siteFavicon() }}-16x16.png?v=281120252245">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="{{ route('manifest') }}">
@@ -25,8 +25,8 @@
     <meta name="apple-mobile-web-app-title" content="{{ siteName() }}">
 
     <!-- Scripts -->
-    <link rel="stylesheet" href="{{ siteStyles() }}">
-    <script src="{{ asset('js/app.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ siteStyles() }}?v=281120252245">
+    <script src="{{ asset('js/app.js') }}?v=281120252245" defer></script>
     
     @stack('styles')
     
@@ -552,7 +552,7 @@
             @endphp
             <a class="navbar-brand brand-enhanced" href="{{ $logoUrl }}">
                 <div class="brand-wrapper">
-                    <img src="{{ siteLogoNav() }}" class="img-fluid logo-figure" alt="{{ siteName() }}">
+                    <img src="{{ siteLogoNav() }}?v=281120252245" class="img-fluid logo-figure" alt="{{ siteName() }}">
                     <span class="brand-name">{{ siteName() }}</span>
                 </div>
             </a>
@@ -585,7 +585,7 @@
                     @if (app('site')->central == 0)
                     @php
                         try {
-                            $modoOperacionMenu = \App\Models\Ajustes::first()->modo_operacion ?? 'fichas';
+                            $modoOperacionMenu = ajustes_menu()->modo_operacion ?? 'fichas';
                         } catch (\Exception $e) {
                             $modoOperacionMenu = 'fichas';
                         }
@@ -615,7 +615,7 @@
                             <a class="dropdown-item {{ request()->routeIs('servicios.*') ? 'active' : '' }}" href="{{ url('/servicios') }}">{{ __('SERVICIOS') }}</a>
                             @php
                                 try {
-                                    $ajustesMenu = \App\Models\Ajustes::first();
+                                    $ajustesMenu = ajustes_menu();
                                     $modoOperacionMenu = $ajustesMenu->modo_operacion ?? 'fichas';
                                 } catch (\Exception $e) {
                                     $modoOperacionMenu = 'fichas';
@@ -642,7 +642,7 @@
                             
                             @php
                                 try {
-                                    $ajustes = \App\Models\Ajustes::first();
+                                    $ajustes = ajustes_menu();
                                     $modoOperacion = $ajustes->modo_operacion ?? 'fichas';
                                 } catch (\Exception $e) {
                                     $modoOperacion = 'fichas';
@@ -845,7 +845,7 @@
             }
         }
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js?v=281120252245"></script>
     
     @stack('scripts')
 </body>

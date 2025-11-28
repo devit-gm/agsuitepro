@@ -16,16 +16,15 @@ class ServiciosController extends Controller
      */
     public function index()
     {
-        $servicios = Servicio::with(['fichasRelacion.ficha'])->orderBy('posicion')->get();
+        $servicios = servicios_menu();
         $num = 1;
         foreach ($servicios as $servicio) {
-            $servicio->fichas = $servicio->fichasRelacion;
-            $servicio->numero = $num;
-            //si el usuario activo es administrador
-            if (Auth::check() && Auth::user()->role_id == 1) {
+            $servicio->numero = $num++;
+            // Si el usuario activo es administrador
+            if (Auth::check() && Auth::user()->role_id == 1 && isset($servicio->fichasRelacion)) {
                 $servicio->borrable = true;
-                foreach ($servicio->fichas as $fichaServicio) {
-                    if ($fichaServicio->ficha && $fichaServicio->ficha->estado == 0) {
+                foreach ($servicio->fichasRelacion as $fichaServicio) {
+                    if (isset($fichaServicio->ficha) && $fichaServicio->ficha && $fichaServicio->ficha->estado == 0) {
                         $servicio->borrable = false;
                         break;
                     }
@@ -33,7 +32,6 @@ class ServiciosController extends Controller
             } else {
                 $servicio->borrable = false;
             }
-            $num++;
         }
         return view('servicios.index', compact('servicios'));
     }
@@ -56,6 +54,7 @@ class ServiciosController extends Controller
             'posicion' => $request->posicion,
             'precio' => $request->precio
         ]);
+        \Cache::forget('servicios_menu');
         return redirect()->route('servicios.index')
             ->with('success', __('Servicio creado con éxito.'));
     }
@@ -86,6 +85,7 @@ class ServiciosController extends Controller
             'posicion' => $request->posicion,
             'precio' => $request->precio
         ]);
+        \Cache::forget('servicios_menu');
         return redirect()->back()
             ->with('success', __('Servicio actualizado con éxito.'));
     }
@@ -97,6 +97,7 @@ class ServiciosController extends Controller
     {
         $servicio = Servicio::find($id);
         $servicio->delete();
+        \Cache::forget('servicios_menu');
         return redirect()->route('servicios.index')
             ->with('success', __('Servicio eliminado con éxito'));
     }
