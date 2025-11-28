@@ -50,7 +50,10 @@ class Ficha extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-
+    public function primerProducto()
+    {
+        return $this->productos()->orderBy('created_at');
+    }
     public function usuario()
     {
         return $this->belongsTo(User::class, 'user_id');

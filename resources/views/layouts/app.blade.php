@@ -593,7 +593,7 @@
                     
                     @if($modoOperacionMenu === 'mesas')
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('mesas.*') || Request::is('/') || Request::is('mesas') ? 'active' : '' }}" href="{{ url('/mesas') }}">
+                            <a class="nav-link {{ request()->routeIs('mesas.*') || request()->routeIs('cocina.*') || Request::is('/') || Request::is('mesas') ? 'active' : '' }}" href="{{ url('/mesas') }}">
                                 {{ __('Mesas') }}
                             </a>
                         </li>

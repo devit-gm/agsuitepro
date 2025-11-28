@@ -74,8 +74,14 @@
                             
                             <!-- Estado -->
                             <div class="mesa-estado">
+                                
+                                @if($mesa->estado_mesa == 'ocupada')
+                                (<i class="bi {{ \App\Enums\EstadoMesa::from($mesa->estado_mesa)->icono() }}"></i>{{ $mesa->numero_comensales }})
+                                @else
                                 <i class="bi {{ \App\Enums\EstadoMesa::from($mesa->estado_mesa)->icono() }}"></i>
+                                @endif
                                 {{ \App\Enums\EstadoMesa::from($mesa->estado_mesa)->descripcion() }}
+                                
                             </div>
                             
                             <!-- Info si está ocupada -->

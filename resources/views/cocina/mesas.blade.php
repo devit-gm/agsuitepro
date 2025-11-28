@@ -23,8 +23,18 @@
                     @else
                     <div class="mesas-grid">
                         @foreach($fichas as $ficha)
-                        <div class="mesa-card mesa-cocina">
-                            <div class="mesa-numero mesa-toggle" style="cursor:pointer;" data-mesa="{{ $ficha->uuid }}">Mesa {{ $ficha->numero_mesa ?? $ficha->uuid }}</div>
+                            <div class="mesa-card mesa-cocina position-relative">
+                                @if($ficha->ultima_apertura)
+                                    <span class="badge text-dark position-absolute top-0 start-0 ms-3 mt-2" style="font-size:1.1rem;opacity:0.92;z-index:2;padding:.4em 1.2em;min-width:110px;" title="Fecha y hora de apertura">
+                                        <i class="bi bi-clock-history"></i> {{ $ficha->ultima_apertura->format('d/m H:i') }}
+                                    </span>
+                                @endif
+                                <span class="badge text-dark position-absolute top-0 end-0 m-2" style="font-size:1.1rem;opacity:0.92;z-index:2;padding:.5em 1em;" title="Comensales">
+                                    <i class="bi bi-people-fill"></i> {{ $ficha->numero_comensales ?? '-' }}
+                                </span>
+                                <div class="mesa-numero mesa-toggle text-center" style="cursor:pointer; width:100%; font-weight:600; font-size:2rem; margin-top:1.2rem;" data-mesa="{{ $ficha->uuid }}">
+                                    Mesa {{ $ficha->numero_mesa ?? $ficha->uuid }}
+                                </div>
                             <div class="mesa-info mesa-articulos show" id="mesa-articulos-{{ $ficha->uuid }}">
                                 <ul class="list-group mesa-acciones">
                                     @foreach($ficha->productos->where('estado', 'pendiente') as $producto)
