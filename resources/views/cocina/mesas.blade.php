@@ -5,12 +5,26 @@
     <div class="row justify-content-center h-100">
         <div class="col-md-12 col-sm-12 col-lg-12 d-flex h-100">
             <div class="card flex-fill d-flex flex-column">
-                <div class="card-header">
+                @php
+                    use Illuminate\Support\Facades\Auth;
+                    $roleId = Auth::check() ? Auth::user()->role_id : null;
+                    $rolCocinero = \App\Enums\Role::COCINERO;
+                    $esCocinero = Auth::check() && $roleId == $rolCocinero;
+                @endphp
+                <div class="card-header position-relative">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
                             <i class="bi bi-egg-fried"></i> {{ __('Cocina - Pedidos por Mesa') }}
                         </h5>
                     </div>
+                    @if($esCocinero)
+                    <form id="logout-form-camarero" action="{{ route('logout') }}" method="POST" class="position-absolute" style="top:12px;right:18px;z-index:10;">
+                        @csrf
+                        <button type="submit" class="btn d-flex align-items-center justify-content-center" title="Cerrar sesión y cambiar de usuario" style="font-size:1.6rem;width:2.5rem;height:2.5rem;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </button>
+                    </form>
+                    @endif
                 </div>
                 <div class="card-body overflow-auto flex-fill p-3">
                     @if($fichas->isEmpty())
@@ -160,7 +174,7 @@
 <script>
 let autoRefreshEnabled = true;
 let autoRefreshInterval;
-let countdown = 100; // 100 segundos
+let countdown = 10; // 10 segundos
 
 // Auto-refresh
 function iniciarAutoRefresh() {
