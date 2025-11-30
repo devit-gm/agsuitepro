@@ -157,6 +157,12 @@
             min-height: calc(100vh - 240px);
             padding-bottom: 20px;
         }
+        .main-content-cocinero {
+            min-height: calc(100vh - 20px) !important;
+            height: calc(100vh - 20px) !important;
+            padding-bottom: 00px !important;
+            overflow: hidden !important;
+        }
         
         body {
             padding-bottom: 40px;
@@ -535,11 +541,16 @@
 
 <body>
 
+    @php
+        use App\Enums\Role;
+        $esCocineroEnCocina = auth()->check() && auth()->user()->role_id == Role::COCINERO && request()->is('cocina/mesas');
+    @endphp
     @guest
     <main class="py-3">
         @yield('content')
     </main>
     @else
+    @if(!$esCocineroEnCocina)
     <nav class="navbar navbar-expand-md navbar-dark shadow-sm fondo-rojo">
         <div class="container-fluid px-2">
             @php
@@ -563,7 +574,7 @@
                 } catch (\Exception $e) {
                     $modoOperacionNav = 'fichas';
                 }
-                $esUsuarioMesas = (Auth::user()->role_id == 4 && $modoOperacionNav === 'mesas');
+                $esUsuarioMesas = (Auth::user()->role_id == \App\Enums\Role::USUARIO_MESAS && $modoOperacionNav === 'mesas');
             @endphp
             
             @if($esUsuarioMesas)
@@ -603,7 +614,7 @@
                         </li>
                     @endif
                     
-                    @if (Auth::user()->role_id < 4)
+                    @if (Auth::user()->role_id < \App\Enums\Role::USUARIO_MESAS)
                     <li class="nav-item dropdown">
                         <a id="navbarDropdown" class="nav-link dropdown-toggle {{ (request()->routeIs('usuarios.*') || request()->routeIs('familias.*') || request()->routeIs('productos.*') || request()->routeIs('servicios.*') || request()->routeIs('facturas.*')) ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                             {{ __('GESTIÓN') }}
@@ -714,7 +725,8 @@
         </div>
     </nav>
 
-    <main class="py-3 main-content">
+    @endif
+    <main class="py-3 main-content @if($esCocineroEnCocina) main-content-cocinero @endif">
         @yield('content')
         <form id="frmBorrar" action="" method="post">
             @csrf
@@ -725,10 +737,11 @@
             @method('PUT')
         </form>
     </main>
-
+    @if(!$esCocineroEnCocina)
     <footer class="card">
         @yield('footer')
     </footer>
+    @endif
     @endguest
         <!-- Service Worker Registration (solo en HTTPS) --> 
 @if(request()->secure() || str_contains(request()->getHost(), '127.0.0.1'))        @php

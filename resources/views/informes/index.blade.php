@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="d-flex align-items-center justify-content-center">
             <button type="button" onclick="document.getElementById('realizar-busqueda').submit();" class="btn btn-secondary mx-1"><i class="bi bi-search"></i></button>
             @if ($mostrarBotonFacturar == true)
-            @if (Auth::user()->role_id < 4) </form>
+            @if (Auth::user()->role_id < \App\Enums\Role::USUARIO_MESAS) </form>
                 <a class="btn btn-success fondo-rojo borde-rojo fs-3" href="#" onclick="if(confirm('{{ __('Se marcará como facturado todo lo pendiente. ¿Desea continuar?') }}')){ document.getElementById('form-facturar').submit(); }"><i class="bi bi-cash-coin"></i></a>
                 @endif
                 @endif

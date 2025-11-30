@@ -6,7 +6,7 @@
         <div class="col-md-12 col-sm-12 col-lg-12 d-flex h-100">
             <div class="card flex-fill d-flex flex-column">
                 <div class="card-header fondo-rojo"><i class="bi bi-people"></i>
-                    @if (Auth::user()->role_id < 4) {{ __('Editar usuario') }} @else {{ __('Mi cuenta') }} @endif </div>
+                    @if (Auth::user()->role_id < \App\Enums\Role::USUARIO_MESAS) {{ __('Editar usuario') }} @else {{ __('Mi cuenta') }} @endif </div>
 
                         <div class="card-body overflow-auto flex-fill">
                             <div class="container-fluid">
@@ -70,11 +70,14 @@
                                                 <small class="form-text text-muted">{{ __('Seleccione su idioma preferido') }}</small>
                                             </div>
 
-                                            @if (Auth::user()->role_id < 3 && $usuario->role_id != 1) <div class="form-group mb-3 required">
+                                            @if (Auth::user()->role_id < \App\Enums\Role::CAMARERO && $usuario->role_id != \App\Enums\Role::ADMIN) <div class="form-group mb-3 required">
                                                     <label for="role_id" class="fw-bold form-label">{{ __('Rol') }}</label>
                                                     <select name="role_id" id="role_id" class="form-select form-select-lg" aria-label=".form-select-sm example" required>
-                                                        @foreach ($roles as $rol)
-                                                        <option value="{{ $rol->id }}" @if( $usuario->role_id == $rol->id ) selected @endif>{{ $rol->name }}</option>
+                                                        @php $modoOperacion = ajustes_menu()->modo_operacion ?? 'fichas'; $rolesSorted = $roles->sortBy('id'); @endphp
+                                                        @foreach ($rolesSorted as $rol)
+                                                            @if ($rol->id != \App\Enums\Role::COCINERO || $modoOperacion == 'mesas')
+                                                                <option value="{{ $rol->id }}" @if( $usuario->role_id == $rol->id ) selected @endif>{{ $rol->name }}</option>
+                                                            @endif
                                                         @endforeach
                                                     </select>
                                                 </div>

@@ -69,8 +69,11 @@
                                     <div class="form-group mb-3 required">
                                         <label for="role_id" class="fw-bold form-label">{{ __('Rol') }}</label>
                                         <select name="role_id" id="role_id" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
-                                            @foreach ($roles as $rol)
-                                            <option value="{{ $rol->id }}">{{ $rol->name }}</option>
+                                            @php $modoOperacion = ajustes_menu()->modo_operacion ?? 'fichas'; $rolesSorted = $roles->sortBy('id'); @endphp
+                                            @foreach ($rolesSorted as $rol)
+                                                @if ($rol->id != \App\Enums\Role::COCINERO || $modoOperacion == 'mesas')
+                                                    <option value="{{ $rol->id }}" @if(old('role_id') == $rol->id) selected @endif>{{ $rol->name }}</option>
+                                                @endif
                                             @endforeach
                                         </select>
                                     </div>

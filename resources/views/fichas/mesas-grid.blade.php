@@ -25,7 +25,7 @@
                                 <p class="text-secondary">{{ __('Crea tus primeras mesas para comenzar a gestionar tu restaurante') }}</p>
                             </div>
                             
-                            @if(Auth::user()->role_id < 4)
+                            @if(Auth::user()->role_id < \App\Enums\Role::USUARIO_MESAS)
                             <div>
                                 <button class="btn btn-secondary btn-lg" data-bs-toggle="modal" data-bs-target="#generarMesasModal">
                                     <i class="bi bi-grid-3x3-gap me-2"></i>{{ __('Generar Mesas Automáticamente') }}
@@ -64,7 +64,7 @@
                             @endif
                             
                             <!-- Botones de gestión (solo administradores) -->
-                            @if(Auth::user()->role_id < 4)
+                            @if(Auth::user()->role_id < \App\Enums\Role::USUARIO_MESAS)
                             <div class="mesa-gestion">
                                 <button class="btn btn-sm btn-secondary" 
                                         onclick="event.stopPropagation(); abrirModalEditar('{{ $mesa->uuid }}', '{{ addslashes($mesa->descripcion) }}', {{ $mesa->numero_mesa }}, '{{ $mesa->estado_mesa }}', {{ $mesa->numero_comensales ?? 1 }}, '{{ addslashes($mesa->observaciones ?? '') }}')"
@@ -165,7 +165,7 @@
 <!-- Modales -->
 @include('fichas.modales.abrir-mesa')
 @include('fichas.modales.cerrar-mesa')
-@if(Auth::user()->role_id < 4)
+@if(Auth::user()->role_id < \App\Enums\Role::USUARIO_MESAS)
     @include('fichas.modales.generar-mesas')
     @include('fichas.modales.crear-mesa')
     @include('fichas.modales.editar-mesa')
@@ -184,7 +184,7 @@
             <option value="ocupada">Ocupadas</option>
             <option value="mis-mesas">Mis mesas</option>
         </select>
-        @if(Auth::user()->role_id < 4 && !$mesas->isEmpty())
+        @if(Auth::user()->role_id < \App\Enums\Role::USUARIO_MESAS && !$mesas->isEmpty())
                         <div class="d-flex gap-2">
                             <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalCrearMesa">
                                 <i class="bi bi-plus"></i>
@@ -656,7 +656,7 @@ function confirmarEliminar(mesaUuid, numeroMesa) {
     }
 }
 
-@if(Auth::user()->role_id < 4)
+@if(Auth::user()->role_id < \App\Enums\Role::USUARIO_MESAS)
 // Inicializar Drag & Drop con SortableJS (solo para administradores)
 let sortableInstance = null;
 

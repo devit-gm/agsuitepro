@@ -67,10 +67,10 @@
                 <div class="card-footer">
                     <form action="{{ route('licencias.destroy', $licencia->id) }}" method="post">
                         <div class="d-flex align-items-center justify-content-center">
-                            @if(Auth::user()->role_id == 1 ) <a class="btn btn-dark mx-1" href={{ route('licencias.index') }}><i class="bi bi-chevron-left"></i></a>
+                            @if(Auth::user()->role_id == \App\Enums\Role::ADMIN ) <a class="btn btn-dark mx-1" href={{ route('licencias.index') }}><i class="bi bi-chevron-left"></i></a>
                             @endif
                             <button onclick="document.getElementById('editar-licencia').submit();" type="button" class="btn btn-success mx-1"><i class="bi bi-floppy"></i></button>
-                            @if ($licencia->borrable == 1 && Auth::user()->role_id == 1) @csrf @method('DELETE') <button type="submit" class="btn btn-danger mx-1 my-1" title="Eliminar licencia" onclick="return confirm('{{ __('¿Está seguro de eliminar la licencia?') }}');"><i class="bi bi-trash"></i></button>
+                            @if ($licencia->borrable == 1 && Auth::user()->role_id == \App\Enums\Role::ADMIN) @csrf @method('DELETE') <button type="submit" class="btn btn-danger mx-1 my-1" title="Eliminar licencia" onclick="return confirm('{{ __('¿Está seguro de eliminar la licencia?') }}');"><i class="bi bi-trash"></i></button>
                             @endif
                         </div>
                     </form>

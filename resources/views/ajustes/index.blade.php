@@ -151,7 +151,7 @@
                                                         <option value="0" @if( isset($ajustes->notificar_stock_bajo) && $ajustes->notificar_stock_bajo == 0 ) selected @endif>{{ __('No') }}</option>
                                                         <option value="1" @if( !isset($ajustes->notificar_stock_bajo) || $ajustes->notificar_stock_bajo == 1 ) selected @endif>{{ __('Sí') }}</option>
                                                     </select>
-                                                    <small class="form-text text-muted">{{ __('Los usuarios con role_id < 4 recibirán emails y notificaciones push') }}</small>
+                                                    <small class="form-text text-muted">{{ __('Los usuarios con rol menor a USUARIO_MESAS recibirán emails y notificaciones push') }}</small>
                                                 </div>
 
 @if(request()->secure() || str_contains(request()->getHost(), '127.0.0.1'))                                                <div class="form-group mb-3 required">

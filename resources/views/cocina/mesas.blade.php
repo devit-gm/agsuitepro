@@ -70,25 +70,24 @@
 @endsection
 
 @section('footer')
+@php $esCocineroEnCocina = auth()->check() && auth()->user()->role_id == \App\Enums\Role::COCINERO && request()->is('cocina/mesas'); @endphp
+@if(!$esCocineroEnCocina)
 <div class="card-footer">
     <div class="d-flex align-items-center justify-content-center">
-                
-        @if(Auth::user()->role_id < 4)
-                        <div class="d-flex gap-2">
-                            <a href="{{route('mesas.index')}}" class="btn btn-secondary btn-sm">
-                                <i class="bi-grid-3x3-gap-fill"></i>
-                            </a>
-
-                           
-                        </div>
-                        @endif
-        
+        @if(Auth::user()->role_id < \App\Enums\Role::COCINERO)
+            <div class="d-flex gap-2">
+                <a href="{{route('mesas.index')}}" class="btn btn-secondary btn-sm">
+                    <i class="bi-grid-3x3-gap-fill"></i>
+                </a>
+            </div>
+        @endif
         <!-- Auto-refresh invisible -->
         <button class="btn btn-sm" id="toggle-refresh" style="display: none !important;">
             <span id="countdown">5</span>
         </button>
     </div>
 </div>
+@endif
 @endsection
 
 @push('styles')
@@ -161,7 +160,7 @@
 <script>
 let autoRefreshEnabled = true;
 let autoRefreshInterval;
-let countdown = 10;
+let countdown = 100; // 100 segundos
 
 // Auto-refresh
 function iniciarAutoRefresh() {

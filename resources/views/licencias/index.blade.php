@@ -96,7 +96,7 @@
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
                             <button type="button" onclick="document.getElementById('realizar-busqueda').submit();" class="btn btn-secondary mx-1"><i class="bi bi-search"></i></button>
-                            @if (Auth::user()->role_id < 4) <a href="{{ route('licencias.create') }}" class="btn btn-primary fondo-rojo borde-rojo mx-1"><i class="bi bi-plus-circle"></i></a>
+                            @if (Auth::user()->role_id < \App\Enums\Role::USUARIO_MESAS) <a href="{{ route('licencias.create') }}" class="btn btn-primary fondo-rojo borde-rojo mx-1"><i class="bi bi-plus-circle"></i></a>
                                 @endif
                         </div>
                     </form>

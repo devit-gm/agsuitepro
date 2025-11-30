@@ -987,15 +987,18 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
     public function indexMesas()
     {
         $user = Auth::user();
+        if ($user && $user->role_id == \App\Enums\Role::COCINERO) {
+            return redirect()->route('cocina.mesas');
+        }
         $ajustes = DB::connection('site')->table('ajustes')->first();
-        
+
         // TODOS los camareros ven TODAS las mesas
         $mesas = Ficha::mesas()
             ->with(['camarero', 'productos.producto', 'servicios.servicio'])
             ->orderBy('orden', 'asc')
             ->orderByRaw('CAST(numero_mesa AS UNSIGNED) ASC')
             ->get();
-        
+
         // Calcular importe y si tiene productos preparados para cada mesa
         $mesas->each(function($mesa) {
             $totalProductos = $mesa->productos->sum(function($fp) {
@@ -1010,7 +1013,7 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
                 return $fp->estado === 'preparado';
             });
         });
-        
+
         // Estadísticas personales del camarero
         $misMesas = $mesas->where('camarero_id', $user->id)->where('estado_mesa', 'ocupada');
         $estadisticas = [
@@ -1019,7 +1022,7 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
             'mis_mesas' => $misMesas->count(),
             'mi_facturacion' => $misMesas->sum('importe')
         ];
-        
+
         return view('fichas.mesas-grid', compact('mesas', 'estadisticas', 'ajustes'));
     }
     

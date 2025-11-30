@@ -82,7 +82,7 @@
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
 
-                            @if (Auth::user()->role_id < 4) <a href="{{ route('productos.inventory') }}" class="btn btn-secondary mx-1"><i class="bi bi-card-checklist"></i></a>
+                            @if (Auth::user()->role_id < \App\Enums\Role::USUARIO_MESAS) <a href="{{ route('productos.inventory') }}" class="btn btn-secondary mx-1"><i class="bi bi-card-checklist"></i></a>
                                 <a href="{{ route('productos.create') }}" class="btn btn-primary fondo-rojo borde-rojo mx-1"><i class="bi bi-plus-circle"></i></a>
                                 @endif
                         </div>

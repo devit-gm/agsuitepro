@@ -48,7 +48,7 @@
                                             <td class="align-middle">
                                                 {{ $usuario->name }}
                                                 <br />
-                                                <span class="badge bg-{{ $usuario->role_id == 1 ? 'primary' : 'secondary' }}">
+                                                <span class="badge bg-{{ $usuario->role_id == \App\Enums\Role::ADMIN ? 'primary' : 'secondary' }}">
                                                     @foreach($roles as $rol)
                                                     @if ($usuario->role_id == $rol->id)
                                                     {{ $rol->name }}
@@ -77,7 +77,7 @@
                 <div class="card-footer">
                     <form>
                         <div class="d-flex align-items-center justify-content-center">
-                            @if (Auth::user()->role_id < 4) <a href="{{ route('usuarios.create') }}" class="btn btn-primary fondo-rojo borde-rojo mx-1"><i class="bi bi-plus-circle"></i></a>
+                            @if (Auth::user()->role_id < \App\Enums\Role::USUARIO_MESAS) <a href="{{ route('usuarios.create') }}" class="btn btn-primary fondo-rojo borde-rojo mx-1"><i class="bi bi-plus-circle"></i></a>
                                 @endif
                         </div>
                     </form>

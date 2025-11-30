@@ -20,12 +20,17 @@ class LoginController extends Controller
 
     use AuthenticatesUsers;
 
+
     /**
-     * Where to redirect users after login.
-     *
-     * @var string
+     * Redirección personalizada según el rol tras login.
      */
-    protected $redirectTo = '/home';
+    protected function redirectTo()
+    {
+        if (auth()->user()->role_id == \App\Enums\Role::COCINERO) {
+            return '/cocina/mesas';
+        }
+        return '/home';
+    }
 
     /**
      * Create a new controller instance.
