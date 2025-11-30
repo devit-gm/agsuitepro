@@ -16,6 +16,7 @@ class Familia extends Model
         'uuid',
         'nombre',
         'imagen',
-        'posicion'
+        'posicion',
+        'mostrar_en_cocina'
     ];
 }

@@ -3,7 +3,7 @@
 @section('content')
 <div class="container-fluid h-100">
     <div class="row justify-content-center h-100">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+        <div class="col-md-12 col-sm-12 col-lg-12 d-flex h-100">
             <div class="card flex-fill d-flex flex-column">
                 <div class="card-header fondo-rojo"><i class="bi bi-tag"></i> {{ __('Nueva familia') }}</div>
 
@@ -47,6 +47,19 @@
                                         <label for="title" class="fw-bold form-label">{{ __('Posición') }}</label>
                                         <input type="number" class="form-control" id="posicion" name="posicion" required>
                                     </div>
+                                    @php
+                                        $ajustes = app('App\\Models\\Ajustes')::first();
+                                    @endphp
+                                    @if($ajustes && $ajustes->modo_operacion === 'mesas')
+                                    <div class="form-group mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="mostrar_en_cocina" name="mostrar_en_cocina" value="1">
+                                            <label class="form-check-label" for="mostrar_en_cocina">
+                                                {{ __('Mostrar en cocina/mesas') }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    @endif
                                 </form>
                             </div>
                         </div>

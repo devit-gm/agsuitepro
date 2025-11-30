@@ -3,14 +3,21 @@
 @section('content')
 <div class="container-fluid h-100">
     <div class="row justify-content-center h-100">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+        <div class="col-md-12 col-sm-12 col-lg-12 d-flex h-100">
             <div class="card flex-fill d-flex flex-column">
-                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> {{ $ajustes->modo_operacion === 'mesas' ? __("MESA") . ' ' . $ficha->numero_mesa : __("Ficha") }} - {{ __("Families") }}</div>
+                <div class="card-header fondo-rojo d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-receipt"></i> {{ $ajustes->modo_operacion === 'mesas' ? __("MESA") . ' ' . $ficha->numero_mesa : __("Ficha") }} - {{ __("Families") }}</span>
+                    @if($ajustes->modo_operacion === 'mesas')
+                        <span class="badge bg-light text-dark fs-5">{{ number_format($ficha->precio,2) }} <i class="bi bi-currency-euro"></i></span>
+                    @endif
+                </div>
 
                 <div class="card-body overflow-auto flex-fill">
+                    @if($ajustes->modo_operacion !== 'mesas')
                     <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12 mb-3">
                         <a class="btn btn-lg btn-light border border-dark" href="">{{number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i></a>
                     </div>
+                    @endif
                     @if ($errors->any())
                     <div class="custom-error-container" id="custom-error-container">
                         <ul class="custom-error-list">
@@ -28,14 +35,20 @@
                         </ul>
                     </div>
                     @endif
-@php
-    $cacheKey = 'familias_grid_html';
-@endphp
+<div class="productos-grid">
 
-{!! Cache::rememberForever($cacheKey, function() use ($familias, $ficha) {
-    return view('partials.familias-grid', compact('familias','ficha'))->render();
-}) !!}
-
+    @foreach($familias as $familia)
+        <div class="producto-card">
+            <a href="{{ fichaRoute('productos', [$ficha->uuid, $familia->uuid]) }}">
+                <img src="{{ cachedImage($familia->imagen) }}" 
+                     class="img-fluid rounded" 
+                     alt="{{ $familia->nombre }}"
+                     loading="lazy"
+                     decoding="async">
+            </a>
+        </div>
+    @endforeach
+</div>
                 </div>
 			
             </div>
@@ -98,7 +111,7 @@
 
 @media (min-width: 1200px) {
     .productos-grid {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(8, 1fr);
         gap: 1.25rem;
     }
 }

@@ -3,7 +3,7 @@
 @section('content')
 <div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
+        <div class="col-md-12 col-sm-12 col-lg-12 d-flex">
             <div class="card flex-fill">
                 <div class="card-header fondo-rojo"><i class="bi bi-calendar3"></i> {{ __('Nueva reserva') }}</div>
 

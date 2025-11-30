@@ -12,9 +12,13 @@ class CocinaMesasController extends Controller
     public function index()
     {
         // Obtener fichas abiertas (estado 0) con productos no preparados
-        $fichas = Ficha::with(['productos.producto', 'primerProducto', 'historial' => function($q) {
-            $q->where('accion', 'abrir')->orderByDesc('fecha_accion');
-        }])
+        $fichas = Ficha::with([
+            'productos.producto.familiaObj',
+            'primerProducto',
+            'historial' => function($q) {
+                $q->where('accion', 'abrir')->orderByDesc('fecha_accion');
+            }
+        ])
         ->where('estado', 0)
         ->where('modo', 'mesa')
         ->where('estado_mesa','ocupada')
@@ -26,9 +30,20 @@ class CocinaMesasController extends Controller
         )
         ->get();
 
-        // Filtrar fichas con productos pendientes
+        // Filtrar productos de familias que deben mostrarse en cocina
+        $fichas = $fichas->map(function($ficha) {
+            $ficha->productos = $ficha->productos->filter(function($producto) {
+                return $producto->estado === 'pendiente' &&
+                    $producto->producto &&
+                    $producto->producto->familiaObj &&
+                    optional($producto->producto->familiaObj)->mostrar_en_cocina == 1;
+            });
+            return $ficha;
+        });
+
+        // Filtrar fichas que tengan productos pendientes de familias visibles en cocina
         $fichas = $fichas->filter(function($ficha) {
-            return $ficha->productos->where('estado', '=', 'pendiente')->count() > 0;
+            return $ficha->productos->count() > 0;
         });
 
         // Añadir la última apertura de la mesa a cada ficha

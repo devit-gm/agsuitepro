@@ -3,7 +3,7 @@
 @section('content')
 <div class="container-fluid h-100">
     <div class="row justify-content-center h-100">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+        <div class="col-md-12 col-sm-12 col-lg-12 d-flex h-100">
             <div class="card flex-fill d-flex flex-column">
                 <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> {{ $ajustes->modo_operacion === 'mesas' ? __("MESA") . ' ' . $ficha->numero_mesa . ' - ' . __("Gastos") : __('FICHA - Gastos') }}</div>
 
@@ -26,7 +26,7 @@
                         <button class="btn btn-lg btn-light border border-dark">{{number_format($totalGastos,2)}} <i class="bi bi-currency-euro"></i></button>
                     </div>
                     @endif
-                    <div class="container-fluid mt-3">
+                    <div class="container-fluid p-0 mt-3">
                         <div class="row justify-content-center align-items-center">
                             <div class="col-12 col-md-12 col-lg-12">
                                 <div class="container mt-3">

@@ -197,6 +197,32 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
         return view('fichas.edit', compact('ficha', 'fechaCambiada'));
     }
 
+        /**
+     * Enviar productos de la ficha a cocina (modo mesas)
+     */
+    public function enviarCocina($uuid)
+    {
+        $ficha = Ficha::find($uuid);
+        if (!$ficha) {
+            return redirect()->back()->with('error', __('Ficha no encontrada.'));
+        }
+        // Cambiar estado de productos solo si estado es NULL
+        $productos = FichaProducto::where('id_ficha', $uuid)->whereNull('estado')->get();
+        foreach ($productos as $producto) {
+            // Cargar el producto y su familia
+            $productoModel = $producto->producto()->with('familiaObj')->first();
+            $familia = $productoModel && $productoModel->familiaObj ? $productoModel->familiaObj : null;
+            if ($familia && $familia->mostrar_en_cocina) {
+                $producto->estado = 'pendiente';
+            } else {
+                $producto->estado = 'preparado';
+            }
+            $producto->save();
+        }
+        return redirect()->route('fichas.lista', $uuid)
+            ->with('success', __('Artículos enviados a cocina.'));
+    }
+
     /**
      * Update the specified resource in storage.
      */
@@ -349,7 +375,7 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
     public function familias(string $uuid)
     {
         $ficha = Ficha::find($uuid);
-        $ficha->precio = $this->ObtenerImporteFicha($ficha);
+        $ficha->precio = $this->ObtenerImporteFicha($ficha); 
         $familias = Familia::orderBy('posicion')->get();
         $ajustes = DB::connection('site')->table('ajustes')->first();
         //Si no es un evento y el usuario activo no está en la ficha lo añadimos
@@ -878,18 +904,23 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
         return redirect()->route('fichas.productos', [
             'uuid' => $ficha,
             'uuid2' => $familia
-        ])->with('success', $cantidad . 'x ' . $producto->nombre . ' ' . __('añadido a la ficha'));;
+        ])->with('success', $cantidad . 'x ' . $producto->nombre . ' ' . __('añadido a la ficha'));
     }
 
     public function lista($uuid)
     {
         $ficha = Ficha::find($uuid);
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
-        $productosFicha = FichaProducto::where('id_ficha', $uuid)
+        $ajustes = DB::connection('site')->table('ajustes')->first();
+        if($ajustes->modo_operacion == 'mesas'){
+            $productosFicha = FichaProducto::where('id_ficha', $uuid)
+           ->get();
+        }else{
+            $productosFicha = FichaProducto::where('id_ficha', $uuid)
             ->groupBy('id_producto')
             ->selectRaw('id_producto, sum(cantidad) as cantidad, sum(precio) as precio') // Calculate the total quantity and total price
             ->get();
-
+        }
         foreach ($productosFicha as $productoFicha) {
             $productoFicha->borrable = true;
             $productoFicha->producto = Producto::find($productoFicha->id_producto);
@@ -965,7 +996,7 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
             ->orderByRaw('CAST(numero_mesa AS UNSIGNED) ASC')
             ->get();
         
-        // Calcular importe para cada mesa
+        // Calcular importe y si tiene productos preparados para cada mesa
         $mesas->each(function($mesa) {
             $totalProductos = $mesa->productos->sum(function($fp) {
                 return $fp->producto ? $fp->producto->precio : 0;
@@ -974,6 +1005,10 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
                 return $fs->servicio ? $fs->servicio->precio : 0;
             });
             $mesa->importe = $totalProductos + $totalServicios;
+            // ¿Tiene algún producto preparado?
+            $mesa->tiene_preparado = $mesa->productos->contains(function($fp) {
+                return $fp->estado === 'preparado';
+            });
         });
         
         // Estadísticas personales del camarero
@@ -1017,7 +1052,8 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
                     'estado_mesa' => 'ocupada',
                     'camarero_id' => Auth::id(),
                     'numero_comensales' => $request->numero_comensales,
-                    'hora_apertura' => now()
+                    'hora_apertura' => now(),
+                    'observaciones' => $request->notas ?? ''
                 ]);
                 
                 // Registrar en historial
@@ -1592,9 +1628,12 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
             return redirect()->back()->with('error', __('No tienes permisos para editar mesas'));
         }
 
+    
         $request->validate([
             'descripcion' => 'required|string|max:100',
-            'numero_mesa' => 'required|integer|min:1|max:999'
+            'numero_mesa' => 'required|integer|min:1|max:999',
+            'numero_comensales' => 'nullable|integer|min:1|max:50',
+            'observaciones' => 'nullable|string|max:255'
         ]);
 
         try {
@@ -1607,7 +1646,9 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
 
             $mesa->update([
                 'descripcion' => $request->descripcion,
-                'numero_mesa' => $request->numero_mesa
+                'numero_mesa' => $request->numero_mesa,
+                'numero_comensales' => $request->numero_comensales,
+                'observaciones' => $request->observaciones
             ]);
 
             return redirect()->back()->with('success', __('Mesa actualizada correctamente'));

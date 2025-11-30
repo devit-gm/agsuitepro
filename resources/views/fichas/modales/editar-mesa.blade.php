@@ -30,7 +30,7 @@
                         >
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3 d-none">
                         <label for="numero_mesa_editar" class="form-label fw-bold">
                             {{ __('Número de mesa') }}
                             <span class="text-danger">*</span>
@@ -47,6 +47,35 @@
                         <small class="form-text text-muted">
                             {{ __('Cambiar el número afectará el orden de visualización') }}
                         </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label id="numero_comensales_editar_label" for="numero_comensales_editar" class="form-label fw-bold">
+                            {{ __('Número de comensales') }}
+                        </label>
+                        <input 
+                            type="number" 
+                            name="numero_comensales" 
+                            id="numero_comensales_editar" 
+                            class="form-control" 
+                            min="1"
+                            max="50"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label id="observaciones_editar_label" for="observaciones_editar" class="form-label fw-bold">
+                            {{ __('Observaciones') }}
+                        </label>
+                        <textarea 
+                            name="observaciones" 
+                            id="observaciones_editar" 
+                            class="form-control" 
+                            rows="2"
+                            maxlength="255"
+                            placeholder="{{ __('Notas, alergias, peticiones especiales...') }}"
+                        ></textarea>
                     </div>
 
                     <div class="alert alert-warning mb-0">
@@ -72,15 +101,17 @@
 </div>
 
 <script>
-function abrirModalEditar(mesaUuid, descripcion, numeroMesa, estadoMesa) {
+function abrirModalEditar(mesaUuid, descripcion, numeroMesa, estadoMesa, numeroComensales = '', observaciones = '') {
     document.getElementById('mesa_uuid_editar').value = mesaUuid;
     document.getElementById('descripcion_mesa_editar').value = descripcion;
     document.getElementById('numero_mesa_editar').value = numeroMesa;
-    
+    document.getElementById('numero_comensales_editar').value = numeroComensales;
+    document.getElementById('observaciones_editar').value = observaciones;
+
     // Actualizar action del formulario
     const form = document.getElementById('form-editar-mesa');
     form.action = `/mesas/${mesaUuid}/actualizar`;
-    
+
     // Mostrar/ocultar botón eliminar solo si está libre
     const btnEliminar = document.getElementById('btn-eliminar-mesa');
     if (estadoMesa === 'libre') {
@@ -88,13 +119,25 @@ function abrirModalEditar(mesaUuid, descripcion, numeroMesa, estadoMesa) {
     } else {
         btnEliminar.style.display = 'none';
     }
-    
+
+    if(estadoMesa !== 'ocupada') {
+        document.getElementById('numero_comensales_editar').setAttribute('disabled', 'disabled');
+         document.getElementById('observaciones_editar').setAttribute('disabled', 'disabled');
+         document.getElementById('numero_comensales_editar_label').setAttribute('disabled', 'disabled');
+         document.getElementById('observaciones_editar_label').setAttribute('disabled', 'disabled');
+    } else {
+        document.getElementById('numero_comensales_editar').removeAttribute('disabled');
+        document.getElementById('observaciones_editar').removeAttribute('disabled');
+        document.getElementById('numero_comensales_editar_label').removeAttribute('disabled');
+        document.getElementById('observaciones_editar_label').removeAttribute('disabled');
+    }
+
     // Mostrar modal manualmente
     const modal = document.getElementById('modalEditarMesa');
     modal.classList.add('show');
     modal.style.display = 'block';
     document.body.classList.add('modal-open');
-    
+
     // Crear backdrop
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop fade show';

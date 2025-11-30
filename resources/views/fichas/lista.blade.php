@@ -3,16 +3,23 @@
 @section('content')
 <div class="container-fluid h-100">
     <div class="row justify-content-center h-100">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex h-100">
+        <div class="col-md-12 col-sm-12 col-lg-12 d-flex h-100">
             <div class="card flex-fill d-flex flex-column">
-                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> {{ $ajustes->modo_operacion === 'mesas' ? __("MESA") . ' ' . $ficha->numero_mesa . ' - ' . __("CONSUMO") : __("FICHA - CONSUMO") }}</div>
+
+                <div class="card-header fondo-rojo d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-receipt"></i> {{ $ajustes->modo_operacion === 'mesas' ? __("MESA") . ' ' . $ficha->numero_mesa . ' - ' . __("CONSUMO") : __("FICHA - CONSUMO") }}</span>
+                    @if($ajustes->modo_operacion === 'mesas')
+                        <span class="badge bg-light text-dark fs-5">{{ number_format($ficha->precio,2) }} <i class="bi bi-currency-euro"></i></span>
+                    @endif
+                </div>
 
                 <div class="card-body overflow-auto flex-fill">
-
+                    @if($ajustes->modo_operacion !== 'mesas')
                     <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
                         <button class="btn btn-lg btn-light border border-dark">{{number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i></button>
                     </div>
-                    <div class="container-fluid mt-3">
+                    @endif
+                    <div class="container-fluid p-0 @if($ajustes->modo_operacion !== 'mesas') mt-3 @endif">
                         <div class="row justify-content-center align-items-center">
                             <div class="col-12 col-md-12 col-lg-12">
                                 @if ($errors->any())
@@ -94,7 +101,7 @@
     <thead>
         <tr>
             <th>{{ __('Producto') }}</th>
-            <th class="text-center">{{ __('Total') }}</th>
+            <th class="text-center" width="100">{{ __('Total') }}</th>
             @if($ficha->estado == 0 || (isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas'))
             <th class="text-center"></th>
             @endif
@@ -103,11 +110,27 @@
 
     <tbody>
         @php
+            if(isset($ajustes->modo_operacion) && $ajustes->modo_operacion != 'mesas'){
             $clickable = ($ficha->estado == 0) ? 'clickable-row' : '';
+            } else {
+            $clickable = '';
+            }
         @endphp
 
         @foreach ($productosFicha as $componente)
-        <tr class="{{ $clickable }}"
+        @php
+            $estado = $componente->estado ?? '';
+            $badge = '';
+            $rowClass = $clickable;
+            if ($estado === 'pendiente') {
+                $badge = '<i class="bi bi-hourglass-split ms-2"></i>';
+                $rowClass .= ' border-warning';
+            } elseif ($estado === 'preparado') {
+                $badge = '<i class="bi bi-check-circle-fill ms-2"></i>';
+                $rowClass .= ' border-success';
+            }
+        @endphp
+        <tr class="{!! $rowClass !!}"
             style="min-height: 90px;"
             data-uuid="{{ $ficha->uuid }}"
             data-uuid2="{{ $componente->id_producto }}"
@@ -115,7 +138,7 @@
             data-textoborrar="{{ __('¿Está seguro de eliminar el artículo de la lista?') }}"
             data-hrefborrar="{{ fichaRoute('destroylista', ['uuid' => $ficha->uuid, 'uuid2' => $componente->id_producto]) }}">
             <td>
-                {{ $componente->cantidad }}x {{ $componente->producto->nombre }}
+                {!! $badge !!} {{ $componente->cantidad }}x {{ $componente->producto->nombre }} 
             </td>
 
             <td class="text-center">
@@ -124,7 +147,8 @@
             </td>
 
             @if($ficha->estado == 0 || (isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas'))
-            <td class="text-center d-flex justify-content-center align-items-center gap-1">
+            <td class="text-center d-flex justify-content-center align-items-center gap-1" style="vertical-align: middle;">
+                @if(isset($ajustes->modo_operacion) && $ajustes->modo_operacion != 'mesas')
                 <form class="form-cantidad-accion d-inline" method="POST" style="display:inline;">
                     @csrf
                     @method('PUT')
@@ -132,9 +156,11 @@
                         <i class="bi bi-dash"></i>
                     </button>
                 </form>
+                @endif
                 <button type="button" class="btn btn-sm btn-borrar-min btn-danger" onclick="triggerParentClick(event,this);" title="Eliminar">
                     <i class="bi bi-trash"></i>
                 </button>
+                @if(isset($ajustes->modo_operacion) && $ajustes->modo_operacion != 'mesas')
                 <form class="form-cantidad-accion d-inline" method="POST" style="display:inline;">
                     @csrf
                     @method('PUT')
@@ -142,6 +168,7 @@
                         <i class="bi bi-plus"></i>
                     </button>
                 </form>
+                @endif
             </td>
             @endif
         </tr>
@@ -177,10 +204,15 @@
                 <i class="bi bi-upc-scan"></i>
             </button>
             @endif
+            @if(!$productosFicha->isEmpty() && isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas')
+                <a href="{{ route('fichas.enviarCocina', ['uuid' => $ficha->uuid]) }}" class="btn btn-danger mx-1">
+                    <i class="bi bi-send"></i>
+                </a>
+            @endif
             @if(!isset($ajustes->modo_operacion) || $ajustes->modo_operacion == 'fichas' || (isset($ajustes->mostrar_usuarios) && $ajustes->mostrar_usuarios == 1))
-            <a class="btn btn-dark mx-1" href="{{ fichaRoute('usuarios', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-chevron-right"></i></a>
+                <a class="btn btn-dark mx-1" href="{{ fichaRoute('usuarios', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-chevron-right"></i></a>
             @else
-            <a class="btn btn-dark mx-1" href="{{ fichaRoute('servicios', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-chevron-right"></i></a>
+                <a class="btn btn-dark mx-1" href="{{ fichaRoute('servicios', ['uuid'=>$ficha->uuid]) }}"><i class="bi bi-chevron-right"></i></a>
             @endif
         </div>
     </form>

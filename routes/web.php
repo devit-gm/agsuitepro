@@ -142,6 +142,7 @@ Route::middleware(['detect.site', 'auth'])->group(function () {
     Route::post('/fichas/{mesaId}/tomar', [FichasController::class, 'tomarMesa'])->name('fichas.tomar');
     Route::post('/fichas/{mesaId}/cerrar', [FichasController::class, 'cerrarMesa'])->name('fichas.cerrar');
     Route::post('/fichas/{mesaId}/liberar', [FichasController::class, 'liberarMesa'])->name('fichas.liberar');
+    Route::get('/fichas/{uuid}/enviar-cocina', [FichasController::class, 'enviarCocina'])->name('fichas.enviarCocina');
 
     // Rutas para sistema de mesas
     Route::get('/mesas', [FichasController::class, 'indexMesas'])->name('mesas.index');

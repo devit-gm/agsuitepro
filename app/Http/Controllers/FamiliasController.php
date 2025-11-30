@@ -56,13 +56,19 @@ class FamiliasController extends Controller
         $destPath = public_path('images/' . $imageName);
         copy($sourcePath, $destPath);
 
-        // ...
+        // Determinar si mostrar_en_cocina debe establecerse
+        $mostrarEnCocina = 0;
+        $ajustes = app('App\\Models\\Ajustes')::first();
+        if ($ajustes && $ajustes->modo_operacion === 'mesas') {
+            $mostrarEnCocina = $request->has('mostrar_en_cocina') ? 1 : 0;
+        }
 
         Familia::create([
             'uuid' => (string) Uuid::uuid4(),
             'nombre' => $request->nombre,
             'imagen' => $imageName,
-            'posicion' => $request->posicion
+            'posicion' => $request->posicion,
+            'mostrar_en_cocina' => $mostrarEnCocina
         ]);
         \Cache::forget('familias_grid_html');
         return redirect()->route('familias.index')
@@ -109,10 +115,18 @@ class FamiliasController extends Controller
             $imageName = $familia->imagen;
         }
 
+        // Determinar si mostrar_en_cocina debe establecerse
+        $mostrarEnCocina = 0;
+        $ajustes = app('App\\Models\\Ajustes')::first();
+        if ($ajustes && $ajustes->modo_operacion === 'mesas') {
+            $mostrarEnCocina = $request->has('mostrar_en_cocina') ? 1 : 0;
+        }
+
         $familia->update([
             'nombre' => $request->nombre,
             'imagen' => $imageName,
-            'posicion' => $request->posicion
+            'posicion' => $request->posicion,
+            'mostrar_en_cocina' => $mostrarEnCocina
         ]);
         \Cache::forget('familias_grid_html');
         return redirect()->route('familias.index')

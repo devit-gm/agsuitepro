@@ -1,4 +1,5 @@
 <div class="productos-grid">
+
     @foreach($familias as $familia)
         <div class="producto-card">
             <a href="{{ fichaRoute('productos', [$ficha->uuid, $familia->uuid]) }}">

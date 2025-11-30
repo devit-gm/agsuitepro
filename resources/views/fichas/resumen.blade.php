@@ -3,12 +3,22 @@
 @section('content')
 <div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-12 col-sm-12 col-lg-8 d-flex">
+        <div class="col-md-12 col-sm-12 col-lg-12 d-flex">
             <div class="card flex-fill">
-                <div class="card-header fondo-rojo"><i class="bi bi-receipt"></i> {{ $ajustes->modo_operacion === 'mesas' ? __('Mesa - Resumen') : __('Ficha - Resumen') }}</div>
+                <div class="card-header fondo-rojo d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-receipt"></i> {{ $ajustes->modo_operacion === 'mesas' ? __('Mesa - Resumen') : __('Ficha - Resumen') }}</span>
+                    <!-- @if($ajustes->modo_operacion === 'mesas')
+                        <span class="badge bg-light text-dark fs-5">{{ number_format($ficha->precio,2) }} <i class="bi bi-currency-euro"></i></span>
+                    @endif -->
+                </div>
 
                 <div class="card-body">
-                    <div class="container-fluid" style="padding:0px;">
+                    <!-- @if($ajustes->modo_operacion !== 'mesas')
+                    <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
+                        <button class="btn btn-lg btn-light border border-dark">{{number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i></button>
+                    </div>
+                    @endif -->
+                    <div class="container-fluid @if($ajustes->modo_operacion !== 'mesas') mt-3 @endif" style="padding:0px;">
                         <div class="row justify-content-center align-items-center">
                             <div class="col-12 col-md-12 col-lg-12">
                                 <form id="ficha-resumen" action="{{ fichaRoute('enviar', $ficha->uuid) }}" method="post">

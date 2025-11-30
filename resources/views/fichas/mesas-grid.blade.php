@@ -2,8 +2,8 @@
 
 @section('content')
 <div class="container-fluid h-100">
-    <div class="row h-100">
-        <div class="col-12 d-flex flex-column h-100">
+    <div class="row justify-content-center h-100">
+        <div class="col-md-12 col-sm-12 col-lg-12 d-flex h-100">
             <div class="card flex-fill d-flex flex-column">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
@@ -48,6 +48,13 @@
                              data-estado="{{ $mesa->estado_mesa }}"
                              data-camarero="{{ $mesa->camarero_id }}"
                              data-es-mia="{{ $mesa->camarero_id == Auth::id() ? '1' : '0' }}">
+                            @if($mesa->tiene_preparado)
+                            <div style="position:absolute;bottom:-8px;left:-8px;z-index:2;">
+                                <span class="badge bg-warning text-dark" title="Hay productos preparados">
+                                    <i class="bi bi-bell-fill"></i>
+                                </span>
+                            </div>
+                            @endif
                             
                             <!-- Badge "MI MESA" -->
                             @if($mesa->camarero_id == Auth::id() && $mesa->estado_mesa == 'ocupada')
@@ -60,7 +67,7 @@
                             @if(Auth::user()->role_id < 4)
                             <div class="mesa-gestion">
                                 <button class="btn btn-sm btn-secondary" 
-                                        onclick="event.stopPropagation(); abrirModalEditar('{{ $mesa->uuid }}', '{{ addslashes($mesa->descripcion) }}', {{ $mesa->numero_mesa }}, '{{ $mesa->estado_mesa }}')"
+                                        onclick="event.stopPropagation(); abrirModalEditar('{{ $mesa->uuid }}', '{{ addslashes($mesa->descripcion) }}', {{ $mesa->numero_mesa }}, '{{ $mesa->estado_mesa }}', {{ $mesa->numero_comensales ?? 1 }}, '{{ addslashes($mesa->observaciones ?? '') }}')"
                                         title="{{ __('Editar mesa') }}">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -220,8 +227,8 @@
 /* Botones de gestión en esquina superior izquierda */
 .mesa-gestion {
     position: absolute;
-    top: 8px;
-    left: 8px;
+    top: -8px;
+    left: -8px;
     display: flex;
     gap: 4px;
     z-index: 5;
@@ -337,6 +344,7 @@
     .mesas-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 1rem;
+        padding:0px !important;
     }
     
     .mesa-card {

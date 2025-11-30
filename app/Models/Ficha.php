@@ -34,7 +34,8 @@ class Ficha extends Model
         'hora_cierre',
         'ultimo_camarero_id',
         'importe',
-        'nombre'
+        'nombre',
+        'observaciones'
     ];
 
     protected $casts = [

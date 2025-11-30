@@ -22636,7 +22636,7 @@ button.btn.btn-borrar-min.btn-danger i {
 /* Links principales */
 .navbar .nav-link {
   color: rgba(255, 255, 255, 0.85) !important;
-  padding: 0.65rem 0.9rem !important;
+  padding: 0.65rem 0.4rem !important;
   font-weight: 500 !important;
   border-radius: 8px;
   transition: 0.25s ease;

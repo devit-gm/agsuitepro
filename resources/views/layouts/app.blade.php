@@ -450,7 +450,7 @@
         .brand-wrapper {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 5px;
         }
 
         .brand-name {
@@ -541,7 +541,7 @@
     </main>
     @else
     <nav class="navbar navbar-expand-md navbar-dark shadow-sm fondo-rojo">
-        <div class="container col-md-10 col-sm-12 col-lg-8">
+        <div class="container-fluid px-2">
             @php
                 try {
                     $ajustesLogo = \App\Models\Ajustes::first();
@@ -593,7 +593,7 @@
                     
                     @if($modoOperacionMenu === 'mesas')
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('mesas.*') || request()->routeIs('cocina.*') || Request::is('/') || Request::is('mesas') ? 'active' : '' }}" href="{{ url('/mesas') }}">
+                            <a class="nav-link {{ request()->routeIs('fichas.*') || request()->routeIs('mesas.*') || request()->routeIs('cocina.*') || Request::is('/') || Request::is('mesas') ? 'active' : '' }}" href="{{ url('/mesas') }}">
                                 {{ __('Mesas') }}
                             </a>
                         </li>
@@ -616,7 +616,7 @@
                             @php
                                 try {
                                     $ajustesMenu = ajustes_menu();
-                                    $modoOperacionMenu = $ajustesMenu->modo_operacion ?? 'fichas';
+                    $modoOperacionMenu = $ajustesNav->modo_operacion ?? 'fichas';
                                 } catch (\Exception $e) {
                                     $modoOperacionMenu = 'fichas';
                                 }

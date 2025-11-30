@@ -101,25 +101,25 @@ class ProductosController extends Controller
             ->with('success', __('Producto creado con éxito.'));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        $producto = Producto::find($id);
-        if (Auth::check() && Auth::user()->role_id == 1) {
-            $producto->borrable = true;
-            foreach ($producto->fichas as $ficha) {
-                if ($ficha->estado == 0) {
-                    $producto->borrable = false;
-                    break;
-                }
-            }
-        } else {
-            $producto->borrable = false;
-        }
-        return view('productos.show', compact('producto'));
-    }
+    // /**
+    //  * Display the specified resource.
+    //  */
+    // public function show(string $id)
+    // {
+    //     $producto = Producto::with('fichas')->find($id);
+    //     if (Auth::check() && Auth::user()->role_id == 1) {
+    //         $producto->borrable = true;
+    //         foreach ($producto->fichas as $ficha) {
+    //             if ($ficha->estado == 0) {
+    //                 $producto->borrable = false;
+    //                 break;
+    //             }
+    //         }
+    //     } else {
+    //         $producto->borrable = false;
+    //     }
+    //     return view('productos.show', compact('producto'));
+    // }
 
     /**
      * Update the specified resource in storage.
@@ -202,7 +202,7 @@ class ProductosController extends Controller
      */
     public function edit($id)
     {
-        $producto = Producto::findOrFail($id);
+        $producto = Producto::with(['fichas', 'familiaObj'])->findOrFail($id);
         //Find components of product in composition table
         $composicion = ComposicionProducto::with('componenteProducto')
             ->where('id_producto', $id)
