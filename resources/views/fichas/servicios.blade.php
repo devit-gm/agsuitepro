@@ -14,11 +14,11 @@
 
                 <div class="card-body overflow-auto flex-fill">
                     @if($ajustes->modo_operacion !== 'mesas')
-                    <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-8 col-lg-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-end col-sm-12 col-md-12 col-lg-12">
                         <button class="btn btn-lg btn-light border border-dark">{{number_format($ficha->precio,2)}} <i class="bi bi-currency-euro"></i></button>
                     </div>
                     @endif
-                    <div class="container-fluid p-0 @if($ajustes->modo_operacion !== 'mesas') mt-3 @endif">
+                    <div class="container-fluid @if($ajustes->modo_operacion !== 'mesas') mt-3 @endif">
                         <div class="row justify-content-center align-items-center">
                             <div class="col-12 col-md-12 col-lg-12">
 
@@ -26,7 +26,7 @@
                                 <form id='editar-serviciosficha' action="{{ fichaRoute('updateservicios', $ficha->uuid) }}" method="post">
                                     @csrf
                                     @method('PUT')
-                                    <div class="container @if($ajustes->modo_operacion !== 'mesas') mt-3 @endif">
+                                    
                                         <div class="row">
                                             @if ($errors->any())
                                             <div class="custom-error-container" id="custom-error-container">
@@ -153,7 +153,7 @@
     </tbody>
 </table>
 
-                                        </div>
+                                        
                                     </div>
                                 </form>
                             </div>

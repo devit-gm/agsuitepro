@@ -207,10 +207,10 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
             return redirect()->back()->with('error', __('Ficha no encontrada.'));
         }
         // Cambiar estado de productos solo si estado es NULL
-        $productos = FichaProducto::where('id_ficha', $uuid)->whereNull('estado')->get();
+        $productos = FichaProducto::with('producto.familiaObj')->where('id_ficha', $uuid)->whereNull('estado')->get();
         foreach ($productos as $producto) {
             // Cargar el producto y su familia
-            $productoModel = $producto->producto()->with('familiaObj')->first();
+            $productoModel = $producto->producto;
             $familia = $productoModel && $productoModel->familiaObj ? $productoModel->familiaObj : null;
             if ($familia && $familia->mostrar_en_cocina) {
                 $producto->estado = 'pendiente';
@@ -502,20 +502,26 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
             $usuariosFicha = [];
             //Buscar los usuarios que están dentro de FichaUsuario
             $usuarios = User::where('site_id', $site->id)->orderBy('id')->get();
+            $fichasUsuariosIds = FichaUsuario::where('id_ficha', $ficha->uuid)
+                ->pluck('user_id')
+                ->flip();
             foreach ($usuarios as $usuario) {
                 //si el user_id está en FichaUsuario de la ficha lo ponemos como marcado
-                $fichaUsuario = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', $usuario->id)->first();
-                if ($fichaUsuario) {
+                if (isset($fichasUsuariosIds[$usuario->id])) {
                     $usuariosFicha[] = $usuario;
                 }
             }
         }
 
         $total_comensales = 0;
+        
+        $fichasUsuariosData = FichaUsuario::where('id_ficha', $ficha->uuid)
+            ->get()
+            ->keyBy('user_id');
 
         foreach ($usuariosFicha as $usuarioFicha) {
             //si el user_id está en FichaUsuario de la ficha lo ponemos como marcado
-            $fichaUsuario = FichaUsuario::where('id_ficha', $ficha->uuid)->where('user_id', $usuarioFicha->id)->first();
+            $fichaUsuario = $fichasUsuariosData->get($usuarioFicha->id);
             if ($fichaUsuario) {
                 $usuarioFicha->marcado = true;
                 $usuarioFicha->invitados = $fichaUsuario->invitados;
@@ -537,44 +543,31 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
 
     public function resumen($uuid)
     {
-        $ficha = Ficha::find($uuid);
+        $ficha = Ficha::with(['productos', 'servicios', 'usuarios', 'gastos'])->find($uuid);
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
-        $ficha->productos = FichaProducto::where('id_ficha', $uuid)->get();
-        $total_consumos = 0;
-        foreach ($ficha->productos as $producto) {
-            $total_consumos += $producto->precio;
-        }
+        
+        $total_consumos = $ficha->productos->sum('precio');
         $ficha->total_consumos = $total_consumos;
-        $ficha->servicios = FichaServicio::where('id_ficha', $uuid)->get();
-        $total_servicios = 0;
-        foreach ($ficha->servicios as $servicio) {
-            $total_servicios += $servicio->precio;
-        }
+        
+        $total_servicios = $ficha->servicios->sum('precio');
         $ficha->total_servicios = $total_servicios;
-        $ficha->usuarios = FichaUsuario::where('id_ficha', $uuid)->get();
 
         $total_comensales = 0;
         $total_ninos = 0;
         if ($ficha->tipo == 3) {
             $total_comensales = 1;
         } else {
-            foreach ($ficha->usuarios as $usuario) {
-                $total_comensales += $usuario->invitados;
-                $total_comensales += $usuario->ninos;
-                $total_comensales++;
-                $total_ninos += $usuario->ninos;
-            }
+            $total_invitados = $ficha->usuarios->sum('invitados');
+            $total_ninos = $ficha->usuarios->sum('ninos');
+            $total_comensales = $ficha->usuarios->count() + $total_invitados + $total_ninos;
         }
         // De momento los invitados de grupo no cuentan
         // if ($ficha->invitados_grupo > 0) {
         //     $total_comensales += $ficha->invitados_grupo;
         // }
         $ficha->total_comensales = $total_comensales - $total_ninos;
-        $ficha->gastos = FichaGasto::where('id_ficha', $uuid)->get();
-        $total_gastos = 0;
-        foreach ($ficha->gastos as $gasto) {
-            $total_gastos += $gasto->precio;
-        }
+        
+        $total_gastos = $ficha->gastos->sum('precio');
         $ficha->total_gastos = $total_gastos;
         if ($total_comensales == 0) {
             $ficha->precio_comensal = 0;

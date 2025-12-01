@@ -65,6 +65,11 @@ class Ficha extends Model
         return $this->hasMany(FichaUsuario::class, 'id_ficha', 'uuid');
     }
 
+    public function usuarios()
+    {
+        return $this->hasMany(FichaUsuario::class, 'id_ficha', 'uuid');
+    }
+
     protected static function boot()
     {
         parent::boot();

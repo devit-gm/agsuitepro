@@ -16,7 +16,7 @@ class ServiciosController extends Controller
      */
     public function index()
     {
-        $servicios = servicios_menu();
+        $servicios = servicios_menu()->load(['fichasRelacion.ficha']);
         $num = 1;
         foreach ($servicios as $servicio) {
             $servicio->numero = $num++;
