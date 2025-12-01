@@ -178,6 +178,8 @@ Route::middleware(['detect.site', 'auth'])->group(function () {
 
     // Vista de cocina para mesas
     Route::get('/cocina/mesas', [\App\Http\Controllers\CocinaMesasController::class, 'index'])->name('cocina.mesas')->middleware(['auth']);
+    // Actualizar datos de cocina (AJAX)
+    Route::get('/cocina/mesas/actualizar', [\App\Http\Controllers\CocinaMesasController::class, 'actualizar'])->name('cocina.mesas.actualizar')->middleware(['auth']);
     // Marcar producto como preparado (POST JSON)
     Route::post('/cocina/mesas/preparar', [\App\Http\Controllers\CocinaMesasController::class, 'preparar'])->name('cocina.mesas.preparar')->middleware(['auth']);
 

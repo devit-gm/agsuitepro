@@ -932,11 +932,20 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
 
     public function destroylista(string $uuid, string $uuid2)
     {
-        //buscar en fichaproducto la ficha con id_ficha = uuid y id_producto = uuid2
-        $fichaProductos = FichaProducto::where('id_ficha', $uuid)->where('id_producto', $uuid2)->get();
-        foreach ($fichaProductos as $fichaProducto) {
+        // Verificar si uuid2 es un UUID de ficha_producto (modo mesas) o un id_producto (modo fichas)
+        $fichaProducto = FichaProducto::where('uuid', $uuid2)->first();
+        
+        if ($fichaProducto && $fichaProducto->id_ficha === $uuid) {
+            // Es un UUID de ficha_producto (modo mesas) - borrar solo ese registro
             $fichaProducto->delete();
+        } else {
+            // Es un id_producto (modo fichas) - borrar todos los registros con ese producto
+            $fichaProductos = FichaProducto::where('id_ficha', $uuid)->where('id_producto', $uuid2)->get();
+            foreach ($fichaProductos as $fichaProducto) {
+                $fichaProducto->delete();
+            }
         }
+        
         return redirect()->route('fichas.lista', $uuid)
             ->with('success', __('Producto eliminado de la ficha'));
     }

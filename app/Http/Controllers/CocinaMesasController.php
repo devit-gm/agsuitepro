@@ -11,6 +11,13 @@ class CocinaMesasController extends Controller
     // Vista de cocina para mesas
     public function index()
     {
+        $fichas = $this->getFichasCocina();
+        return view('cocina.mesas', compact('fichas'));
+    }
+
+    // Método para obtener datos de cocina (reutilizable)
+    private function getFichasCocina()
+    {
         // Obtener fichas abiertas (estado 0) con productos no preparados
         $fichas = Ficha::with([
             'productos.producto.familiaObj',
@@ -52,8 +59,14 @@ class CocinaMesasController extends Controller
             return $ficha;
         });
 
+        return $fichas;
+    }
 
-        return view('cocina.mesas', compact('fichas'));
+    // Endpoint AJAX para actualizar datos
+    public function actualizar()
+    {
+        $fichas = $this->getFichasCocina();
+        return view('cocina.mesas-content', compact('fichas'));
     }
 
     // Marcar producto como preparado (POST JSON)

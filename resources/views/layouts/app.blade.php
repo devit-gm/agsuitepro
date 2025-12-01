@@ -542,8 +542,7 @@
 <body>
 
     @php
-        use App\Enums\Role;
-        $esCocineroEnCocina = auth()->check() && auth()->user()->role_id == Role::COCINERO && request()->is('cocina/mesas');
+        $esCocineroEnCocina = auth()->check() && auth()->user()->role_id == \App\Enums\Role::COCINERO && request()->is('cocina/mesas');
     @endphp
     @guest
     <main class="py-3">

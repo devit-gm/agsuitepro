@@ -129,14 +129,19 @@
                 $badge = '<i class="bi bi-check-circle-fill ms-2"></i>';
                 $rowClass .= ' border-success';
             }
+            
+            // En modo mesas, usar UUID único de ficha_producto, sino usar id_producto
+            $uuidBorrar = (isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas') 
+                ? $componente->uuid 
+                : $componente->id_producto;
         @endphp
         <tr class="{!! $rowClass !!}"
             style="min-height: 90px;"
             data-uuid="{{ $ficha->uuid }}"
-            data-uuid2="{{ $componente->id_producto }}"
+            data-uuid2="{{ $uuidBorrar }}"
             data-borrable="{{ $componente->borrable }}"
             data-textoborrar="{{ __('¿Está seguro de eliminar el artículo de la lista?') }}"
-            data-hrefborrar="{{ fichaRoute('destroylista', ['uuid' => $ficha->uuid, 'uuid2' => $componente->id_producto]) }}">
+            data-hrefborrar="{{ fichaRoute('destroylista', ['uuid' => $ficha->uuid, 'uuid2' => $uuidBorrar]) }}">
             <td>
                 {!! $badge !!} {{ $componente->cantidad }}x {{ $componente->producto->nombre }} 
             </td>
@@ -292,7 +297,7 @@
 function enviarCantidad(btn, cantidad) {
     var tr = btn.closest('tr');
     var uuid = tr.getAttribute('data-uuid');
-    var uuid2 = tr.getAttribute('data-uuid2');
+    var uuid2 = tr.getAttribute('data-uuid2'); // En modo mesas será el UUID de ficha_producto
     var form = btn.closest('form');
     var action = '';
     if(window.location.pathname.includes('/mesas/')) {
