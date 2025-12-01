@@ -190,7 +190,7 @@
                                 <i class="bi bi-plus"></i>
                             </button>
 <a href="{{route('cocina.mesas')}}" class="btn btn-secondary btn-sm">
-                                <i class="bi bi-egg-fried"></i>
+                                <i class="bi bi-fire"></i>
                             </a>
                         </div>
                         @endif

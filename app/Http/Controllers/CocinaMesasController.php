@@ -29,13 +29,16 @@ class CocinaMesasController extends Controller
         ->where('estado', 0)
         ->where('modo', 'mesa')
         ->where('estado_mesa','ocupada')
-        ->orderBy(
-            FichaProducto::select('created_at')
-                ->whereColumn('fichas.uuid', 'fichas_productos.id_ficha')
-                ->orderBy('created_at')
-                ->limit(1)
-        )
         ->get();
+        
+        // Ordenar por fecha del primer producto pendiente (más antiguo primero)
+        $fichas = $fichas->sortBy(function($ficha) {
+            $primerProductoPendiente = $ficha->productos
+                ->where('estado', 'pendiente')
+                ->sortBy('created_at')
+                ->first();
+            return $primerProductoPendiente ? $primerProductoPendiente->created_at : now();
+        });
 
         // Filtrar productos de familias que deben mostrarse en cocina
         $fichas = $fichas->map(function($ficha) {
@@ -59,7 +62,8 @@ class CocinaMesasController extends Controller
             return $ficha;
         });
 
-        return $fichas;
+        // Convertir a valores para mantener el orden
+        return $fichas->values();
     }
 
     // Endpoint AJAX para actualizar datos

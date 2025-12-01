@@ -25,7 +25,7 @@
                 <i class="bi bi-people-fill" style="color:white;"></i> {{ $ficha->numero_comensales ?? '-' }}
             </span> -->
             <div class="mesa-numero mesa-toggle text-center mesa-header-clickable" style="cursor:pointer; width:100%; font-weight:700; font-size:2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);" data-mesa="{{ $ficha->uuid }}">
-                Mesa {{ $ficha->numero_mesa ?? $ficha->uuid }}
+                {{ $ficha->descripcion }}
             </div>
             @if(!empty($ficha->observaciones))
             <div class="text-center text-muted" style="font-size:0.95rem; margin-top:0.1rem; margin-bottom:0.5rem;">

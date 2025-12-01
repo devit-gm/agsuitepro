@@ -7,7 +7,7 @@
             <div class="card flex-fill d-flex flex-column">
 
                 <div class="card-header fondo-rojo d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-receipt"></i> {{ $ajustes->modo_operacion === 'mesas' ? __("MESA") . ' ' . $ficha->numero_mesa . ' - ' . __("CONSUMO") : __("FICHA - CONSUMO") }}</span>
+                    <span><i class="bi bi-journal-text"></i> {{ $ajustes->modo_operacion === 'mesas' ? $ficha->descripcion : __("Ficha") . ' - '  . __("FICHA - CONSUMO") }}</span>
                     @if($ajustes->modo_operacion === 'mesas')
                         <span class="badge bg-light text-dark fs-5">{{ number_format($ficha->precio,2) }} <i class="bi bi-currency-euro"></i></span>
                     @endif
@@ -211,7 +211,7 @@
             @endif
             @if(!$productosFicha->isEmpty() && isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas')
                 <a href="{{ route('fichas.enviarCocina', ['uuid' => $ficha->uuid]) }}" class="btn btn-danger mx-1">
-                    <i class="bi bi-send"></i>
+                    <i class="bi bi-fire"></i>
                 </a>
             @endif
             @if(!isset($ajustes->modo_operacion) || $ajustes->modo_operacion == 'fichas' || (isset($ajustes->mostrar_usuarios) && $ajustes->mostrar_usuarios == 1))

@@ -296,6 +296,7 @@
 .mesa-acciones .articulo-nombre {
     font-size: 1.3rem;
     letter-spacing: 0.01em;
+    text-align: left;
 }
 
 </style>
