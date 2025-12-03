@@ -76,7 +76,7 @@ class FacturaMesaController extends Controller
         // Añadir productos
         foreach ($mesa->productos as $fp) {
             if ($fp->producto) {
-                $iva = $fp->producto->iva ?? 0;
+                $iva = $fp->producto->iva ?? 21;
                 $pvp = $fp->cantidad * $fp->precio; // El precio ya incluye IVA
                 $baseImponible = $pvp / (1 + $iva / 100);
                 $importeIva = $pvp - $baseImponible;
@@ -100,15 +100,15 @@ class FacturaMesaController extends Controller
         // Añadir servicios
         foreach ($mesa->servicios as $fs) {
             if ($fs->servicio) {
-                $iva = $fs->servicio->iva ?? 0;
-                $pvp = $fs->cantidad * $fs->precio; // El precio ya incluye IVA
+                $iva = $fs->servicio->iva ?? 21;
+                $pvp = $fs->precio; // El precio ya incluye IVA, no hay cantidad en servicios
                 $baseImponible = $pvp / (1 + $iva / 100);
                 $importeIva = $pvp - $baseImponible;
                 
                 $lineas[] = [
                     'tipo' => 'servicio',
                     'nombre' => $fs->servicio->nombre,
-                    'cantidad' => $fs->cantidad,
+                    'cantidad' => 1,
                     'precio' => $fs->precio,
                     'iva' => $iva,
                     'base_imponible' => $baseImponible,
@@ -172,7 +172,7 @@ class FacturaMesaController extends Controller
         
         foreach ($mesa->productos as $fp) {
             if ($fp->producto) {
-                $iva = $fp->producto->iva ?? 0;
+                $iva = $fp->producto->iva ?? 21;
                 $pvp = $fp->cantidad * $fp->precio; // El precio ya incluye IVA
                 $baseImponible = $pvp / (1 + $iva / 100);
                 $importeIva = $pvp - $baseImponible;
@@ -195,15 +195,15 @@ class FacturaMesaController extends Controller
         
         foreach ($mesa->servicios as $fs) {
             if ($fs->servicio) {
-                $iva = $fs->servicio->iva ?? 0;
-                $pvp = $fs->cantidad * $fs->precio; // El precio ya incluye IVA
+                $iva = $fs->servicio->iva ?? 21;
+                $pvp = $fs->precio; // El precio ya incluye IVA, no hay cantidad en servicios
                 $baseImponible = $pvp / (1 + $iva / 100);
                 $importeIva = $pvp - $baseImponible;
                 
                 $lineas[] = [
                     'tipo' => 'servicio',
                     'nombre' => $fs->servicio->nombre,
-                    'cantidad' => $fs->cantidad,
+                    'cantidad' => 1,
                     'precio' => $fs->precio,
                     'iva' => $iva,
                     'base_imponible' => round($baseImponible, 2),

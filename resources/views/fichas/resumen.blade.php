@@ -45,56 +45,9 @@
         </tr>
 
         @if(isset($ajustes->modo_operacion) && $ajustes->modo_operacion == 'mesas')
-        {{-- Calcular desglose de IVA para modo mesas --}}
-        @php
-            $ivaDesglose = [];
-            $totalBaseImponible = 0;
-            $totalIva = 0;
-            
-            // Calcular IVA de productos
-            foreach ($ficha->productos as $fp) {
-                if ($fp->producto) {
-                    $iva = $fp->producto->iva ?? 0;
-                    $pvp = $fp->precio;
-                    $baseImponible = $pvp / (1 + $iva / 100);
-                    $cuotaIva = $pvp - $baseImponible;
-                    
-                    $ivaKey = number_format($iva, 2);
-                    if (!isset($ivaDesglose[$ivaKey])) {
-                        $ivaDesglose[$ivaKey] = ['porcentaje' => $iva, 'base' => 0, 'cuota' => 0];
-                    }
-                    $ivaDesglose[$ivaKey]['base'] += $baseImponible;
-                    $ivaDesglose[$ivaKey]['cuota'] += $cuotaIva;
-                    
-                    $totalBaseImponible += $baseImponible;
-                    $totalIva += $cuotaIva;
-                }
-            }
-            
-            // Calcular IVA de servicios
-            foreach ($ficha->servicios as $fs) {
-                if ($fs->servicio) {
-                    $iva = $fs->servicio->iva ?? 0;
-                    $pvp = $fs->precio;
-                    $baseImponible = $pvp / (1 + $iva / 100);
-                    $cuotaIva = $pvp - $baseImponible;
-                    
-                    $ivaKey = number_format($iva, 2);
-                    if (!isset($ivaDesglose[$ivaKey])) {
-                        $ivaDesglose[$ivaKey] = ['porcentaje' => $iva, 'base' => 0, 'cuota' => 0];
-                    }
-                    $ivaDesglose[$ivaKey]['base'] += $baseImponible;
-                    $ivaDesglose[$ivaKey]['cuota'] += $cuotaIva;
-                    
-                    $totalBaseImponible += $baseImponible;
-                    $totalIva += $cuotaIva;
-                }
-            }
-            
-            ksort($ivaDesglose);
-        @endphp
-
-        @if(count($ivaDesglose) > 0)
+        {{-- Desglose de IVA para modo mesas (calculado en controlador) --}}
+        
+        @if(isset($ivaDesglose) && count($ivaDesglose) > 0)
         <tr class="bg-light">
             <td colspan="2" class="pt-3">
                 <strong class="text-secondary">{{ __('Desglose de IVA') }}</strong>

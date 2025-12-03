@@ -75,7 +75,8 @@ class ProductosController extends Controller
             'posicion' => 'required',
             'familia' => 'required',
             'combinado' => 'required',
-            'precio' => 'required'
+            'precio' => 'required',
+            'iva' => 'nullable|numeric|min:0|max:100'
         ]);
         
         // Procesar y redimensionar imagen
@@ -94,7 +95,8 @@ class ProductosController extends Controller
             'familia' => $request->familia,
             'combinado' => $request->combinado,
             'precio' => $request->precio,
-            'ean13' => $request->ean13
+            'ean13' => $request->ean13,
+            'iva' => $request->iva ?? 21
         ]);
         \Cache::forget('productos_menu');
         return redirect()->route('productos.index')
@@ -132,7 +134,8 @@ class ProductosController extends Controller
             'posicion' => 'required',
             'familia' => 'required',
             'combinado' => 'required',
-            'precio' => 'required'
+            'precio' => 'required',
+            'iva' => 'nullable|numeric|min:0|max:100'
         ]);
         $producto = Producto::find($id);
 
@@ -162,7 +165,8 @@ class ProductosController extends Controller
             'familia' => $request->familia,
             'combinado' => $request->combinado,
             'precio' => $request->precio,
-            'ean13' => $request->ean13
+            'ean13' => $request->ean13,
+            'iva' => $request->iva ?? 21
         ]);
         \Cache::forget('productos_menu');
         return redirect()->route('productos.index')

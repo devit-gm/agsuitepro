@@ -44,7 +44,8 @@ class ServiciosController extends Controller
         $request->validate([
             'nombre' => 'required|max:255',
             'posicion' => 'required',
-            'precio' => 'required'
+            'precio' => 'required',
+            'iva' => 'nullable|numeric|min:0|max:100'
         ]);
 
 
@@ -52,7 +53,8 @@ class ServiciosController extends Controller
             'uuid' => (string) Uuid::uuid4(),
             'nombre' => $request->nombre,
             'posicion' => $request->posicion,
-            'precio' => $request->precio
+            'precio' => $request->precio,
+            'iva' => $request->iva ?? 21
         ]);
         \Cache::forget('servicios_menu');
         return redirect()->route('servicios.index')
@@ -76,14 +78,16 @@ class ServiciosController extends Controller
         $request->validate([
             'nombre' => 'required|max:255',
             'posicion' => 'required',
-            'precio' => 'required'
+            'precio' => 'required',
+            'iva' => 'nullable|numeric|min:0|max:100'
         ]);
         $servicio = Servicio::find($id);
 
         $servicio->update([
             'nombre' => $request->nombre,
             'posicion' => $request->posicion,
-            'precio' => $request->precio
+            'precio' => $request->precio,
+            'iva' => $request->iva ?? 21
         ]);
         \Cache::forget('servicios_menu');
         return redirect()->back()

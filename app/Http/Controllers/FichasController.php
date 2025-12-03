@@ -543,7 +543,7 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
 
     public function resumen($uuid)
     {
-        $ficha = Ficha::with(['productos', 'servicios', 'usuarios', 'gastos'])->find($uuid);
+        $ficha = Ficha::with(['productos.producto', 'servicios.servicio', 'usuarios', 'gastos'])->find($uuid);
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
         
         $total_consumos = $ficha->productos->sum('precio');
@@ -575,9 +575,57 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
             $ficha->precio_comensal = $ficha->precio / ($total_comensales - $total_ninos);
         }
         
+        // Calcular desglose de IVA
+        $ivaDesglose = [];
+        $totalBaseImponible = 0;
+        $totalIva = 0;
+        
+        // IVA de productos
+        foreach ($ficha->productos as $fp) {
+            if ($fp->producto) {
+                $iva = $fp->producto->iva ?? 21;
+                $pvp = $fp->precio;
+                $baseImponible = $pvp / (1 + $iva / 100);
+                $cuotaIva = $pvp - $baseImponible;
+                
+                $ivaKey = number_format($iva, 2);
+                if (!isset($ivaDesglose[$ivaKey])) {
+                    $ivaDesglose[$ivaKey] = ['porcentaje' => $iva, 'base' => 0, 'cuota' => 0];
+                }
+                $ivaDesglose[$ivaKey]['base'] += $baseImponible;
+                $ivaDesglose[$ivaKey]['cuota'] += $cuotaIva;
+                
+                $totalBaseImponible += $baseImponible;
+                $totalIva += $cuotaIva;
+            }
+        }
+        
+        // IVA de servicios
+        foreach ($ficha->servicios as $fs) {
+            if ($fs->servicio) {
+                $iva = $fs->servicio->iva ?? 21;
+                $pvp = $fs->precio;
+                $baseImponible = $pvp / (1 + $iva / 100);
+                $cuotaIva = $pvp - $baseImponible;
+                
+                $ivaKey = number_format($iva, 2);
+                if (!isset($ivaDesglose[$ivaKey])) {
+                    $ivaDesglose[$ivaKey] = ['porcentaje' => $iva, 'base' => 0, 'cuota' => 0];
+                }
+                $ivaDesglose[$ivaKey]['base'] += $baseImponible;
+                $ivaDesglose[$ivaKey]['cuota'] += $cuotaIva;
+                
+                $totalBaseImponible += $baseImponible;
+                $totalIva += $cuotaIva;
+            }
+        }
+        
+        ksort($ivaDesglose);
+
+        
         $ajustes = Ajustes::first();
         
-        return view('fichas.resumen', compact('ficha', 'ajustes'));
+        return view('fichas.resumen', compact('ficha', 'ajustes', 'ivaDesglose', 'totalBaseImponible', 'totalIva'));
     }
 
     public function enviar($uuid)
