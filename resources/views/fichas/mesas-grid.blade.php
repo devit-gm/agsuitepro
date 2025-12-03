@@ -104,8 +104,17 @@
                             </div>
                             @endif
                             
-                            <!-- Acciones secundarias en esquina (solo para mesas cerradas) -->
-                            @if($mesa->estado_mesa == 'cerrada' && ($mesa->importe ?? 0) > 0)
+                            <!-- Acciones secundarias en esquina (para mesas ocupadas y cerradas) -->
+                            @if($mesa->estado_mesa == 'ocupada' && $mesa->camarero_id == Auth::id())
+                            <div class="mesa-acciones-secundarias">
+                                <!-- Botón de Cerrar Mesa -->
+                                <button class="btn btn-sm btn-dark" 
+                                        onclick="event.stopPropagation(); cerrarMesa('{{ $mesa->uuid }}', {{ $mesa->numero_mesa }})"
+                                        title="{{ __('Cerrar Mesa') }}">
+                                    <i class="bi bi-door-closed"></i>
+                                </button>
+                            </div>
+                            @elseif($mesa->estado_mesa == 'cerrada' && ($mesa->importe ?? 0) > 0)
                             <div class="mesa-acciones-secundarias">
                                 @php
                                     // Buscar factura generada después de la última apertura de esta mesa
@@ -149,7 +158,7 @@
                                     <i class="bi bi-box-arrow-in-right"></i> {{ __('Abrir') }}
                                 @elseif($mesa->estado_mesa == 'ocupada')
                                     @if($mesa->camarero_id == Auth::id())
-                                        <i class="bi bi-pencil-square"></i> {{ __('Gestionar') }}
+                                        <i class="bi bi-pencil-square"></i> {{ __('Atender') }}
                                     @else
                                         <i class="bi bi-box-arrow-in-down"></i> {{ __('Tomar') }}
                                     @endif
