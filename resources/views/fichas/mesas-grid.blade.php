@@ -50,7 +50,7 @@
                              data-es-mia="{{ $mesa->camarero_id == Auth::id() ? '1' : '0' }}"
                              onclick="accionPrincipalMesa('{{ $mesa->uuid }}', '{{ $mesa->numero_mesa }}', '{{ $mesa->estado_mesa }}', {{ $mesa->camarero_id == Auth::id() ? 'true' : 'false' }}, '{{ $mesa->camarero->name ?? '' }}')"
                              >
-                            @if($mesa->tiene_preparado)
+                            @if($mesa->tiene_preparado  && $mesa->estado_mesa == 'ocupada')
                             <div style="position:absolute;bottom:-8px;left:-8px;z-index:2;">
                                 <span class="badge bg-warning text-dark" title="Hay productos preparados">
                                     <i class="bi bi-bell-fill"></i>
