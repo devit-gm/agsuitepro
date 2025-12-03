@@ -282,14 +282,37 @@
             max-width: 100%;
         }
     }
+    @media (max-width: 1199px) {
+       
+    .mesas-grid {
+        display:flex !important;
+        padding:0px !important;
+    }
+
+        .mesa-card.mesa-cocina {
+            flex: 1 1 32% !important;
+            min-width: 32%;
+            max-width: 32%;
+        }
+    }
     @media (min-width: 1200px) {
         .mesas-grid {
         display:flex !important;
     }
         .mesa-card.mesa-cocina {
-            flex: 1 1 20% !important;
-             min-width: 20% !important;
-            max-width: 20% !important;
+            flex: 1 1 24% !important;
+             min-width: 24% !important;
+            max-width: 24% !important;
+        }
+    }
+    @media (min-width: 1400px) {
+        .mesas-grid {
+        display:flex !important;
+    }
+        .mesa-card.mesa-cocina {
+            flex: 1 1 19% !important;
+             min-width: 19% !important;
+            max-width: 19% !important;
         }
     }
 
