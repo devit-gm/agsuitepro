@@ -207,6 +207,9 @@ Route::middleware(['detect.site', 'auth'])->group(function () {
     Route::post('/facturas/{mesaId}', [FacturaMesaController::class, 'store'])->name('facturas.store');
     Route::get('/facturas/{id}/show', [FacturaMesaController::class, 'show'])->name('facturas.show');
     Route::get('/facturas/{id}/pdf', [FacturaMesaController::class, 'pdf'])->name('facturas.pdf');
+    
+    // Ticket de mesa
+    Route::get('/mesas/{mesaId}/ticket', [FichasController::class, 'generarTicket'])->name('mesas.ticket');
 
     Route::get('/servicios', ServiciosController::class . '@index')->name('servicios.index');
     Route::get('/servicios/create', ServiciosController::class . '@create')->name('servicios.create');

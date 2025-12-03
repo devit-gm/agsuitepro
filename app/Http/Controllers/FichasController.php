@@ -1565,6 +1565,101 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
     }
 
     /**
+     * Generar ticket de una mesa cerrada para imprimir
+     */
+    public function generarTicket($mesaId)
+    {
+        $mesa = Ficha::with(['productos.producto', 'servicios.servicio', 'camarero'])
+            ->findOrFail($mesaId);
+        
+        // Verificar que la mesa esté cerrada
+        if ($mesa->estado_mesa !== 'cerrada') {
+            return redirect()->back()->with('error', 'La mesa debe estar cerrada para imprimir el ticket');
+        }
+        
+        // Calcular totales con IVA
+        $lineas = [];
+        $subtotal = 0;
+        $totalIva = 0;
+        $ivaDesglose = [];
+        
+        // Añadir productos
+        foreach ($mesa->productos as $fp) {
+            if ($fp->producto) {
+                $iva = $fp->producto->iva ?? 21;
+                $pvp = $fp->cantidad * $fp->precio; // El precio ya incluye IVA
+                $baseImponible = $pvp / (1 + $iva / 100);
+                $importeIva = $pvp - $baseImponible;
+                
+                $lineas[] = [
+                    'tipo' => 'producto',
+                    'nombre' => $fp->producto->nombre,
+                    'cantidad' => $fp->cantidad,
+                    'precio_unitario' => $fp->precio,
+                    'iva' => $iva,
+                    'total' => $pvp
+                ];
+                
+                $subtotal += $baseImponible;
+                $totalIva += $importeIva;
+                
+                // Agrupar por IVA
+                $ivaKey = number_format($iva, 2);
+                if (!isset($ivaDesglose[$ivaKey])) {
+                    $ivaDesglose[$ivaKey] = [
+                        'porcentaje' => $iva,
+                        'base' => 0,
+                        'cuota' => 0
+                    ];
+                }
+                $ivaDesglose[$ivaKey]['base'] += $baseImponible;
+                $ivaDesglose[$ivaKey]['cuota'] += $importeIva;
+            }
+        }
+        
+        // Añadir servicios
+        foreach ($mesa->servicios as $fs) {
+            if ($fs->servicio) {
+                $iva = $fs->servicio->iva ?? 21;
+                $pvp = $fs->precio; // El precio ya incluye IVA
+                $baseImponible = $pvp / (1 + $iva / 100);
+                $importeIva = $pvp - $baseImponible;
+                
+                $lineas[] = [
+                    'tipo' => 'servicio',
+                    'nombre' => $fs->servicio->nombre,
+                    'cantidad' => 1,
+                    'precio_unitario' => $fs->precio,
+                    'iva' => $iva,
+                    'total' => $pvp
+                ];
+                
+                $subtotal += $baseImponible;
+                $totalIva += $importeIva;
+                
+                // Agrupar por IVA
+                $ivaKey = number_format($iva, 2);
+                if (!isset($ivaDesglose[$ivaKey])) {
+                    $ivaDesglose[$ivaKey] = [
+                        'porcentaje' => $iva,
+                        'base' => 0,
+                        'cuota' => 0
+                    ];
+                }
+                $ivaDesglose[$ivaKey]['base'] += $baseImponible;
+                $ivaDesglose[$ivaKey]['cuota'] += $importeIva;
+            }
+        }
+        
+        $total = $subtotal + $totalIva;
+        
+        $ajustes = \App\Models\Ajustes::first();
+        $site = app('site');
+        
+        return view('fichas.ticket', compact('mesa', 'lineas', 'subtotal', 'totalIva', 'total', 'ivaDesglose', 'ajustes', 'site'));
+    }
+
+    /**
      * Generar múltiples mesas automáticamente (solo usuarios tipo < 4)
      */
     public function generarMesas(Request $request)

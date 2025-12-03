@@ -47,7 +47,9 @@
                              data-mesa-id="{{ $mesa->uuid }}"
                              data-estado="{{ $mesa->estado_mesa }}"
                              data-camarero="{{ $mesa->camarero_id }}"
-                             data-es-mia="{{ $mesa->camarero_id == Auth::id() ? '1' : '0' }}">
+                             data-es-mia="{{ $mesa->camarero_id == Auth::id() ? '1' : '0' }}"
+                             onclick="accionPrincipalMesa('{{ $mesa->uuid }}', '{{ $mesa->numero_mesa }}', '{{ $mesa->estado_mesa }}', {{ $mesa->camarero_id == Auth::id() ? 'true' : 'false' }}, '{{ $mesa->camarero->name ?? '' }}')"
+                             >
                             @if($mesa->tiene_preparado)
                             <div style="position:absolute;bottom:-8px;left:-8px;z-index:2;">
                                 <span class="badge bg-warning text-dark" title="Hay productos preparados">
@@ -102,52 +104,57 @@
                             </div>
                             @endif
                             
-                            <!-- Botones de acción -->
-                            <div class="mesa-acciones mt-auto d-flex justify-content-center gap-2">
+                            <!-- Acciones secundarias en esquina (solo para mesas cerradas) -->
+                            @if($mesa->estado_mesa == 'cerrada' && ($mesa->importe ?? 0) > 0)
+                            <div class="mesa-acciones-secundarias">
+                                @php
+                                    // Buscar factura generada después de la última apertura de esta mesa
+                                    $facturaExistente = \App\Models\FacturaMesa::where('mesa_id', $mesa->uuid)
+                                        ->where('fecha', '>=', $mesa->hora_apertura ?? now())
+                                        ->first();
+                                @endphp
+                                
+                                <!-- Botón de Ticket -->
+                                <a href="{{ route('mesas.ticket', $mesa->uuid) }}" 
+                                   class="btn btn-sm btn-light" 
+                                   target="_blank" 
+                                   title="{{ __('Imprimir Ticket') }}"
+                                   onclick="event.stopPropagation()">
+                                    <i class="bi bi-receipt"></i>
+                                </a>
+                                
+                                @if($facturaExistente)
+                                    <!-- Descargar factura existente -->
+                                    <a href="{{ route('facturas.pdf', $facturaExistente->id) }}" 
+                                       class="btn btn-sm btn-light" 
+                                       title="{{ __('Descargar Factura PDF') }}"
+                                       onclick="event.stopPropagation()">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </a>
+                                @else
+                                    <!-- Generar factura -->
+                                    <a href="{{ route('facturas.crear', $mesa->uuid) }}" 
+                                       class="btn btn-sm btn-light" 
+                                       title="{{ __('Generar Factura') }}"
+                                       onclick="event.stopPropagation()">
+                                        <i class="bi bi-file-earmark-plus"></i>
+                                    </a>
+                                @endif
+                            </div>
+                            @endif
+                            
+                            <!-- Indicador visual de acción (texto centrado) -->
+                            <div class="mesa-accion-principal">
                                 @if($mesa->estado_mesa == 'libre')
-                                    <!-- Abrir nueva mesa -->
-                                    <button class="btn btn-secondary btn-md" onclick="abrirMesa('{{ $mesa->uuid }}', '{{ $mesa->numero_mesa }}')">
-                                        <i class="bi bi-box-arrow-in-right"></i>
-                                    </button>
-                                    
+                                    <i class="bi bi-box-arrow-in-right"></i> {{ __('Abrir') }}
                                 @elseif($mesa->estado_mesa == 'ocupada')
                                     @if($mesa->camarero_id == Auth::id())
-                                        <!-- Es mi mesa: gestionar o cerrar -->
-                                        <button class="btn btn-secondary" onclick="gestionarMesa('{{ $mesa->uuid }}')">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>
-                                        <button class="btn btn-secondary" onclick="cerrarMesa('{{ $mesa->uuid }}', '{{ $mesa->numero_mesa }}')">
-                                            <i class="bi bi-box-arrow-in-left"></i>
-                                        </button>
+                                        <i class="bi bi-pencil-square"></i> {{ __('Gestionar') }}
                                     @else
-                                        <!-- No es mi mesa: puedo tomarla -->
-                                        <button class="btn btn-secondary" onclick="tomarMesa('{{ $mesa->uuid }}', '{{ $mesa->numero_mesa }}', '{{ $mesa->camarero->name ?? '' }}')">
-                                            <i class="bi bi-box-arrow-in-down"></i>
-                                        </button>
+                                        <i class="bi bi-box-arrow-in-down"></i> {{ __('Tomar') }}
                                     @endif
-                                    
                                 @elseif($mesa->estado_mesa == 'cerrada')
-                                    <!-- Liberar mesa para volver a usarla -->
-                                    <button class="btn btn-secondary" onclick="liberarMesa('{{ $mesa->uuid }}', '{{ $mesa->numero_mesa }}')">
-                                        <i class="bi bi-box-arrow-up"></i>
-                                    </button>
-                                    <!-- Botón para generar/ver factura -->
-                                    @if(($mesa->importe ?? 0) > 0)
-                                        @php
-                                            $facturaExistente = \App\Models\FacturaMesa::where('mesa_id', $mesa->uuid)->first();
-                                        @endphp
-                                        @if($facturaExistente)
-                                            <!-- Si ya existe factura, descargar PDF directamente -->
-                                            <a href="{{ route('facturas.pdf', $facturaExistente->id) }}" class="btn btn-secondary ms-2" title="{{ __('Descargar PDF') }}">
-                                                <i class="bi bi-file-earmark-pdf"></i>
-                                            </a>
-                                        @else
-                                            <!-- Si no existe factura, ir a crearla -->
-                                            <a href="{{ route('facturas.crear', $mesa->uuid) }}" class="btn btn-secondary ms-2" title="{{ __('Generar Factura') }}">
-                                                <i class="bi bi-file-earmark-plus"></i>
-                                            </a>
-                                        @endif
-                                    @endif
+                                    <i class="bi bi-box-arrow-up"></i> {{ __('Liberar') }}
                                 @endif
                             </div>
                         </div>
@@ -217,7 +224,7 @@
     padding: 0.75rem;
     transition: all 0.3s ease;
     position: relative;
-    min-height: 220px;
+    min-height: 220px !important;
     display: flex;
     flex-direction: column;
     cursor: pointer;
@@ -328,18 +335,64 @@
     margin-top: 0.25rem;
 }
 
-.mesa-acciones {
-    /* Estilos definidos inline con d-flex justify-content-center gap-2 */
+/* Acciones secundarias en esquina inferior derecha */
+.mesa-acciones-secundarias {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    display: flex;
+    gap: 6px;
+    z-index: 10;
 }
 
-.mesa-acciones .btn {
-    min-width: 50px;
-    height: 45px;
-    font-size: 1.2rem;
-    padding: 0.5rem 0.75rem;
+.mesa-acciones-secundarias .btn {
+    padding: 8px 12px;
+    font-size: 1.1rem;
+    opacity: 0.9;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.mesa-acciones-secundarias .btn:hover {
+    opacity: 1;
+    transform: scale(1.15);
+}
+
+/* Indicador de acción principal */
+.mesa-accion-principal {
+    text-align: center;
+    margin-top: auto;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+    background: rgba(255,255,255,0.6);
+    border-radius: 8px;
+}
+
+/* En mesas cerradas, reducir el margin-top para dar espacio a los botones */
+.mesa-cerrada .mesa-accion-principal {
+    margin-top: 0rem;
+    margin-bottom: auto;
+}
+
+.mesa-card:hover .mesa-accion-principal {
+    background: rgba(255,255,255,0.9);
+    transform: scale(1.05);
 }
 
 /* Responsive */
+@media (max-width: 576px) {
+    .mesa-accion-principal {
+        font-size: 0.9rem;
+        padding: 0.5rem;
+    }
+    
+    .mesa-acciones-secundarias .btn {
+        padding: 2px 4px;
+        font-size: 1.2rem;
+    }
+}
+
 @media (max-width: 768px) {
     .mesas-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -348,7 +401,7 @@
     }
     
     .mesa-card {
-        min-height: 200px;
+        min-height: 210px;
         padding: 0.75rem;
     }
     
@@ -484,6 +537,21 @@ document.getElementById('filtro-estado')?.addEventListener('change', function() 
         card.style.display = mostrar ? 'flex' : 'none';
     });
 });
+
+// Función principal: determina qué acción ejecutar al hacer click en la tarjeta
+function accionPrincipalMesa(mesaId, numeroMesa, estado, esMia, camareroAnterior) {
+    if (estado === 'libre') {
+        abrirMesa(mesaId, numeroMesa);
+    } else if (estado === 'ocupada') {
+        if (esMia) {
+            gestionarMesa(mesaId);
+        } else {
+            tomarMesa(mesaId, numeroMesa, camareroAnterior);
+        }
+    } else if (estado === 'cerrada') {
+        liberarMesa(mesaId, numeroMesa);
+    }
+}
 
 // Abrir mesa nueva
 function abrirMesa(mesaId, numeroMesa) {
