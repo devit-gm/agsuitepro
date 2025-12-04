@@ -840,9 +840,9 @@
           </script> 
                 @endif
 
-    <!-- Botón flotante estilo WhatsApp - Solo para usuarios autenticados -->
+    <!-- Botón flotante estilo WhatsApp - Solo para usuarios autenticados (excepto cocineros en vista cocina) -->
     @auth
-    @if (app('site')->central == 0)
+    @if (app('site')->central == 0 && !$esCocineroEnCocina)
     <button id="btnNotificacionFlotante" class="btn-flotante-notificacion" data-bs-toggle="modal" data-bs-target="#modalNotificacion" title="Enviar notificación a todos">
         <i class="bi bi-chat-dots-fill"></i>
     </button>
