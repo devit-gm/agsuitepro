@@ -11,3 +11,6 @@ storage/firebase-credentials.json
 *.pem
 .env
 lanzar_mezzix.sh
+public/.htaccess_ionos
+.htaccess.produccion
+public/.htaccess
