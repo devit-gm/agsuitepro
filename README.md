@@ -41,10 +41,16 @@
   - Categorización de gastos
   - Cálculo automático de rentabilidad
 
-- **Sistema de Compras**
+- **Sistema de Compras y Albaranes**
   - Gestión de proveedores
   - Registro de compras con recibos
   - Control de inventario automático
+  - **Módulo de Albaranes**: Gestión completa de albaranes de entrada
+    - Creación de albaranes con múltiples líneas de productos
+    - Estados: Pendiente, Recibido, Facturado
+    - Confirmación de recepción con actualización automática de stock
+    - Asociación de productos mediante UUID
+    - Base de datos por sitio (multi-tenant)
 
 ### 🍽️ Modo Mesas (Restaurante)
 
@@ -53,6 +59,7 @@
   - Estados: Libre, Ocupada, Cerrada
   - Código de colores intuitivo (verde, rojo, gris)
   - Información de camarero, comensales e importe en cada mesa
+  - Vista de ticket detallado en cada mesa con productos y totales
 
 - **Gestión de Mesas**
   - Generación masiva de mesas con prefijo personalizable
@@ -65,8 +72,9 @@
   1. **Abrir Mesa**: Asignar número de comensales y tomar la mesa
   2. **Tomar Mesa**: Asumir el control de una mesa de otro camarero
   3. **Añadir Consumos**: Productos y servicios desde familias visuales
-  4. **Cerrar Mesa**: Cobrar con múltiples métodos de pago y opción de propina
-  5. **Liberar Mesa**: Resetear la mesa a estado libre
+  4. **Ver Ticket**: Consultar el detalle de consumos de cualquier mesa desde el grid
+  5. **Cerrar Mesa**: Cobrar con múltiples métodos de pago y opción de propina
+  6. **Liberar Mesa**: Resetear la mesa a estado libre
 
 - **Panel de Estadísticas**
   - Mesas libres/ocupadas en tiempo real
@@ -410,6 +418,7 @@ agsuitepro/
 │   │   │   ├── ProductosController.php   # Productos
 │   │   │   ├── FamiliasController.php    # Familias
 │   │   │   ├── UsuariosController.php    # Usuarios
+│   │   │   ├── AlbaranesController.php   # Gestión de albaranes
 │   │   │   ├── InformesController.php    # Reportes
 │   │   │   ├── AjustesController.php     # Configuración
 │   │   │   ├── SitiosController.php      # Gestión multi-tenant
@@ -420,9 +429,11 @@ agsuitepro/
 │   ├── Models/           # Modelos Eloquent
 │   │   ├── Ficha.php     # Fichas/Mesas con scopes
 │   │   ├── FacturaMesa.php # Facturas con cálculo de IVA
-│   │   ├── Producto.php  # Con métodos baseImponible() e importeIva()
+│   │   ├── Producto.php  # Con métodos baseImponible() e importeIva() - UUID PK
 │   │   ├── Servicio.php  # Con métodos baseImponible() e importeIva()
 │   │   ├── Familia.php
+│   │   ├── Albaran.php   # Albaranes con conexión 'site'
+│   │   ├── AlbaranLinea.php # Líneas de albaran con UUID FK
 │   │   ├── User.php
 │   │   ├── Ajustes.php
 │   │   ├── Site.php      # Gestión multi-tenant
@@ -477,6 +488,11 @@ agsuitepro/
 │   │   │   └── show.blade.php  # Detalle de factura
 │   │   ├── productos/
 │   │   ├── familias/
+│   │   ├── albaranes/
+│   │   │   ├── index.blade.php   # Listado de albaranes
+│   │   │   ├── create.blade.php  # Crear albarán
+│   │   │   ├── edit.blade.php    # Editar albarán
+│   │   │   └── show.blade.php    # Detalle con confirmación
 │   │   ├── usuarios/
 │   │   ├── ajustes/
 │   │   └── informes/
@@ -594,10 +610,33 @@ Invitados/asistentes de una ficha (modo fichas).
 Gastos asociados a fichas (modo fichas).
 
 #### `productos`
-Catálogo de productos con stock, precio, imagen, familia.
+Catálogo de productos con stock, precio, imagen, familia. Usa UUID como clave primaria.
 
 #### `familias`
 Categorías de productos con imagen.
+
+#### `albaranes` (por sitio)
+Gestión de albaranes de entrada/compras.
+
+**Campos clave**:
+- `numero_albaran`: Número único del albarán
+- `proveedor`: Nombre del proveedor
+- `nif`: NIF/CIF del proveedor
+- `fecha`: Fecha del albarán
+- `estado`: 'pendiente', 'recibido', 'facturado'
+- `total`: Importe total del albarán
+- `usuario_id`: Usuario que creó el albarán (referencia sin FK)
+- `fecha_recepcion`: Fecha de confirmación de recepción
+
+#### `albaran_lineas` (por sitio)
+Líneas de detalle de los albaranes.
+
+**Campos clave**:
+- `albaran_id`: FK a albaranes (CASCADE DELETE)
+- `producto_id`: FK a productos.uuid (CHAR(36), CASCADE DELETE)
+- `cantidad`: Cantidad recibida
+- `precio_coste`: Precio de coste unitario
+- `subtotal`: Cantidad × precio_coste (calculado automáticamente)
 
 #### `servicios`
 Servicios adicionales (DJ, fotografía, etc.).
@@ -633,6 +672,8 @@ Sistema de permisos de Spatie.
 - `create_ajustes_table`: Configuración
 - `create_facturas_mesa_table`: Sistema de facturación
 - `add_fiscal_fields_to_sitios_table`: CIF, dirección y teléfono para sitios
+- `create_albaranes_site_table`: Sistema de albaranes por sitio
+- `create_albaran_lineas_site_table`: Líneas de albaranes con FK a productos.uuid
 
 ## 🧪 Testing
 
@@ -803,6 +844,70 @@ Para preguntas y soporte:
 
 ## 📝 Novedades recientes
 
+### Módulo de Albaranes (Diciembre 2025)
+
+- Sistema completo de gestión de albaranes de entrada/compras
+- **Características principales**:
+  - Creación de albaranes con múltiples líneas de productos
+  - Estados: Pendiente, Recibido, Facturado
+  - Confirmación de recepción con actualización automática de stock
+  - Asociación de productos mediante UUID (soporte multi-tenant)
+  - Cálculo automático de subtotales e importes totales
+  - Filtros por proveedor, estado y fechas
+  - Interfaz responsive con footer buttons (icon-only)
+- **Arquitectura**:
+  - Base de datos por sitio (no en central)
+  - Foreign keys: `albaran_lineas.producto_id` → `productos.uuid` (CASCADE)
+  - Modelos con conexión explícita: `protected $connection = 'site'`
+  - Validación UUID: `'producto_id' => 'required|string|size:36'`
+- **SQL para deployment**:
+  ```sql
+  CREATE TABLE albaranes (
+    id bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+    numero_albaran varchar(255) NOT NULL UNIQUE,
+    proveedor varchar(255) NOT NULL,
+    nif varchar(20) DEFAULT NULL,
+    contacto varchar(255) DEFAULT NULL,
+    fecha date NOT NULL,
+    estado enum('pendiente','recibido','facturado') NOT NULL DEFAULT 'pendiente',
+    total decimal(10,2) NOT NULL DEFAULT 0.00,
+    observaciones text DEFAULT NULL,
+    usuario_id bigint unsigned DEFAULT NULL,
+    fecha_recepcion datetime DEFAULT NULL,
+    created_at timestamp NULL DEFAULT NULL,
+    updated_at timestamp NULL DEFAULT NULL,
+    KEY idx_usuario_id (usuario_id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+  CREATE TABLE albaran_lineas (
+    id bigint unsigned AUTO_INCREMENT PRIMARY KEY,
+    albaran_id bigint unsigned NOT NULL,
+    producto_id char(36) NOT NULL,
+    cantidad decimal(10,2) NOT NULL,
+    precio_coste decimal(10,2) NOT NULL,
+    subtotal decimal(10,2) NOT NULL,
+    created_at timestamp NULL DEFAULT NULL,
+    updated_at timestamp NULL DEFAULT NULL,
+    KEY idx_albaran_id (albaran_id),
+    KEY idx_producto_id (producto_id),
+    CONSTRAINT fk_albaran_lineas_albaran 
+      FOREIGN KEY (albaran_id) REFERENCES albaranes(id) ON DELETE CASCADE,
+    CONSTRAINT fk_albaran_lineas_producto 
+      FOREIGN KEY (producto_id) REFERENCES productos(uuid) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  ```
+
+### Vista de Ticket en Mesas (Diciembre 2025)
+
+- Visualización del ticket completo directamente desde el grid de mesas
+- **Características**:
+  - Modal con listado de todos los productos y servicios de la mesa
+  - Muestra cantidades, precios unitarios y subtotales
+  - Cálculo de total general
+  - Desglose de IVA si está configurado
+  - Accesible desde cualquier mesa ocupada o cerrada
+  - No requiere ser el camarero asignado para consultar
+
 ### Recordatorio unificado multi-tenant para reservas y eventos
 
 - El sistema de recordatorios ahora es multi-tenant y configurable por sitio.
@@ -872,6 +977,17 @@ Asegúrate de que tu dominio apunte a la carpeta `public/` y que el archivo `.ht
 ---
 
 ### 📝 Changelog
+
+#### v2025.12 - Módulo de Albaranes y Vista de Ticket en Mesas
+- ✨ Sistema completo de gestión de albaranes de entrada
+- ✨ Confirmación de recepción con actualización automática de stock
+- ✨ Soporte para UUID en productos (CHAR(36))
+- ✨ Arquitectura multi-tenant: albaranes por sitio
+- ✨ Vista de ticket completa en grid de mesas
+- ✨ Modal de ticket accesible desde cualquier mesa
+- 🎨 Interfaz responsive con footer buttons (icon-only)
+- 🐛 Corrección de validación para UUID (string|size:36)
+- 🐛 Foreign keys correctas: producto_id → productos.uuid
 
 #### v2025.11 - Recordatorio de Reservas y Cron Multi-sitio
 - 🔔 Recordatorio de reservas configurable por días (Ajustes)

@@ -211,6 +211,17 @@ Route::middleware(['detect.site', 'auth'])->group(function () {
     // Ticket de mesa
     Route::get('/mesas/{mesaId}/ticket', [FichasController::class, 'generarTicket'])->name('mesas.ticket');
 
+    // Albaranes de compra
+    Route::get('/albaranes', [\App\Http\Controllers\AlbaranesController::class, 'index'])->name('albaranes.index');
+    Route::get('/albaranes/create', [\App\Http\Controllers\AlbaranesController::class, 'create'])->name('albaranes.create');
+    Route::post('/albaranes', [\App\Http\Controllers\AlbaranesController::class, 'store'])->name('albaranes.store');
+    Route::get('/albaranes/{id}', [\App\Http\Controllers\AlbaranesController::class, 'show'])->name('albaranes.show');
+    Route::get('/albaranes/{id}/edit', [\App\Http\Controllers\AlbaranesController::class, 'edit'])->name('albaranes.edit');
+    Route::put('/albaranes/{id}', [\App\Http\Controllers\AlbaranesController::class, 'update'])->name('albaranes.update');
+    Route::delete('/albaranes/{id}', [\App\Http\Controllers\AlbaranesController::class, 'destroy'])->name('albaranes.destroy');
+    Route::post('/albaranes/{id}/confirmar', [\App\Http\Controllers\AlbaranesController::class, 'confirmarRecepcion'])->name('albaranes.confirmar');
+    Route::get('/albaranes/{id}/pdf', [\App\Http\Controllers\AlbaranesController::class, 'pdf'])->name('albaranes.pdf');
+
     Route::get('/servicios', ServiciosController::class . '@index')->name('servicios.index');
     Route::get('/servicios/create', ServiciosController::class . '@create')->name('servicios.create');
     Route::post('/servicios', ServiciosController::class . '@store')->name('servicios.store');

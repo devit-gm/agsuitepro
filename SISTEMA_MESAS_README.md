@@ -7,6 +7,7 @@
 - ✅ **Cualquier camarero puede tomar una mesa de otro**
 - ✅ **Estados de mesa**: Libre, Ocupada, Cerrada
 - ✅ **Gestión completa**: Abrir, Gestionar, Cerrar y Liberar mesas
+- ✅ **Vista de Ticket**: Consultar consumos de cualquier mesa desde el grid
 - ✅ **Historial completo** de acciones por mesa
 - ✅ **Estadísticas personales** por camarero
 - ✅ **Auto-refresh** cada 30 segundos
@@ -80,6 +81,13 @@ route('mesas.index')
    - Confirmar acción
    - La mesa pasa a ser tuya
    - El camarero anterior pierde el control
+
+3.5. **Ver Ticket de Mesa**
+   - Click en "Ver Ticket" desde cualquier mesa ocupada o cerrada
+   - Se muestra modal con todos los productos y servicios
+   - Detalle de cantidades, precios unitarios y subtotales
+   - Total general y desglose de IVA
+   - No requiere ser el camarero asignado
 
 4. **Cerrar Mesa**
    - Click en "Cerrar y Cobrar"
