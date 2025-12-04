@@ -20,3 +20,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->post('/save-fcm-token', [NotificationController::class, 'saveToken']);
+Route::middleware('auth:sanctum')->post('/enviar-notificacion-global', [NotificationController::class, 'enviarNotificacionGlobal']);

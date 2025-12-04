@@ -839,6 +839,145 @@
                     } 
           </script> 
                 @endif
+
+    <!-- Botón flotante estilo WhatsApp - Solo para usuarios autenticados -->
+    @auth
+    @if (app('site')->central == 0)
+    <button id="btnNotificacionFlotante" class="btn-flotante-notificacion" data-bs-toggle="modal" data-bs-target="#modalNotificacion" title="Enviar notificación a todos">
+        <i class="bi bi-chat-dots-fill"></i>
+    </button>
+    @endif
+    @endauth
+
+    <!-- Modal para enviar notificación -->
+    <div class="modal fade" id="modalNotificacion" tabindex="-1" aria-labelledby="modalNotificacionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalNotificacionLabel">
+                        <i class="bi bi-chat-dots-fill"></i> Enviar Notificación
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNotificacion">
+                        <div class="mb-3">
+                            <label for="mensajeNotificacion" class="form-label">Mensaje</label>
+                            <textarea class="form-control" id="mensajeNotificacion" rows="4" placeholder="Escribe tu mensaje..." maxlength="200" required></textarea>
+                            <small class="text-muted">Máximo 200 caracteres</small>
+                        </div>
+                        
+                    </form>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i>
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="enviarNotificacionGlobal()">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Modal z-index más alto */
+        #modalNotificacion {
+            z-index: 9999 !important;
+        }
+        
+        #modalNotificacion .modal-backdrop {
+            z-index: 9998 !important;
+        }
+        
+        .modal-backdrop.show {
+            z-index: 9998 !important;
+        }
+        
+        .btn-flotante-notificacion {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .btn-flotante-notificacion:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+        }
+        
+        .btn-flotante-notificacion:active {
+            transform: scale(0.95);
+        }
+        
+        @media (max-width: 768px) {
+            .btn-flotante-notificacion {
+                bottom: 20px;
+                left: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+    </style>
+
+    <script>
+        async function enviarNotificacionGlobal() {
+            const mensaje = document.getElementById('mensajeNotificacion').value.trim();
+            
+            if (!mensaje) {
+                alert('Por favor escribe un mensaje');
+                return;
+            }
+            
+            const botonEnviar = event.target;
+            botonEnviar.disabled = true;
+            botonEnviar.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            
+            try {
+                const response = await fetch('/api/enviar-notificacion-global', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ mensaje })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(`✅ Notificación enviada a ${data.enviadas} usuario(s)`);
+                    document.getElementById('formNotificacion').reset();
+                    bootstrap.Modal.getInstance(document.getElementById('modalNotificacion')).hide();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'No se pudo enviar'));
+                }
+            } catch (error) {
+                console.error('Error al enviar notificación:', error);
+                alert('❌ Error de conexión');
+            } finally {
+                botonEnviar.disabled = false;
+                botonEnviar.innerHTML = '<i class="bi bi-send-fill"></i>';
+            }
+        }
+    </script>
+
     <script>
         function triggerParentClick(event, tdElement) {
             event.stopPropagation();
