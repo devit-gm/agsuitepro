@@ -954,8 +954,10 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify({ mensaje })
                 });
                 
@@ -964,7 +966,8 @@
                 if (response.ok) {
                     alert(`✅ Notificación enviada a ${data.enviadas} usuario(s)`);
                     document.getElementById('formNotificacion').reset();
-                    bootstrap.Modal.getInstance(document.getElementById('modalNotificacion')).hide();
+                    // Cerrar modal simulando click en el botón de cerrar
+                    document.querySelector('#modalNotificacion .btn-close').click();
                 } else {
                     alert('❌ Error: ' + (data.error || 'No se pudo enviar'));
                 }
