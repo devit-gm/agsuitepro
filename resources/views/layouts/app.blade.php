@@ -892,7 +892,7 @@
         }
         
         .modal-backdrop.show {
-            z-index: 9998 !important;
+            z-index: -1 !important;
         }
         
         .btn-flotante-notificacion {
@@ -950,7 +950,7 @@
             botonEnviar.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
             
             try {
-                const response = await fetch('/api/enviar-notificacion-global', {
+                const response = await fetch('/enviar-notificacion-global', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

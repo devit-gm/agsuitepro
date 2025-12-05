@@ -206,6 +206,9 @@
         border-radius: 10px;
         box-shadow: 0 3px 8px rgba(40,167,69,0.3);
         transition: all 0.3s ease;
+        position: absolute;
+        top: 0.3rem;
+        right: 0.4rem;
     }
 
     .btn-preparar:hover {
@@ -290,9 +293,9 @@
     }
 
         .mesa-card.mesa-cocina {
-            flex: 1 1 32% !important;
-            min-width: 32%;
-            max-width: 32%;
+            flex: 1 1 47% !important;
+            min-width: 47%;
+            max-width: 47%;
         }
     }
     @media (min-width: 1200px) {
@@ -334,6 +337,9 @@
         max-height: 200px;
         padding: 0 !important;
         display: block !important;
+    }
+    .modal-backdrop.show{
+        z-index: -1 !important;
     }
 </style>
 @endpush

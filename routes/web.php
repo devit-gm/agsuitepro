@@ -18,6 +18,7 @@ use App\Http\Controllers\SmsController;
 use App\Http\Controllers\ContactoController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\PwaConfigController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Services\FirebaseService;
 
@@ -261,6 +262,7 @@ Route::middleware(['detect.site', 'auth'])->group(function () {
     Route::get('/contacto', [ContactoController::class, 'index'])->name('contacto.index');
     Route::post('/contacto', [ContactoController::class, 'send'])->name('contacto.send');
     Route::post('/save-fcm-token', [NotificationController::class, 'saveToken'])->middleware('auth');
+    Route::post('/enviar-notificacion-global', [NotificationController::class, 'enviarNotificacionGlobal'])->middleware('auth');
     
     // Ruta temporal de prueba para Firebase (requiere vendor/kreait en servidor)
     /*

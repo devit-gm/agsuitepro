@@ -92,6 +92,7 @@ class NotificationController extends Controller
             $usuarios = User::whereNotNull('fcm_token')
                 ->where('fcm_token', '!=', '')
                 ->where('id', '!=', Auth::id())
+                ->where('site_id', Auth::user()->site_id)
                 ->get();
 
             Log::info('Usuarios con FCM token encontrados: ' . $usuarios->count());
