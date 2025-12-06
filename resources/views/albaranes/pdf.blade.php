@@ -105,14 +105,7 @@
 <body>
     <div class="header">
         <h1>ALBARÁN DE ENTRADA</h1>
-        <p><strong>Número:</strong> {{ $albaran->numero_albaran }} | 
-        <strong>Estado:</strong> 
-        @if($albaran->estado == 'recibido')
-            <span class="badge badge-success">RECIBIDO</span>
-        @else
-            {{ strtoupper($albaran->estado) }}
-        @endif
-        </p>
+        <p><strong>Número:</strong> {{ $albaran->numero_albaran }}</p>
     </div>
 
     <div class="info-section">

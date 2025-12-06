@@ -30,10 +30,9 @@
                     @endif
 
                     <div class="container-fluid">
-
-                        <div class="row mb-4">
+                        <div class="row mb-3">
                             <!-- Información del Proveedor -->
-                            <div class="col-md-6">
+                            <div class="col-12 col-md-6">
                                 <div class="card">
                                     <div class="card-header bg-secondary text-white">
                                         <i class="bi bi-person-badge"></i> Proveedor
@@ -51,7 +50,7 @@
                             </div>
 
                             <!-- Información del Albarán -->
-                            <div class="col-md-6">
+                            <div class="col-12 col-md-6">
                                 <div class="card">
                                     <div class="card-header bg-secondary text-white">
                                         <i class="bi bi-file-text"></i> Datos del Albarán
@@ -69,45 +68,52 @@
                                 </div>
                             </div>
                         </div>
+                        </div>
+                                            <div class="container-fluid">
 
-                        <!-- Líneas de Productos -->
-                        <div class="card mb-3">
-                            <div class="card-header bg-secondary text-white">
-                                <i class="bi bi-cart"></i> Productos
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Producto</th>
-                                                <th class="text-center" style="width: 100px;">Cantidad</th>
-                                                <th class="text-end" style="width: 120px;">Precio Coste</th>
-                                                <th class="text-end" style="width: 120px;">Subtotal</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($albaran->lineas as $linea)
-                                            <tr>
-                                                <td>
-                                                    {{ $linea->producto->nombre ?? 'Producto eliminado' }}
-                                                    @if($linea->producto && $linea->producto->familiaObj)
-                                                    <br><small class="text-muted">{{ $linea->producto->familiaObj->nombre }}</small>
-                                                    @endif
-                                                </td>
-                                                <td class="text-center">{{ number_format($linea->cantidad, 2) }}</td>
-                                                <td class="text-end">{{ number_format($linea->precio_coste, 2) }} €</td>
-                                                <td class="text-end"><strong>{{ number_format($linea->subtotal, 2) }} €</strong></td>
-                                            </tr>
-                                            @endforeach
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <td colspan="3" class="text-end"><strong>TOTAL:</strong></td>
-                                                <td class="text-end"><strong class="fs-5">{{ number_format($albaran->total, 2) }} €</strong></td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
+
+                        <div class="row">
+                            <!-- Líneas de Productos -->
+                            <div class="col-12">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-secondary text-white">
+                                        <i class="bi bi-cart"></i> Productos
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Producto</th>
+                                                        <th class="text-center" style="width: 100px;">Cantidad</th>
+                                                        <th class="text-end" style="width: 120px;">Precio Coste</th>
+                                                        <th class="text-end" style="width: 120px;">Subtotal</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($albaran->lineas as $linea)
+                                                    <tr>
+                                                        <td>
+                                                            {{ $linea->producto->nombre ?? 'Producto eliminado' }}
+                                                            @if($linea->producto && $linea->producto->familiaObj)
+                                                            <br><small class="text-muted">{{ $linea->producto->familiaObj->nombre }}</small>
+                                                            @endif
+                                                        </td>
+                                                        <td class="text-center">{{ number_format($linea->cantidad, 2) }}</td>
+                                                        <td class="text-end">{{ number_format($linea->precio_coste, 2) }} €</td>
+                                                        <td class="text-end"><strong>{{ number_format($linea->subtotal, 2) }} €</strong></td>
+                                                    </tr>
+                                                    @endforeach
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <td colspan="3" class="text-end"><strong>TOTAL:</strong></td>
+                                                        <td class="text-end"><strong class="fs-5">{{ number_format($albaran->total, 2) }} €</strong></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

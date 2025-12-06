@@ -150,8 +150,6 @@
         <button type="submit" form="formFiltros" class="btn btn-primary fondo-rojo borde-rojo">
             <i class="bi bi-search"></i>
         </button>
-        <a href="{{ route('albaranes.index') }}" class="btn btn-secondary">
-            <i class="bi bi-x-circle"></i>
         </a>
         <a href="{{ route('albaranes.create') }}" class="btn btn-primary fondo-rojo borde-rojo">
             <i class="bi bi-plus-circle"></i>

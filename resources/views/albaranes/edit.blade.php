@@ -22,7 +22,7 @@
                     @endif
 
                     <div class="container-fluid">
-                        <form method="POST" action="{{ route('albaranes.update', $albaran->id) }}" id="formAlbaran">
+                        <form method="POST" action="{{ route('albaranes.update', $albaran->id) }}" id="formAlbaran" style="flex:1">
                             @csrf
                             @method('PUT')
 
@@ -85,7 +85,7 @@
                             </div>
 
                             <!-- Líneas de Productos -->
-                            <div class="card mb-3">
+                            <div class="card mb-3" style="height: auto;">
                                 <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                                     <span><i class="bi bi-cart"></i> Productos</span>
                                     <button type="button" class="btn btn-sm btn-light" onclick="agregarLinea()">
