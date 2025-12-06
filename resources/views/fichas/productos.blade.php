@@ -75,10 +75,10 @@
                                          loading="lazy"
                                          decoding="async">
                                     <span 
-                                        class="position-absolute top-0 end-0 badge rounded-pill" 
-                                        style="background: rgba(255, 193, 7, 0.9); color: #000; margin: 8px; font-size: 0.75rem; padding: 4px 8px;"
+                                        class="position-absolute badge rounded-pill" 
+                                        style="background: rgba(255, 193, 7, 0.9); color: #000; margin: 8px; padding: 4px 8px; top:0; left:0;"
                                     >
-                                        <i class="bi bi-exclamation-triangle-fill"></i> Stock bajo
+                                        <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.2rem;"></i>
                                     </span>
                                 </button>
                             </form>
