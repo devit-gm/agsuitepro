@@ -18,11 +18,47 @@
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="{{ route('manifest') }}">
-    <meta name="theme-color" content="#dc3545">
+    <meta name="theme-color" content="#a7380d">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="{{ siteName() }}">
+    
+    @php
+        $domain = request()->getHost();
+        $site = \App\Models\Site::where('dominio', $domain)->first();
+        $basePath = $site && $site->carpeta_pwa ? '/' . trim($site->carpeta_pwa, '/') : '/images/icons';
+    @endphp
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset($basePath . '/icon-192x192.png') }}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{{ asset($basePath . '/icon-152x152.png') }}">
+    <link rel="apple-touch-icon" sizes="144x144" href="{{ asset($basePath . '/icon-144x144.png') }}">
+    <link rel="apple-touch-icon" sizes="120x120" href="{{ asset($basePath . '/icon-128x128.png') }}">
+    
+    <!-- iOS Splash Screens -->
+    <!-- iPhone X, XS, 11 Pro, 12 mini, 13 mini (1125x2436) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="{{ asset($basePath . '/splash-1125x2436.png') }}">
+    <!-- iPhone XR, 11 (828x1792) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" href="{{ asset($basePath . '/splash-828x1792.png') }}">
+    <!-- iPhone XS Max, 11 Pro Max (1242x2688) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" href="{{ asset($basePath . '/splash-1242x2688.png') }}">
+    <!-- iPhone 12, 12 Pro, 13, 13 Pro, 14 (1170x2532) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" href="{{ asset($basePath . '/splash-1170x2532.png') }}">
+    <!-- iPhone 12 Pro Max, 13 Pro Max, 14 Plus (1284x2778) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" href="{{ asset($basePath . '/splash-1284x2778.png') }}">
+    <!-- iPhone 14 Pro (1179x2556) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" href="{{ asset($basePath . '/splash-1179x2556.png') }}">
+    <!-- iPhone 14 Pro Max (1290x2796) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" href="{{ asset($basePath . '/splash-1290x2796.png') }}">
+    <!-- iPad Mini, Air (1536x2048) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" href="{{ asset($basePath . '/splash-1536x2048.png') }}">
+    <!-- iPad Pro 10.5" (1668x2224) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" href="{{ asset($basePath . '/splash-1668x2224.png') }}">
+    <!-- iPad Pro 11" (1668x2388) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)" href="{{ asset($basePath . '/splash-1668x2388.png') }}">
+    <!-- iPad Pro 12.9" (2048x2732) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" href="{{ asset($basePath . '/splash-2048x2732.png') }}">
 
     <!-- Scripts -->
     <link rel="stylesheet" href="{{ siteStyles() }}?v=281120252245">

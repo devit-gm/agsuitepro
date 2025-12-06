@@ -16,9 +16,9 @@ class ManifestController extends Controller
         // Obtener ajustes para el tema de color
         try {
             $ajustes = DB::connection('site')->table('ajustes')->first();
-            $themeColor = '#dc3545'; // Color rojo por defecto
+            $themeColor = '#a7380d'; // Color rojo por defecto
         } catch (\Exception $e) {
-            $themeColor = '#dc3545';
+            $themeColor = '#a7380d';
         }
         
         // Obtener carpeta PWA configurada para este sitio
