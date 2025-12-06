@@ -171,7 +171,7 @@ class FamiliasController extends Controller
     public function view($id)
     {
         $familia = Familia::find($id);
-        $productos = Producto::where('familia', $id)->get();
+        $productos = Producto::where('familia', $id)->orderBy('nombre')->get();
         return view('familias.view', compact('productos', 'familia'));
     }
 }

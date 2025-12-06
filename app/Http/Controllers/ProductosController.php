@@ -335,7 +335,7 @@ class ProductosController extends Controller
             return redirect()->route('productos.inventory')
                 ->with('success', __('Inventario actualizado con éxito.'));
         }
-        $productos = Producto::where('combinado', 0)->orderBy('posicion')->get();
+        $productos = Producto::where('combinado', 0)->orderBy('nombre')->get();
         $ajustes = \App\Models\Ajustes::first();
         return view('productos.inventory', compact('productos', 'ajustes'));
     }

@@ -466,14 +466,20 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
         
         if ($ajustes->permitir_comprar_sin_stock == 1) {
             $productos = Producto::where('familia', $uuid2)
-                ->where('precio', '>', 0)
+                ->where(function($query) {
+                    $query->where('precio', '>', 0)
+                          ->orWhere('combinado', 1); // Incluir productos combinados aunque tengan precio 0
+                })
                 ->orderBy('posicion')
                 ->get();
             $productosAgotados = collect();
             $productosStockBajo = collect();
         } else {
             $productos = Producto::where('familia', $uuid2)
-                ->where('precio', '>', 0)
+                ->where(function($query) {
+                    $query->where('precio', '>', 0)
+                          ->orWhere('combinado', 1); // Incluir productos combinados aunque tengan precio 0
+                })
                 ->orderBy('posicion')
                 ->get();
             
@@ -1622,21 +1628,40 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
     }
 
     /**
-     * Generar ticket de una mesa cerrada para imprimir
+     * Generar ticket de una mesa cerrada para imprimir (genera PDF en línea)
      */
     public function generarTicket($mesaId)
     {
-        $mesa = Ficha::with(['productos.producto', 'servicios.servicio', 'camarero', 'gastos'])
+        $ficha = Ficha::with(['productos.producto', 'servicios.servicio', 'camarero', 'gastos'])
             ->findOrFail($mesaId);
         
         // Verificar que la mesa/ficha esté cerrada (modo mesas o modo fichas)
         $ajustes = \App\Models\Ajustes::first();
         $esModoMesas = isset($ajustes->modo_operacion) && $ajustes->modo_operacion === 'mesas';
         
-        if ($esModoMesas && $mesa->estado_mesa !== 'cerrada') {
+        if ($esModoMesas && $ficha->estado_mesa !== 'cerrada') {
             return redirect()->back()->with('error', 'La mesa debe estar cerrada para imprimir el ticket');
-        } elseif (!$esModoMesas && $mesa->estado != 1) {
+        } elseif (!$esModoMesas && $ficha->estado != 1) {
             return redirect()->back()->with('error', 'La ficha debe estar cerrada para imprimir el ticket');
+        }
+        
+        // Generar nombre del archivo
+        $nombreArchivo = $esModoMesas 
+            ? 'ticket_mesa_' . ($ficha->numero_mesa ?? $ficha->uuid) . '_' . date('Ymd') . '.pdf'
+            : 'ticket_ficha_' . $ficha->uuid . '_' . date('Ymd') . '.pdf';
+        
+        $rutaTickets = public_path('tickets');
+        
+        // Crear directorio si no existe
+        if (!file_exists($rutaTickets)) {
+            mkdir($rutaTickets, 0755, true);
+        }
+        
+        $rutaCompleta = $rutaTickets . '/' . $nombreArchivo;
+        
+        // Si el archivo ya existe, redirigir directamente a él
+        if (file_exists($rutaCompleta)) {
+            return redirect(asset('tickets/' . $nombreArchivo));
         }
         
         // Calcular totales con IVA
@@ -1646,7 +1671,7 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
         $ivaDesglose = [];
         
         // Añadir productos
-        foreach ($mesa->productos as $fp) {
+        foreach ($ficha->productos as $fp) {
             if ($fp->producto) {
                 $iva = $fp->producto->iva ?? 21;
                 $pvp = $fp->precio; // El precio ya está multiplicado por la cantidad en FichaProducto
@@ -1681,7 +1706,7 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
         }
         
         // Añadir servicios
-        foreach ($mesa->servicios as $fs) {
+        foreach ($ficha->servicios as $fs) {
             if ($fs->servicio) {
                 $iva = $fs->servicio->iva ?? 21;
                 $pvp = $fs->precio; // El precio ya incluye IVA
@@ -1715,7 +1740,7 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
         }
         
         // Añadir gastos
-        foreach ($mesa->gastos as $fg) {
+        foreach ($ficha->gastos as $fg) {
             $iva = 21; // IVA por defecto para gastos
             $pvp = $fg->precio;
             $baseImponible = $pvp / (1 + $iva / 100);
@@ -1747,11 +1772,22 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
         }
         
         $total = $subtotal + $totalIva;
-        
-        $ajustes = \App\Models\Ajustes::first();
         $site = app('site');
         
-        return view('fichas.ticket', compact('mesa', 'lineas', 'subtotal', 'totalIva', 'total', 'ivaDesglose', 'ajustes', 'site'));
+        // Generar PDF usando dompdf
+        $pdf = PDF::loadView('fichas.ticket-pdf', compact('ficha', 'lineas', 'subtotal', 'totalIva', 'total', 'ivaDesglose', 'ajustes', 'site'));
+        
+        // Configurar ancho de ticket (80mm = 226.77 puntos)
+        $pdf->setPaper([0, 0, 226.77, 841.89], 'portrait');
+        
+        // Configurar opciones de dompdf
+        $pdf->getDomPDF()->set_option('isPhpEnabled', true);
+        
+        // Guardar el PDF en el servidor
+        $pdf->save($rutaCompleta);
+        
+        // Redirigir a la URL del PDF
+        return redirect(asset('tickets/' . $nombreArchivo));
     }
 
     /**
@@ -1770,6 +1806,25 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
             return redirect()->back()->with('error', 'La mesa debe estar cerrada para descargar el ticket');
         } elseif (!$esModoMesas && $ficha->estado != 1) {
             return redirect()->back()->with('error', 'La ficha debe estar cerrada para descargar el ticket');
+        }
+        
+        // Generar nombre del archivo
+        $nombreArchivo = $esModoMesas 
+            ? 'ticket_mesa_' . ($ficha->numero_mesa ?? $ficha->uuid) . '_' . date('Ymd') . '.pdf'
+            : 'ticket_ficha_' . $ficha->uuid . '_' . date('Ymd') . '.pdf';
+        
+        $rutaTickets = public_path('tickets');
+        
+        // Crear directorio si no existe
+        if (!file_exists($rutaTickets)) {
+            mkdir($rutaTickets, 0755, true);
+        }
+        
+        $rutaCompleta = $rutaTickets . '/' . $nombreArchivo;
+        
+        // Si el archivo ya existe, redirigir directamente a él
+        if (file_exists($rutaCompleta)) {
+            return redirect(asset('tickets/' . $nombreArchivo));
         }
         
         // Calcular totales con IVA
@@ -1882,14 +1937,17 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
         // Generar PDF usando dompdf
         $pdf = PDF::loadView('fichas.ticket-pdf', compact('ficha', 'lineas', 'subtotal', 'totalIva', 'total', 'ivaDesglose', 'ajustes', 'site'));
         
-        // Configurar tamaño de ticket (80mm de ancho)
-        $pdf->setPaper([0, 0, 226.77, 841.89], 'portrait'); // 80mm x 297mm en puntos
+        // Configurar ancho de ticket (80mm = 226.77 puntos)
+        $pdf->setPaper([0, 0, 226.77, 841.89], 'portrait');
         
-        $nombreArchivo = $esModoMesas 
-            ? 'ticket_mesa_' . ($ficha->numero_mesa ?? $ficha->uuid) . '_' . date('Ymd') . '.pdf'
-            : 'ticket_ficha_' . $ficha->uuid . '_' . date('Ymd') . '.pdf';
+        // Configurar opciones de dompdf
+        $pdf->getDomPDF()->set_option('isPhpEnabled', true);
         
-        return $pdf->download($nombreArchivo);
+        // Guardar el PDF en el servidor
+        $pdf->save($rutaCompleta);
+        
+        // Redirigir a la URL del PDF
+        return redirect(asset('tickets/' . $nombreArchivo));
     }
 
     /**
