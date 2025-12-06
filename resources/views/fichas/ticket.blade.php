@@ -128,8 +128,8 @@
             top: 10px;
             right: 10px;
             padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
+            background-color: #FFF;
+            color: #0c0c0c;
             border: none;
             border-radius: 5px;
             cursor: pointer;

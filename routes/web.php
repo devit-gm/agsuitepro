@@ -211,6 +211,9 @@ Route::middleware(['detect.site', 'auth'])->group(function () {
     
     // Ticket de mesa
     Route::get('/mesas/{mesaId}/ticket', [FichasController::class, 'generarTicket'])->name('mesas.ticket');
+    
+    // Ticket de ficha (descarga PDF)
+    Route::get('/fichas/{uuid}/ticket', [FichasController::class, 'descargarTicket'])->name('fichas.ticket');
 
     // Albaranes de compra
     Route::get('/albaranes', [\App\Http\Controllers\AlbaranesController::class, 'index'])->name('albaranes.index');

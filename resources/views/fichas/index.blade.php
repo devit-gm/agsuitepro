@@ -183,7 +183,7 @@
                                                             <a class="btn btn-sm btn-danger" href="#" onclick="triggerParentClick(event,this);"><i class="bi bi-trash fs-5"></i></a>
                                                             @endif
                                                         @else
-                                                            <a class="btn btn-sm btn-success mb-2" href="{{ route('fichas.download', ['uuid' => $ficha->uuid]) }}"><i class="bi bi-file-earmark-pdf"></i></a>
+                                                            <a class="btn btn-sm btn-success mb-2" href="{{ route('fichas.ticket', ['uuid' => $ficha->uuid]) }}" title="{{ __('Descargar Ticket') }}"><i class="bi bi-receipt"></i></a>
                                                         @endif
                                                     </div>
                                                 </td>
