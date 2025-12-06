@@ -133,7 +133,7 @@
                                                         <strong class="subtotal-linea">{{ number_format($linea->subtotal, 2) }} €</strong>
                                                     </td>
                                                     <td class="text-center">
-                                                        <button type="button" class="btn btn-sm btn-danger" onclick="eliminarLinea(this)">
+                                                        <button type="button" class="btn btn-sm btn-danger" onclick="eliminarLinea(this)" style="display:inline">
                                                             <i class="bi bi-trash"></i>
                                                         </button>
                                                     </td>
