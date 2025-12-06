@@ -22,6 +22,7 @@ use Ramsey\Uuid\Type\Decimal;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class FichasController extends Controller
@@ -461,27 +462,60 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
         $ficha->precio = $this->ObtenerImporteFicha($ficha);
         $familia = Familia::find($uuid2);
         $ajustes = DB::connection('site')->table('ajustes')->first();
+        $stockMinimo = $ajustes->stock_minimo ?? 5;
+        
         if ($ajustes->permitir_comprar_sin_stock == 1) {
-            $productos = Producto::where('familia', $uuid2)->orderBy('posicion')->get();
+            $productos = Producto::where('familia', $uuid2)
+                ->where('precio', '>', 0)
+                ->orderBy('posicion')
+                ->get();
+            $productosAgotados = collect();
+            $productosStockBajo = collect();
         } else {
-            //en lugar de filtrar los productos y no devolverlos los devolvemos con un agotado true o false
-            $productos = Producto::where('familia', $uuid2)->orderBy('posicion')->get();
+            $productos = Producto::where('familia', $uuid2)
+                ->where('precio', '>', 0)
+                ->orderBy('posicion')
+                ->get();
+            
+            // Productos sin stock (no se pueden comprar)
             $productosAgotados = Producto::where('familia', $uuid2)
                 ->where(function ($query) {
                     $query->where(function ($query) {
-                        $query->where('combinado', 0) -> where('stock', '<=', 0);
+                        $query->where('combinado', 0)->where('stock', '<=', 0);
                     })->orWhere(function ($query) {
                         $query->where('combinado', 1)
                             ->whereIn('uuid', function ($subquery) {
-                                    $subquery->select('id_producto')
+                                $subquery->select('id_producto')
                                     ->from('composicion_productos')
                                     ->groupBy('id_producto')
                                     ->havingRaw('SUM(CASE WHEN id_componente IN (SELECT uuid FROM productos WHERE stock <= 0) THEN 1 ELSE 0 END) > 0');
                             });
                     });
                 })->orderBy('posicion')->get();
+            
+            // Productos con stock bajo (pueden comprarse pero con aviso)
+            $productosStockBajo = Producto::where('familia', $uuid2)
+                ->where(function ($query) use ($stockMinimo) {
+                    $query->where(function ($query) use ($stockMinimo) {
+                        $query->where('combinado', 0)
+                            ->where('stock', '>', 0)
+                            ->where('stock', '<=', $stockMinimo);
+                    })->orWhere(function ($query) use ($stockMinimo) {
+                        $query->where('combinado', 1)
+                            ->whereIn('uuid', function ($subquery) use ($stockMinimo) {
+                                $subquery->select('id_producto')
+                                    ->from('composicion_productos')
+                                    ->groupBy('id_producto')
+                                    ->havingRaw('SUM(CASE WHEN id_componente IN (SELECT uuid FROM productos WHERE stock > 0 AND stock <= ?) THEN 1 ELSE 0 END) > 0', [$stockMinimo]);
+                            });
+                    });
+                })
+                ->whereNotIn('uuid', $productosAgotados->pluck('uuid'))
+                ->orderBy('posicion')
+                ->get();
         }
-        return view('fichas.productos', compact('ficha', 'familia', 'productos', 'productosAgotados', 'ajustes'));
+        
+        return view('fichas.productos', compact('ficha', 'familia', 'productos', 'productosAgotados', 'productosStockBajo', 'ajustes'));
     }
 
     public function usuarios($uuid)
@@ -684,6 +718,11 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
                 ->where('id_ficha', $uuid)
                 ->get();
             
+            Log::info('=== INICIO DESCUENTO STOCK ===', [
+                'ficha_uuid' => $uuid,
+                'productos_count' => $productos->count()
+            ]);
+            
             $stockService = new \App\Services\StockNotificationService();
             
             foreach ($productos as $producto) {
@@ -694,21 +733,39 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
                     foreach ($productoFicha->composicion as $composicion) {
                         $producto2 = $composicion->componenteProducto;
                         if ($producto2) {
+                            $stockAnterior = $producto2->stock;
                             $producto2->stock -= $producto->cantidad;
                             $producto2->save();
+                            
+                            Log::info('Stock actualizado (componente)', [
+                                'producto' => $producto2->nombre,
+                                'stock_anterior' => $stockAnterior,
+                                'stock_nuevo' => $producto2->stock,
+                                'cantidad_descontada' => $producto->cantidad
+                            ]);
                             
                             // Verificar stock bajo
                             $stockService->verificarYNotificar($producto2->uuid);
                         }
                     }
                 } else {
+                    $stockAnterior = $productoFicha->stock;
                     $productoFicha->stock -= $producto->cantidad;
                     $productoFicha->save();
+                    
+                    Log::info('Stock actualizado', [
+                        'producto' => $productoFicha->nombre,
+                        'stock_anterior' => $stockAnterior,
+                        'stock_nuevo' => $productoFicha->stock,
+                        'cantidad_descontada' => $producto->cantidad
+                    ]);
                     
                     // Verificar stock bajo
                     $stockService->verificarYNotificar($productoFicha->uuid);
                 }
             }
+            
+            Log::info('=== FIN DESCUENTO STOCK ===');
         }
         $ficha->estado = 1;
         $ficha->save();
@@ -1569,7 +1626,7 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
      */
     public function generarTicket($mesaId)
     {
-        $mesa = Ficha::with(['productos.producto', 'servicios.servicio', 'camarero'])
+        $mesa = Ficha::with(['productos.producto', 'servicios.servicio', 'camarero', 'gastos'])
             ->findOrFail($mesaId);
         
         // Verificar que la mesa/ficha esté cerrada (modo mesas o modo fichas)
@@ -1592,7 +1649,8 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
         foreach ($mesa->productos as $fp) {
             if ($fp->producto) {
                 $iva = $fp->producto->iva ?? 21;
-                $pvp = $fp->cantidad * $fp->precio; // El precio ya incluye IVA
+                $pvp = $fp->precio; // El precio ya está multiplicado por la cantidad en FichaProducto
+                $precioUnitario = $fp->cantidad > 0 ? $fp->precio / $fp->cantidad : $fp->precio;
                 $baseImponible = $pvp / (1 + $iva / 100);
                 $importeIva = $pvp - $baseImponible;
                 
@@ -1600,7 +1658,7 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
                     'tipo' => 'producto',
                     'nombre' => $fp->producto->nombre,
                     'cantidad' => $fp->cantidad,
-                    'precio_unitario' => $fp->precio,
+                    'precio_unitario' => $precioUnitario,
                     'iva' => $iva,
                     'total' => $pvp
                 ];
@@ -1656,6 +1714,38 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
             }
         }
         
+        // Añadir gastos
+        foreach ($mesa->gastos as $fg) {
+            $iva = 21; // IVA por defecto para gastos
+            $pvp = $fg->precio;
+            $baseImponible = $pvp / (1 + $iva / 100);
+            $importeIva = $pvp - $baseImponible;
+            
+            $lineas[] = [
+                'tipo' => 'gasto',
+                'nombre' => $fg->descripcion ?? 'Gasto',
+                'cantidad' => 1,
+                'precio_unitario' => $fg->precio,
+                'iva' => $iva,
+                'total' => $pvp
+            ];
+            
+            $subtotal += $baseImponible;
+            $totalIva += $importeIva;
+            
+            // Agrupar por IVA
+            $ivaKey = number_format($iva, 2);
+            if (!isset($ivaDesglose[$ivaKey])) {
+                $ivaDesglose[$ivaKey] = [
+                    'porcentaje' => $iva,
+                    'base' => 0,
+                    'cuota' => 0
+                ];
+            }
+            $ivaDesglose[$ivaKey]['base'] += $baseImponible;
+            $ivaDesglose[$ivaKey]['cuota'] += $importeIva;
+        }
+        
         $total = $subtotal + $totalIva;
         
         $ajustes = \App\Models\Ajustes::first();
@@ -1669,7 +1759,7 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
      */
     public function descargarTicket($fichaId)
     {
-        $ficha = Ficha::with(['productos.producto', 'servicios.servicio', 'camarero'])
+        $ficha = Ficha::with(['productos.producto', 'servicios.servicio', 'camarero', 'usuarios', 'gastos'])
             ->findOrFail($fichaId);
         
         // Verificar que la ficha esté cerrada
@@ -1692,7 +1782,8 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
         foreach ($ficha->productos as $fp) {
             if ($fp->producto) {
                 $iva = $fp->producto->iva ?? 21;
-                $pvp = $fp->cantidad * $fp->precio;
+                $pvp = $fp->precio; // El precio ya está multiplicado por la cantidad en FichaProducto
+                $precioUnitario = $fp->cantidad > 0 ? $fp->precio / $fp->cantidad : $fp->precio;
                 $baseImponible = $pvp / (1 + $iva / 100);
                 $importeIva = $pvp - $baseImponible;
                 
@@ -1700,7 +1791,7 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
                     'tipo' => 'producto',
                     'nombre' => $fp->producto->nombre,
                     'cantidad' => $fp->cantidad,
-                    'precio_unitario' => $fp->precio,
+                    'precio_unitario' => $precioUnitario,
                     'iva' => $iva,
                     'total' => $pvp
                 ];
@@ -1752,6 +1843,37 @@ if ($request->method() == "POST" && $request->incluir_cerradas == 1) {
                 $ivaDesglose[$ivaKey]['base'] += $baseImponible;
                 $ivaDesglose[$ivaKey]['cuota'] += $importeIva;
             }
+        }
+        
+        // Añadir gastos
+        foreach ($ficha->gastos as $fg) {
+            $iva = 21; // IVA por defecto para gastos
+            $pvp = $fg->precio;
+            $baseImponible = $pvp / (1 + $iva / 100);
+            $importeIva = $pvp - $baseImponible;
+            
+            $lineas[] = [
+                'tipo' => 'gasto',
+                'nombre' => $fg->descripcion ?? 'Gasto',
+                'cantidad' => 1,
+                'precio_unitario' => $fg->precio,
+                'iva' => $iva,
+                'total' => $pvp
+            ];
+            
+            $subtotal += $baseImponible;
+            $totalIva += $importeIva;
+            
+            $ivaKey = number_format($iva, 2);
+            if (!isset($ivaDesglose[$ivaKey])) {
+                $ivaDesglose[$ivaKey] = [
+                    'porcentaje' => $iva,
+                    'base' => 0,
+                    'cuota' => 0
+                ];
+            }
+            $ivaDesglose[$ivaKey]['base'] += $baseImponible;
+            $ivaDesglose[$ivaKey]['cuota'] += $importeIva;
         }
         
         $total = $subtotal + $totalIva;

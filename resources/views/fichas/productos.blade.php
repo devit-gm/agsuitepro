@@ -60,6 +60,29 @@
                                 </button>
                             </form>
                         </div>
+                        @elseif($productosStockBajo->contains('uuid', $producto->uuid))
+                        <div class="producto-card producto-stock-bajo">
+                            <form action="{{ fichaRoute('addproduct',[$ficha->uuid, $familia->uuid]) }}" method="post" name="sumarcantidadform_{{$producto->uuid}}" id="sumarcantidadform_{{$producto->uuid}}">
+                                @csrf
+                                <input type="hidden" name="idFicha" value="{{ $ficha->uuid }}" />
+                                <input type="hidden" name="idProducto" value="{{ $producto->uuid }}" />
+                                <input type="hidden" name="idFamilia" value="{{ $familia->uuid }}" />
+                                <input type="hidden" name="cantidad" id="sumarcantidadformcantidad_{{$producto->uuid}}" value="1" />
+                                <button type="button" id="{{$producto->uuid}}" class="btn p-0 clickable-row w-100 position-relative" data-hrefsumarcantidadpreguntar="true" data-hrefsumarcantidad="self">
+                                    <img src="{{ cachedImage($producto->imagen) }}" 
+                                         class="img-fluid rounded" 
+                                         alt="{{ $producto->nombre }}"
+                                         loading="lazy"
+                                         decoding="async">
+                                    <span 
+                                        class="position-absolute top-0 end-0 badge rounded-pill" 
+                                        style="background: rgba(255, 193, 7, 0.9); color: #000; margin: 8px; font-size: 0.75rem; padding: 4px 8px;"
+                                    >
+                                        <i class="bi bi-exclamation-triangle-fill"></i> Stock bajo
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
                         @else
                         <div class="producto-card">
                             <form action="{{ fichaRoute('addproduct',[$ficha->uuid, $familia->uuid]) }}" method="post" name="sumarcantidadform_{{$producto->uuid}}" id="sumarcantidadform_{{$producto->uuid}}">

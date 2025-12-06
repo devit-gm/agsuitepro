@@ -173,10 +173,16 @@
             <span>{{ $ficha->camarero->name }}</span>
         </div>
         @endif
-        @if($ficha->numero_comensales)
+        @php
+            $totalComensales = 0;
+            if ($ficha->usuarios && $ficha->usuarios->count() > 0) {
+                $totalComensales = $ficha->usuarios->count() + $ficha->usuarios->sum('invitados') + $ficha->usuarios->sum('ninos');
+            }
+        @endphp
+        @if($totalComensales > 0)
         <div class="info-row">
             <span class="info-label">COMENSALES:</span>
-            <span>{{ $ficha->numero_comensales }}</span>
+            <span>{{ $totalComensales }}</span>
         </div>
         @endif
     </div>
